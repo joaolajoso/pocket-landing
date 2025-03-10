@@ -1,36 +1,36 @@
 
-import { Linkedin, FileText, Image, Mail, Smartphone, Link2, Eye, Shield, Gauge } from "lucide-react";
+import { Linkedin, FileText, Image, Mail, Smartphone, Link2, Eye, Shield, Gauge, Bookmark, QrCode, GraduationCap } from "lucide-react";
 
 const features = [
   {
     icon: <Link2 className="h-6 w-6 text-primary" />,
     title: "Centralize Your Links",
-    description: "Store and share all your important links in one place - LinkedIn, portfolio, resume, and more."
+    description: "Store and share all your professional links in one place - LinkedIn, portfolio, resume, and contact information."
   },
   {
     icon: <Smartphone className="h-6 w-6 text-primary" />,
     title: "NFC Enabled",
-    description: "Instantly share your profile with a tap when paired with an NFC card or chip."
+    description: "Share your profile instantly with a tap of your PocketCV card on any NFC-enabled smartphone."
   },
   {
-    icon: <Eye className="h-6 w-6 text-primary" />,
-    title: "Live Preview",
-    description: "See how your page looks in real-time as you make changes to ensure it's perfect."
+    icon: <QrCode className="h-6 w-6 text-primary" />,
+    title: "QR Code Backup",
+    description: "For devices without NFC support, your unique QR code ensures you never miss a connection opportunity."
   },
   {
-    icon: <Shield className="h-6 w-6 text-primary" />,
-    title: "Secure Platform",
-    description: "Your data is protected with state-of-the-art security practices and encryption."
+    icon: <GraduationCap className="h-6 w-6 text-primary" />,
+    title: "Student Focused",
+    description: "Designed specifically for university students and young professionals entering the job market."
   },
   {
-    icon: <Gauge className="h-6 w-6 text-primary" />,
-    title: "Fast Performance",
-    description: "Optimized for speed with fast-loading pages to ensure a seamless experience."
+    icon: <Bookmark className="h-6 w-6 text-primary" />,
+    title: "Memorable URLs",
+    description: "Get your own personalized link that's easy to remember and share with potential employers."
   },
   {
     icon: <FileText className="h-6 w-6 text-primary" />,
     title: "CV Integration",
-    description: "Upload and share your resume or CV directly through your personal link."
+    description: "Upload and share your resume or CV directly through your personal link for seamless job applications."
   }
 ];
 
@@ -41,7 +41,7 @@ const FeatureSection = () => {
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Everything You Need</h2>
           <p className="text-muted-foreground">
-            PocketCV combines all the essential tools for creating your professional online presence in one simple platform.
+            PocketCV combines all the essential networking tools for students and young professionals in one simple platform.
           </p>
         </div>
 
