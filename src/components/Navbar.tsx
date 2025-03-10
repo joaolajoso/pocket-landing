@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -42,8 +41,13 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold tracking-tight" onClick={closeMenu}>
-          <span className="text-primary">Pocket</span>CV
+        <Link to="/" className="flex flex-col items-start" onClick={closeMenu}>
+          <span className="font-museomoderno text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange drop-shadow-[0_0_0.3rem_rgba(140,82,255,0.3)]">
+            PocketCV
+          </span>
+          <span className="text-xs text-muted-foreground font-medium tracking-wide">
+            instant networking
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
