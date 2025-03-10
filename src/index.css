@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 240 5.9% 10%;
+    --primary: 267 100% 66%; /* #8c52ff */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 4.8% 95.9%;
@@ -31,7 +31,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
+    --ring: 267 100% 66%;
 
     --radius: 0.75rem;
   }
@@ -75,6 +75,34 @@
   .input-field {
     @apply w-full px-4 py-3 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300;
   }
+  
+  /* PocketCV gradient styles */
+  .pocketcv-gradient-bg {
+    @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange;
+  }
+  
+  .pocketcv-gradient-text {
+    @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange bg-clip-text text-transparent;
+  }
+  
+  .pocketcv-gradient-border {
+    @apply border-2 border-transparent bg-white;
+    background-clip: padding-box;
+    position: relative;
+  }
+  
+  .pocketcv-gradient-border::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: -2px;
+    border-radius: inherit;
+    background: linear-gradient(to right, #8c52ff, #ff914d);
+    z-index: -1;
+  }
 }
 
 @layer utilities {
@@ -83,7 +111,7 @@
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange bg-clip-text text-transparent;
   }
   
   .animation-delay-200 {

@@ -35,8 +35,8 @@ const Hero = () => {
     >
       {/* Background elements */}
       <div className="absolute top-0 inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-pocketcv-purple/10 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-pocketcv-orange/10 blur-3xl" />
       </div>
 
       <div className="container px-4 md:px-6 mx-auto">
@@ -52,13 +52,13 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
-            <Button size="lg" className="group" asChild>
+            <Button size="lg" className="group pocketcv-gradient-bg text-white hover:opacity-90" asChild>
               <Link to="/login?signup=true">
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" className="border-pocketcv-purple/30 hover:bg-pocketcv-purple/5" asChild>
               <a href="#how-it-works">
                 Learn More
               </a>
@@ -87,19 +87,19 @@ const Hero = () => {
                     
                     <div className="w-full max-w-sm space-y-4">
                       <div className="h-14 bg-muted/80 rounded-md flex items-center px-4">
-                        <Globe className="text-primary/40 mr-3" />
+                        <Globe className="text-pocketcv-purple/60 mr-3" />
                         <div className="w-full">
                           <div className="w-24 h-3 bg-muted-foreground/30 rounded-sm"></div>
                         </div>
                       </div>
                       <div className="h-14 bg-muted/80 rounded-md flex items-center px-4">
-                        <Smartphone className="text-primary/40 mr-3" />
+                        <Smartphone className="text-pocketcv-purple/60 mr-3" />
                         <div className="w-full">
                           <div className="w-32 h-3 bg-muted-foreground/30 rounded-sm"></div>
                         </div>
                       </div>
                       <div className="h-14 bg-muted/80 rounded-md flex items-center px-4">
-                        <Share2 className="text-primary/40 mr-3" />
+                        <Share2 className="text-pocketcv-purple/60 mr-3" />
                         <div className="w-full">
                           <div className="w-28 h-3 bg-muted-foreground/30 rounded-sm"></div>
                         </div>
