@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Globe, Smartphone, Share2 } from "lucide-react";
@@ -44,8 +43,8 @@ const Hero = () => {
         <div className="flex flex-col lg:flex-row gap-12 md:gap-16 items-center">
           <div className="max-w-2xl text-center lg:text-left space-y-8 lg:flex-1">
             <h1 className="text-4xl md:text-6xl font-bold leading-tight md:leading-tight tracking-tight animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
-              Your Digital Identity, <br />
-              <span className="text-gradient">Simplified</span>
+              Networking made simple <br />
+              <span className="text-gradient"></span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
