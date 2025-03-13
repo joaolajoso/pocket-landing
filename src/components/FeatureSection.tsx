@@ -1,5 +1,5 @@
 
-import { Linkedin, FileText, Image, Mail, Smartphone, Link2, Eye, Shield, Gauge, Bookmark, QrCode, GraduationCap } from "lucide-react";
+import { Linkedin, FileText, Image, Mail, Smartphone, Link2, Eye, Shield, Gauge, Bookmark, GraduationCap } from "lucide-react";
 
 const features = [
   {
@@ -11,11 +11,6 @@ const features = [
     icon: <Smartphone className="h-6 w-6 text-pocketcv-purple" />,
     title: "NFC Enabled",
     description: "Share your profile instantly with a tap of your PocketCV card on any NFC-enabled smartphone."
-  },
-  {
-    icon: <QrCode className="h-6 w-6 text-pocketcv-purple" />,
-    title: "QR Code Backup",
-    description: "For devices without NFC support, your unique QR code ensures you never miss a connection opportunity."
   },
   {
     icon: <GraduationCap className="h-6 w-6 text-pocketcv-purple" />,
@@ -31,6 +26,11 @@ const features = [
     icon: <FileText className="h-6 w-6 text-pocketcv-purple" />,
     title: "CV Integration",
     description: "Upload and share your resume or CV directly through your personal link for seamless job applications."
+  },
+  {
+    icon: <Mail className="h-6 w-6 text-pocketcv-purple" />,
+    title: "Contact Integration",
+    description: "Add your contact information and social profiles so recruiters can easily reach out to you."
   }
 ];
 
