@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Globe, Smartphone, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -40,78 +41,61 @@ const Hero = () => {
       </div>
 
       <div className="container px-4 md:px-6 mx-auto">
-        <div className="max-w-3xl mx-auto text-center space-y-8 mb-12 md:mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight md:leading-tight tracking-tight animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
-            Your Digital Identity, <br />
-            <span className="text-gradient">Simplified</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
-            Create your professional landing page in minutes. Share your links, CV, 
-            and contact information with a single tap through NFC.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
-            <Button size="lg" className="group pocketcv-gradient-bg text-white hover:opacity-90" asChild>
-              <Link to="/login?signup=true">
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="border-pocketcv-purple/30 hover:bg-pocketcv-purple/5" asChild>
-              <a href="#how-it-works">
-                Learn More
-              </a>
-            </Button>
+        <div className="flex flex-col lg:flex-row gap-12 md:gap-16 items-center">
+          <div className="max-w-2xl text-center lg:text-left space-y-8 lg:flex-1">
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight md:leading-tight tracking-tight animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
+              Your Digital Identity, <br />
+              <span className="text-gradient">Simplified</span>
+            </h1>
+            
+            <p className="text-lg md:text-xl text-muted-foreground animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
+              Create your professional landing page in minutes. Share your links, CV, 
+              and contact information with a single tap through NFC.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
+              <Button size="lg" className="group pocketcv-gradient-bg text-white hover:opacity-90" asChild>
+                <Link to="/login?signup=true">
+                  Get Started
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-pocketcv-purple/30 hover:bg-pocketcv-purple/5" asChild>
+                <a href="#features">
+                  Learn More
+                </a>
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Device showcase */}
-        <div className="relative mx-auto max-w-5xl animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-300">
-          <div className="aspect-[16/9] overflow-hidden rounded-xl border border-border shadow-2xl">
-            <div className="relative h-full w-full bg-background">
-              {/* Mockup profile page */}
-              <div className="absolute inset-0 flex flex-col">
-                <div className="h-16 border-b border-border flex items-center px-6">
-                  <div className="w-40 h-8 bg-muted rounded-md"></div>
-                  <div className="ml-auto flex gap-3">
-                    <div className="w-8 h-8 bg-muted rounded-md"></div>
-                    <div className="w-8 h-8 bg-muted rounded-md"></div>
+          {/* 3D Card Mockup */}
+          <div className="lg:flex-1 w-full max-w-md mx-auto lg:mx-0 animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-300">
+            <div className="relative perspective-1000">
+              <div className="card-3d-wrapper animate-float">
+                <div className="card-3d-front relative rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+                  <AspectRatio ratio={16/9}>
+                    <img 
+                      src="/lovable-uploads/4511e201-5978-47b7-a6b1-999b88226b1d.png" 
+                      alt="PocketCV Card" 
+                      className="w-full h-full object-cover"
+                    />
+                  </AspectRatio>
+                  <div className="absolute inset-0 shadow-inner pocketcv-gradient-bg opacity-10"></div>
+                  {/* NFC wave symbol overlay */}
+                  <div className="absolute bottom-4 right-4 text-white/70">
+                    <svg width="40" height="40" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a10 10 0 0 1 10 10a10 10 0 0 1-10 10A10 10 0 0 1 2 12A10 10 0 0 1 12 2z" opacity="0" />
+                      <path d="M8 12a4 4 0 0 1 8 0" />
+                      <path d="M7 9.67a6 6 0 0 1 10 0" />
+                      <path d="M5.5 7.33a8 8 0 0 1 13 0" />
+                    </svg>
                   </div>
                 </div>
-                <div className="flex-1 flex">
-                  <div className="flex-1 p-8 flex flex-col items-center justify-center">
-                    <div className="w-24 h-24 bg-muted rounded-full mb-4"></div>
-                    <div className="w-40 h-6 bg-muted rounded-md mb-2"></div>
-                    <div className="w-64 h-4 bg-muted/60 rounded-md mb-8"></div>
-                    
-                    <div className="w-full max-w-sm space-y-4">
-                      <div className="h-14 bg-muted/80 rounded-md flex items-center px-4">
-                        <Globe className="text-pocketcv-purple/60 mr-3" />
-                        <div className="w-full">
-                          <div className="w-24 h-3 bg-muted-foreground/30 rounded-sm"></div>
-                        </div>
-                      </div>
-                      <div className="h-14 bg-muted/80 rounded-md flex items-center px-4">
-                        <Smartphone className="text-pocketcv-purple/60 mr-3" />
-                        <div className="w-full">
-                          <div className="w-32 h-3 bg-muted-foreground/30 rounded-sm"></div>
-                        </div>
-                      </div>
-                      <div className="h-14 bg-muted/80 rounded-md flex items-center px-4">
-                        <Share2 className="text-pocketcv-purple/60 mr-3" />
-                        <div className="w-full">
-                          <div className="w-28 h-3 bg-muted-foreground/30 rounded-sm"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Card shadow/reflection */}
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-foreground/20 blur-md rounded-full"></div>
               </div>
             </div>
           </div>
-          
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-24 h-2 bg-foreground/10 blur-md rounded-full"></div>
         </div>
       </div>
     </div>
