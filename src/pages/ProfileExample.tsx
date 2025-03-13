@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Linkedin, FileText, Globe, Mail, Github, Twitter, ArrowLeft } from "lucide-react";
+import { Linkedin, FileText, Globe, Mail, Github, ArrowLeft } from "lucide-react";
 
 const ProfileExample = () => {
   return (
@@ -80,18 +80,6 @@ const ProfileExample = () => {
               <div className="flex-1 min-w-0">
                 <h4 className="text-base font-medium truncate">GitHub</h4>
                 <p className="text-sm text-muted-foreground truncate">Check my code</p>
-              </div>
-            </Card>
-          </a>
-          
-          <a href="https://twitter.com/sarahjohnsonux" target="_blank" rel="noopener noreferrer">
-            <Card className="link-card">
-              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-md bg-primary/10 text-primary">
-                <Twitter className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-base font-medium truncate">Twitter</h4>
-                <p className="text-sm text-muted-foreground truncate">Follow my updates</p>
               </div>
             </Card>
           </a>
