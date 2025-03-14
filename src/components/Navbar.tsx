@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -27,7 +28,7 @@ const Navbar = () => {
         { name: "Preview", path: "/preview" },
       ]
     : [
-        { name: "Features", path: "/#features" },
+        // Removed the Features link
         { name: "How It Works", path: "/#how-it-works" },
         { name: "FAQ", path: "/#faq" },
       ];
@@ -79,7 +80,7 @@ const Navbar = () => {
                   <Link to="/login">Log in</Link>
                 </Button>
                 <Button variant="default" size="sm" asChild>
-                  <Link to="/login?signup=true">Sign up</Link>
+                  <Link to="/get-started">Get Started</Link>
                 </Button>
               </>
             )}
@@ -130,7 +131,7 @@ const Navbar = () => {
                     <Link to="/login" onClick={closeMenu}>Log in</Link>
                   </Button>
                   <Button className="w-full" asChild>
-                    <Link to="/login?signup=true" onClick={closeMenu}>Sign up</Link>
+                    <Link to="/get-started" onClick={closeMenu}>Get Started</Link>
                   </Button>
                 </>
               )}
