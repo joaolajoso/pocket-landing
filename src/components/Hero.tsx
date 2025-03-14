@@ -1,7 +1,7 @@
 
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Globe, Smartphone, Share2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -61,7 +61,7 @@ const Hero = () => {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-pocketcv-purple/30 hover:bg-pocketcv-purple/5" asChild>
-                <a href="#features">
+                <a href="#how-it-works">
                   Learn More
                 </a>
               </Button>

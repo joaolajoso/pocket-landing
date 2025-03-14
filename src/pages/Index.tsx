@@ -1,7 +1,9 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import HowItWorks from "@/components/HowItWorks";
 import FeatureSection from "@/components/FeatureSection";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ const Index = () => {
       <Navbar />
       <main className="flex-1">
         <Hero />
+        <HowItWorks />
         <FeatureSection />
 
         {/* Example Profile Section */}
