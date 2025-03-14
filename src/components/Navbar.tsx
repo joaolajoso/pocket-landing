@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -70,6 +71,8 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+            
             {isAuthenticated ? (
               <Button variant="default" size="sm" asChild>
                 <Link to="/dashboard">Dashboard</Link>
@@ -88,7 +91,8 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center">
+          <LanguageSwitcher />
           <Button
             variant="ghost"
             size="icon"
