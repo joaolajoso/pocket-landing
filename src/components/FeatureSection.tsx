@@ -3,32 +3,32 @@ import { Linkedin, FileText, Image, Mail, Smartphone, Link2, Eye, Shield, Gauge,
 
 const features = [
   {
-    icon: <Link2 className="h-6 w-6 text-pocketcv-purple" />,
+    icon: <Link2 className="h-6 w-6 text-white" />,
     title: "Centralize Your Links",
     description: "Store and share all your professional links in one place - LinkedIn, portfolio, resume, and contact information."
   },
   {
-    icon: <Smartphone className="h-6 w-6 text-pocketcv-purple" />,
+    icon: <Smartphone className="h-6 w-6 text-white" />,
     title: "NFC Enabled",
     description: "Share your profile instantly with a tap of your PocketCV card on any NFC-enabled smartphone."
   },
   {
-    icon: <GraduationCap className="h-6 w-6 text-pocketcv-purple" />,
+    icon: <GraduationCap className="h-6 w-6 text-white" />,
     title: "Student Focused",
     description: "Designed specifically for university students and young professionals entering the job market."
   },
   {
-    icon: <Bookmark className="h-6 w-6 text-pocketcv-purple" />,
+    icon: <Bookmark className="h-6 w-6 text-white" />,
     title: "Memorable URLs",
     description: "Get your own personalized link that's easy to remember and share with potential employers."
   },
   {
-    icon: <FileText className="h-6 w-6 text-pocketcv-purple" />,
+    icon: <FileText className="h-6 w-6 text-white" />,
     title: "CV Integration",
     description: "Upload and share your resume or CV directly through your personal link for seamless job applications."
   },
   {
-    icon: <Mail className="h-6 w-6 text-pocketcv-purple" />,
+    icon: <Mail className="h-6 w-6 text-white" />,
     title: "Contact Integration",
     description: "Add your contact information and social profiles so recruiters can easily reach out to you."
   }
@@ -51,8 +51,8 @@ const FeatureSection = () => {
               key={index} 
               className="bg-background rounded-xl p-6 shadow-sm border border-border/60 transition-all duration-300 hover:shadow-md hover:translate-y-[-2px] group"
             >
-              <div className="mb-4 w-12 h-12 rounded-lg pocketcv-gradient-bg flex items-center justify-center bg-opacity-10 group-hover:bg-opacity-100 transition-all duration-300">
-                <div className="text-white">{feature.icon}</div>
+              <div className="mb-4 w-12 h-12 rounded-lg pocketcv-gradient-bg flex items-center justify-center">
+                {feature.icon}
               </div>
               <h3 className="text-xl font-medium mb-2 group-hover:text-pocketcv-purple transition-colors duration-300">{feature.title}</h3>
               <p className="text-muted-foreground">{feature.description}</p>
