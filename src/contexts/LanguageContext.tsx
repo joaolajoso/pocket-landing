@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Define supported languages and their display names
 export type Language = 'en' | 'pt';
@@ -116,7 +116,16 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 // Language provider component
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  // Try to get saved language from localStorage or default to 'en'
+  const [language, setLanguage] = useState<Language>(() => {
+    const savedLanguage = localStorage.getItem('pocketcv-language');
+    return (savedLanguage as Language) || 'en';
+  });
+  
+  // Save language preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('pocketcv-language', language);
+  }, [language]);
   
   // Get translations for current language
   const t = translations[language];

@@ -13,6 +13,10 @@ import { Button } from "@/components/ui/button";
 const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
 
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -25,7 +29,7 @@ const LanguageSwitcher = () => {
         {Object.entries(languages).map(([lang, name]) => (
           <DropdownMenuItem 
             key={lang}
-            onClick={() => setLanguage(lang as Language)}
+            onClick={() => handleLanguageChange(lang as Language)}
             className={language === lang ? "bg-accent text-accent-foreground" : ""}
           >
             {name}
