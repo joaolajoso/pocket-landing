@@ -57,7 +57,7 @@ const Navbar = () => {
                 <Link to="/dashboard">Dashboard</Link>
               </Button> : <>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login">Log in</Link>
+                  
                 </Button>
                 <Button variant="default" size="sm" asChild>
                   
