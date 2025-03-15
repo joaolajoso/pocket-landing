@@ -24,6 +24,10 @@ export interface TranslationContent {
     description: string;
     button: string;
   };
+  order: {
+    title: string;
+    description: string;
+  };
 }
 
 // Define translations
@@ -63,6 +67,10 @@ export const translations: Record<Language, TranslationContent> = {
       title: 'See it in action',
       description: 'Take a look at an example profile to see how PocketCV helps you share your professional identity with a simple tap.',
       button: 'View Example Profile'
+    },
+    order: {
+      title: 'Ready to Order?',
+      description: 'Fill out the form below to place your order. We\'ll get back to you as soon as possible.'
     }
   },
   pt: {
@@ -100,6 +108,10 @@ export const translations: Record<Language, TranslationContent> = {
       title: 'Veja em ação',
       description: 'Dê uma olhada em um perfil de exemplo para ver como o PocketCV ajuda você a compartilhar sua identidade profissional com um simples toque.',
       button: 'Ver Perfil de Exemplo'
+    },
+    order: {
+      title: 'Pronto para Encomendar?',
+      description: 'Preencha o formulário abaixo para fazer seu pedido. Entraremos em contato o mais breve possível.'
     }
   }
 };
