@@ -17,6 +17,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import emailjs from 'emailjs-com';
+import { useState } from "react";
+
+// Add EmailJS configuration constants
+const EMAILJS_SERVICE_ID = "default_service"; // You will need to replace this with your service ID
+const EMAILJS_TEMPLATE_ID = "template_pocketcv"; // You will need to replace this with your template ID
+const EMAILJS_USER_ID = "YOUR_USER_ID"; // You will need to replace this with your user ID
+const RECIPIENT_EMAIL = "victordejulio13@gmail.com";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -33,6 +41,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const OrderForm = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -47,11 +56,31 @@ const OrderForm = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
+    
     try {
-      // In a real application, you would send this data to your backend or a service like Formspree
-      console.log("Form submitted:", data);
+      // Prepare the template parameters
+      const templateParams = {
+        from_name: data.name,
+        from_email: data.email,
+        to_name: "PocketCV Team",
+        to_email: RECIPIENT_EMAIL,
+        phone_number: data.phone,
+        message: data.message,
+        quantity: data.quantity,
+        reply_to: data.email,
+      };
       
-      // For now, we'll just show a success message
+      // Send the email using EmailJS
+      const response = await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_USER_ID
+      );
+      
+      console.log("Email sent successfully:", response);
+      
       toast({
         title: "Order Submitted!",
         description: "We'll get back to you as soon as possible.",
@@ -67,6 +96,8 @@ const OrderForm = () => {
         variant: "destructive",
         duration: 5000,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -172,8 +203,8 @@ const OrderForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full">
-            Submit Order
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Order"}
           </Button>
         </form>
       </Form>
