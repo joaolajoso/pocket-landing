@@ -125,7 +125,7 @@ const OrderForm = () => {
           <FormField control={form.control} name="quantity" render={({
           field
         }) => <FormItem>
-                <FormLabel>Quantidade</FormLabel>
+                <FormLabel>Quantity</FormLabel>
                 <FormControl>
                   <Input placeholder="How many units?" type="number" min="1" {...field} />
                 </FormControl>
