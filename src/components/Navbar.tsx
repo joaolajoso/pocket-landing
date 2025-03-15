@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -36,7 +37,7 @@ const Navbar = () => {
   return <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "py-2 bg-white/80 backdrop-blur-lg shadow-sm" : "py-4 bg-transparent"}`}>
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <Link to="/" className="flex flex-col items-start" onClick={closeMenu}>
-          <span className="font-museomoderno tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange drop-shadow-[0_0_0.3rem_rgba(140,82,255,0.3)] font-medium text-2xl">PocketCV</span>
+          <span className="font-museomoderno tracking-tight pocketcv-gradient-text drop-shadow-[0_0_0.3rem_rgba(140,82,255,0.3)] font-medium text-2xl">PocketCV</span>
           <span className="text-xs text-muted-foreground font-medium tracking-wide">
             instant networking
           </span>
