@@ -54,7 +54,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <Link to="/" className="flex flex-col items-start" onClick={closeMenu}>
           <span className="text-2xl font-semibold pocketcv-gradient-text">Pocket CV</span>
-          <span className="text-muted-foreground tracking-wider text-xs text-left font-thin">Instant Networking</span>
+          
         </Link>
 
         {/* Desktop Navigation */}
