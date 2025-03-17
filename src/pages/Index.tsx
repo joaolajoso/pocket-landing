@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
 import FeatureSection from "@/components/FeatureSection";
+import NetworkingBanner from "@/components/NetworkingBanner";
+import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +22,12 @@ const Index = () => {
         <Hero />
         <HowItWorks />
         <FeatureSection />
+        
+        {/* Networking Banner - Added after "Everything You Need" section */}
+        <NetworkingBanner />
+        
+        {/* FAQ Section */}
+        <FAQ />
 
         {/* Contact Section */}
         <ContactSection />
