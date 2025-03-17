@@ -50,68 +50,6 @@ const Navbar = () => {
       }
     }
   };
-  return <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "py-2 bg-white/80 backdrop-blur-lg shadow-sm" : "py-4 bg-transparent"}`}>
-      <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
-        <Link to="/" className="flex flex-col items-start" onClick={closeMenu}>
-          <span className="text-2xl font-semibold pocketcv-gradient-text">Pocket CV</span>
-          <span className="text-muted-foreground tracking-wider text-xs text-left font-thin">Instant Networking</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          <div className="flex gap-6">
-            {navigationLinks.map(link => <Link key={link.name} to={link.path} className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === link.path || location.hash === link.path.replace('/', '') ? "text-primary" : "text-muted-foreground"}`} onClick={e => handleNavClick(link.path, e)}>
-                {link.name}
-              </Link>)}
-          </div>
-
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            
-            {isAuthenticated ? <Button variant="default" size="sm" asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button> : <>
-                <Button variant="ghost" size="sm" asChild>
-                  
-                </Button>
-                <Button variant="default" size="sm" asChild>
-                  
-                </Button>
-              </>}
-          </div>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
-          <LanguageSwitcher />
-          <Button variant="ghost" size="icon" aria-label="Toggle Menu" onClick={toggleMenu}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu Panel */}
-      {isMenuOpen && <div className="fixed inset-0 top-16 z-50 bg-background/95 backdrop-blur-sm animate-fadeIn md:hidden">
-          <div className="container h-full flex flex-col gap-8 pt-16 pb-24">
-            <div className="flex flex-col gap-4">
-              {navigationLinks.map(link => <Link key={link.name} to={link.path} className="text-lg font-medium px-4 py-3 transition-colors hover:bg-secondary rounded-md" onClick={e => handleNavClick(link.path, e)}>
-                  {link.name}
-                </Link>)}
-            </div>
-            <div className="mt-auto space-y-4">
-              {isAuthenticated ? <Button className="w-full" asChild>
-                  <Link to="/dashboard" onClick={closeMenu}>Dashboard</Link>
-                </Button> : <>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link to="/login" onClick={closeMenu}>Log in</Link>
-                  </Button>
-                  <Button className="w-full" asChild>
-                    <Link to="/get-started" onClick={closeMenu}>Get Started</Link>
-                  </Button>
-                </>}
-            </div>
-          </div>
-        </div>}
-    </nav>;
+  return;
 };
 export default Navbar;
