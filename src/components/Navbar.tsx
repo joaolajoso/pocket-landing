@@ -37,7 +37,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <Link to="/" className="flex flex-col items-start" onClick={closeMenu}>
           <span className="text-2xl font-semibold pocketcv-gradient-text">Pocket CV</span>
-          <span className="text-xs text-muted-foreground font-outfit tracking-wider uppercase">
+          <span className="text-xs text-muted-foreground tracking-wider uppercase">
             INSTANT NETWORKING
           </span>
         </Link>
