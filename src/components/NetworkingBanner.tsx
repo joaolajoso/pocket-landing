@@ -56,11 +56,13 @@ const NetworkingBanner = () => {
             {/* Phone in the middle */}
             <div className="relative z-10 animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
               <div className="max-w-[300px] mx-auto md:mx-0">
-                <img
-                  src="/lovable-uploads/42b53831-1939-4eb7-a19a-b64de8155c37.png"
-                  alt="PocketCV Mobile Demo"
-                  className="w-full h-auto"
-                />
+                <AspectRatio ratio={9/16} className="overflow-hidden">
+                  <img
+                    src="/lovable-uploads/42b53831-1939-4eb7-a19a-b64de8155c37.png"
+                    alt="PocketCV Mobile Demo"
+                    className="w-full h-full object-contain"
+                  />
+                </AspectRatio>
               </div>
             </div>
 

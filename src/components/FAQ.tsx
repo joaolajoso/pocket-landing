@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,7 +20,7 @@ const translations = {
       },
       {
         question: "Will my card work with all smartphones?",
-        answer: "PocketCV cards work with the majority of modern smartphones (both Android and iOS) that have NFC capabilities. For phones without NFC, your profile can still be accessed via the personalized URL printed on your card."
+        answer: "PocketCV cards work with the majority of modern smartphones (both Android and iOS) that have NFC capabilities. For phones without NFC, your profile can still be accessed via the personalized URL."
       },
       {
         question: "How do I customize my PocketCV profile?",
@@ -51,7 +50,7 @@ const translations = {
       },
       {
         question: "Meu cartão funcionará com todos os smartphones?",
-        answer: "Os cartões PocketCV funcionam com a maioria dos smartphones modernos (Android e iOS) que possuem capacidade NFC. Para telefones sem NFC, seu perfil ainda pode ser acessado através da URL personalizada impressa no seu cartão."
+        answer: "Os cartões PocketCV funcionam com a maioria dos smartphones modernos (Android e iOS) que possuem capacidade NFC. Para telefones sem NFC, seu perfil ainda pode ser acessado através da URL personalizada."
       },
       {
         question: "Como personalizo meu perfil PocketCV?",
