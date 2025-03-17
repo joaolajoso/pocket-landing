@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Define supported languages and their display names
@@ -27,6 +26,11 @@ export interface TranslationContent {
   order: {
     title: string;
     description: string;
+  };
+  contact: {
+    title: string;
+    description: string;
+    button: string;
   };
 }
 
@@ -71,6 +75,11 @@ export const translations: Record<Language, TranslationContent> = {
     order: {
       title: 'Ready to Order?',
       description: 'Fill out the form below to place your order. We\'ll get back to you as soon as possible.'
+    },
+    contact: {
+      title: 'Get in Touch',
+      description: 'Have questions about PocketCV? Reach out to us directly.',
+      button: 'Contact Us Now'
     }
   },
   pt: {
@@ -112,6 +121,11 @@ export const translations: Record<Language, TranslationContent> = {
     order: {
       title: 'Pronto para Encomendar?',
       description: 'Preencha o formulário abaixo para fazer seu pedido. Entraremos em contato o mais breve possível.'
+    },
+    contact: {
+      title: 'Entre em Contato',
+      description: 'Tem perguntas sobre o PocketCV? Entre em contato conosco diretamente.',
+      button: 'Contate-nos Agora'
     }
   }
 };
