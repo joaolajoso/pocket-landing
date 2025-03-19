@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Check, Package, CreditCard, ArrowRight, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -100,7 +101,7 @@ const GetStarted = () => {
                 <CardTitle className="text-2xl">{language === 'en' ? 'Individual Card' : 'Cartão Individual'}</CardTitle>
                 <CardDescription>{language === 'en' ? 'Perfect for professionals and students' : 'Perfeito para profissionais e estudantes'}</CardDescription>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">€8</span><span className="text-muted-foreground ml-2">{language === 'en' ? '(one-time)' : '(pagamento único)'}</span>
+                  <span className="text-3xl font-bold">€5</span><span className="text-muted-foreground ml-2">{language === 'en' ? '(one-time)' : '(pagamento único)'}</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
