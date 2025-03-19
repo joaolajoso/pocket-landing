@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -12,28 +11,18 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ContactSection from "@/components/ContactSection";
 import { ArrowRight } from "lucide-react";
-
 const Index = () => {
-  const { t } = useLanguage();
-
-  return (
-    <div className="flex flex-col min-h-screen">
+  const {
+    t
+  } = useLanguage();
+  return <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
         <Hero />
         
         <HowItWorks />
         {/* CTA after How It Works section */}
-        <div className="py-12 bg-secondary/50">
-          <div className="container mx-auto px-4 md:px-6 text-center">
-            <Button size="lg" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 transform hover:scale-105 transition-all duration-300 shadow-lg" asChild>
-              <Link to="/get-started">
-                Get Started For Free
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
+        
         
         <FeatureSection />
         
@@ -78,8 +67,6 @@ const Index = () => {
         <ContactSection />
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
