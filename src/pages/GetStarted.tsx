@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OrderForm from "@/components/OrderForm";
+
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters."
@@ -40,12 +41,15 @@ const formSchema = z.object({
   }),
   newsletter: z.boolean().default(false).optional()
 });
+
 type FormData = z.infer<typeof formSchema>;
+
 const GetStarted = () => {
   const [orderType, setOrderType] = useState<'individual' | 'business'>('individual');
   const {
     language
   } = useLanguage();
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,11 +64,13 @@ const GetStarted = () => {
       newsletter: false
     }
   });
+
   const onSubmit = (data: FormData) => {
     console.log(data);
     // Here you would typically handle order submission
     alert("Order submitted successfully! We'll contact you soon.");
   };
+
   return <div className="container max-w-6xl px-4 py-24 mx-auto">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
@@ -94,8 +100,7 @@ const GetStarted = () => {
                 <CardTitle className="text-2xl">{language === 'en' ? 'Individual Card' : 'Cartão Individual'}</CardTitle>
                 <CardDescription>{language === 'en' ? 'Perfect for professionals and students' : 'Perfeito para profissionais e estudantes'}</CardDescription>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">€8</span>
-                  <span className="text-muted-foreground ml-2">{language === 'en' ? '(one-time)' : '(pagamento único)'}</span>
+                  <span className="text-3xl font-bold">€8</span><span className="text-muted-foreground ml-2">{language === 'en' ? '(one-time)' : '(pagamento único)'}</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
@@ -181,4 +186,5 @@ const GetStarted = () => {
       </Tabs>
     </div>;
 };
+
 export default GetStarted;
