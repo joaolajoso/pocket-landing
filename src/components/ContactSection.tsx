@@ -1,13 +1,13 @@
-
 import React from "react";
 import { Mail, Phone, MessageCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
-
 const ContactSection = () => {
-  const { t, language } = useLanguage();
-  
+  const {
+    t,
+    language
+  } = useLanguage();
   return <section className="py-16 bg-gradient-to-r from-purple-50 to-purple-100">
       <div className="container px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-10">
@@ -15,9 +15,7 @@ const ContactSection = () => {
             {t.contact?.title || "Get in Touch"}
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            {language === 'en' 
-              ? 'Have questions about PocketCV? Need help with customization? Reach out to us directly.'
-              : 'Tem perguntas sobre o PocketCV? Precisa de ajuda com personalização? Entre em contato conosco diretamente.'}
+            {language === 'en' ? 'Have questions about PocketCV? Need help with customization? Reach out to us directly.' : 'Tem perguntas sobre o PocketCV? Precisa de ajuda com personalização? Entre em contato conosco diretamente.'}
           </p>
           
           <div className="grid md:grid-cols-3 gap-6 max-w-2xl mx-auto">
@@ -62,10 +60,7 @@ const ContactSection = () => {
             
             <div className="mt-6">
               <Button asChild size="lg" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 transform hover:scale-105 transition-all duration-300 shadow-lg">
-                <Link to="/get-started">
-                  {language === 'en' ? 'Get Your PocketCV Card' : 'Peça seu Cartão PocketCV'}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
+                
               </Button>
             </div>
           </div>
@@ -73,5 +68,4 @@ const ContactSection = () => {
       </div>
     </section>;
 };
-
 export default ContactSection;
