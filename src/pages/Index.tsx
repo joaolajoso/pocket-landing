@@ -30,17 +30,7 @@ const Index = () => {
         <NetworkingBanner />
         
         {/* CTA after NetworkingBanner */}
-        <div className="py-12 bg-gradient-to-r from-purple-50 to-purple-100">
-          <div className="container mx-auto px-4 md:px-6 text-center">
-            <p className="text-lg font-medium mb-6 text-gray-700">Ready to elevate your networking experience?</p>
-            <Button size="lg" className="bg-pocketcv-purple hover:bg-pocketcv-purple/90 transform hover:scale-105 transition-all duration-300 shadow-lg" asChild>
-              <Link to="/get-started">
-                Order Your PocketCV Now
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
+        
         
         {/* FAQ Section */}
         <FAQ />
@@ -48,7 +38,7 @@ const Index = () => {
         {/* Final persuasive CTA */}
         <div className="py-16 bg-gradient-to-r from-pocketcv-purple/10 to-pocketcv-orange/10">
           <div className="container mx-auto px-4 md:px-6 text-center">
-            <h2 className="text-3xl font-bold mb-6 text-gradient">Join thousands of students upgrading their networking</h2>
+            <h2 className="text-3xl font-bold mb-6 text-gradient">Be the next to upgrade your networking</h2>
             <p className="text-lg mb-8 max-w-2xl mx-auto text-muted-foreground">
               Stand out at career fairs, interviews, and networking events with your personal PocketCV card.
             </p>
