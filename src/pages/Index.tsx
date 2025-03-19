@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ContactSection from "@/components/ContactSection";
+import { ArrowRight } from "lucide-react";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -20,14 +21,58 @@ const Index = () => {
       <Navbar />
       <main className="flex-1">
         <Hero />
+        
         <HowItWorks />
+        {/* CTA after How It Works section */}
+        <div className="py-12 bg-secondary/50">
+          <div className="container mx-auto px-4 md:px-6 text-center">
+            <Button size="lg" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 transform hover:scale-105 transition-all duration-300 shadow-lg" asChild>
+              <Link to="/get-started">
+                Get Started For Free
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+        
         <FeatureSection />
         
         {/* Networking Banner - Added after "Everything You Need" section */}
         <NetworkingBanner />
         
+        {/* CTA after NetworkingBanner */}
+        <div className="py-12 bg-gradient-to-r from-purple-50 to-purple-100">
+          <div className="container mx-auto px-4 md:px-6 text-center">
+            <p className="text-lg font-medium mb-6 text-gray-700">Ready to elevate your networking experience?</p>
+            <Button size="lg" className="bg-pocketcv-purple hover:bg-pocketcv-purple/90 transform hover:scale-105 transition-all duration-300 shadow-lg" asChild>
+              <Link to="/get-started">
+                Order Your PocketCV Now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+        
         {/* FAQ Section */}
         <FAQ />
+
+        {/* Final persuasive CTA */}
+        <div className="py-16 bg-gradient-to-r from-pocketcv-purple/10 to-pocketcv-orange/10">
+          <div className="container mx-auto px-4 md:px-6 text-center">
+            <h2 className="text-3xl font-bold mb-6 text-gradient">Join thousands of students upgrading their networking</h2>
+            <p className="text-lg mb-8 max-w-2xl mx-auto text-muted-foreground">
+              Stand out at career fairs, interviews, and networking events with your personal PocketCV card.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Button size="lg" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white transform hover:scale-105 transition-all duration-300 shadow-lg text-lg px-8 py-6 h-auto" asChild>
+                <Link to="/get-started">
+                  Order Your PocketCV Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
 
         {/* Contact Section */}
         <ContactSection />

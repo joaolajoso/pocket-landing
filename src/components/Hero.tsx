@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -33,14 +34,14 @@ const Hero = () => {
       title: "Your Digital Identity,",
       titleSpan: "Simplified",
       description: "Create your professional landing page in minutes. Share your links, CV, and contact information with a single tap through NFC.",
-      getStarted: "Get Started",
+      getStarted: "Order Now",
       learnMore: "Learn More"
     },
     pt: {
       title: "Sua Identidade Digital,",
       titleSpan: "Simplificada",
       description: "Crie sua página profissional em minutos. Compartilhe seus links, currículo e informações de contato com um único toque via NFC.",
-      getStarted: "Começar Agora",
+      getStarted: "Peça Agora",
       learnMore: "Saiba Mais"
     }
   };
@@ -65,8 +66,11 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
-              <Button size="lg" className="group pocketcv-gradient-bg text-white hover:opacity-90" asChild>
-                
+              <Button size="lg" className="group bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white transform hover:scale-105 transition-all duration-300 shadow-lg" asChild>
+                <Link to="/get-started">
+                  {t.getStarted}
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-pocketcv-purple/30 hover:bg-pocketcv-purple/5" asChild>
                 <a href="#how-it-works">

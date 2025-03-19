@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -72,10 +73,10 @@ const Navbar = () => {
                 <Link to="/dashboard">Dashboard</Link>
               </Button> : <>
                 <Button variant="ghost" size="sm" asChild>
-                  
+                  <Link to="/login">Log in</Link>
                 </Button>
-                <Button variant="default" size="sm" asChild>
-                  
+                <Button variant="default" size="sm" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 animate-pulse-slow" asChild>
+                  <Link to="/get-started">Get Your PocketCV Card</Link>
                 </Button>
               </>}
           </div>
@@ -105,8 +106,8 @@ const Navbar = () => {
                   <Button variant="outline" className="w-full" asChild>
                     <Link to="/login" onClick={closeMenu}>Log in</Link>
                   </Button>
-                  <Button className="w-full" asChild>
-                    <Link to="/get-started" onClick={closeMenu}>Get Started</Link>
+                  <Button className="w-full bg-pocketcv-orange hover:bg-pocketcv-orange/90" asChild>
+                    <Link to="/get-started" onClick={closeMenu}>Get Your PocketCV Card</Link>
                   </Button>
                 </>}
             </div>
