@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Check, Package, CreditCard, ArrowRight, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,41 +13,39 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OrderForm from "@/components/OrderForm";
-
 const formSchema = z.object({
   firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
+    message: "First name must be at least 2 characters."
   }),
   lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
+    message: "Last name must be at least 2 characters."
   }),
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "Please enter a valid email address."
   }),
   address: z.string().min(5, {
-    message: "Address must be at least 5 characters.",
+    message: "Address must be at least 5 characters."
   }),
   city: z.string().min(2, {
-    message: "City must be at least 2 characters.",
+    message: "City must be at least 2 characters."
   }),
   state: z.string().min(2, {
-    message: "State must be at least 2 characters.",
+    message: "State must be at least 2 characters."
   }),
   zipCode: z.string().min(5, {
-    message: "Zip code must be at least 5 characters.",
+    message: "Zip code must be at least 5 characters."
   }),
   country: z.string().min(2, {
-    message: "Country must be at least 2 characters.",
+    message: "Country must be at least 2 characters."
   }),
-  newsletter: z.boolean().default(false).optional(),
+  newsletter: z.boolean().default(false).optional()
 });
-
 type FormData = z.infer<typeof formSchema>;
-
 const GetStarted = () => {
   const [orderType, setOrderType] = useState<'individual' | 'business'>('individual');
-  const { language } = useLanguage();
-  
+  const {
+    language
+  } = useLanguage();
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,18 +57,15 @@ const GetStarted = () => {
       state: "",
       zipCode: "",
       country: "",
-      newsletter: false,
-    },
+      newsletter: false
+    }
   });
-
   const onSubmit = (data: FormData) => {
     console.log(data);
     // Here you would typically handle order submission
     alert("Order submitted successfully! We'll contact you soon.");
   };
-
-  return (
-    <div className="container max-w-6xl px-4 py-24 mx-auto">
+  return <div className="container max-w-6xl px-4 py-24 mx-auto">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
           {language === 'en' ? 'Get Your ' : 'Obtenha Seu '}
@@ -79,9 +73,7 @@ const GetStarted = () => {
           {language === 'en' ? ' Card' : ' Cartão'}
         </h1>
         <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
-          {language === 'en' 
-            ? 'Order your PocketCV card and start networking with a single tap.'
-            : 'Peça seu cartão PocketCV e comece a fazer networking com um único toque.'}
+          {language === 'en' ? 'Order your PocketCV card and start networking with a single tap.' : 'Peça seu cartão PocketCV e comece a fazer networking com um único toque.'}
         </p>
       </div>
 
@@ -102,7 +94,7 @@ const GetStarted = () => {
                 <CardTitle className="text-2xl">{language === 'en' ? 'Individual Card' : 'Cartão Individual'}</CardTitle>
                 <CardDescription>{language === 'en' ? 'Perfect for professionals and students' : 'Perfeito para profissionais e estudantes'}</CardDescription>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">€5</span>
+                  <span className="text-3xl font-bold">€8</span>
                   <span className="text-muted-foreground ml-2">{language === 'en' ? '(one-time)' : '(pagamento único)'}</span>
                 </div>
               </CardHeader>
@@ -171,9 +163,7 @@ const GetStarted = () => {
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
                   <span>
-                    {language === 'en' 
-                      ? 'Custom branding options available for larger orders'
-                      : 'Opções de marca personalizada disponíveis para pedidos maiores'}
+                    {language === 'en' ? 'Custom branding options available for larger orders' : 'Opções de marca personalizada disponíveis para pedidos maiores'}
                   </span>
                 </div>
               </CardFooter>
@@ -189,8 +179,6 @@ const GetStarted = () => {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default GetStarted;
