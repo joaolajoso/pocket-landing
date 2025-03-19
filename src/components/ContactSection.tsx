@@ -1,10 +1,8 @@
-
 import React from "react";
 import { Mail, Phone, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
-
 const ContactSection = () => {
   const {
     t
@@ -47,12 +45,9 @@ const ContactSection = () => {
             </Button>
             
             <div className="mt-6">
-              <p className="text-sm text-muted-foreground mb-4">Ready to transform your networking experience?</p>
+              
               <Button asChild size="lg" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 transform hover:scale-105 transition-all duration-300 shadow-lg">
-                <Link to="/get-started">
-                  Get Your PocketCV Today
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                
               </Button>
             </div>
           </div>
