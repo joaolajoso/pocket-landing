@@ -38,7 +38,7 @@ const Index = () => {
         {/* Final persuasive CTA */}
         <div className="py-16 bg-gradient-to-r from-pocketcv-purple/10 to-pocketcv-orange/10">
           <div className="container mx-auto px-4 md:px-6 text-center">
-            <h2 className="text-3xl font-bold mb-6 text-gradient">Be the next to upgrade your networking</h2>
+            <h2 className="text-3xl font-bold mb-6 text-gradient">Join the new way of networking</h2>
             <p className="text-lg mb-8 max-w-2xl mx-auto text-muted-foreground">
               Stand out at career fairs, interviews, and networking events with your personal PocketCV card.
             </p>
