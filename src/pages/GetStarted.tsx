@@ -134,7 +134,7 @@ const GetStarted = () => {
                 <CardTitle className="text-2xl">{language === 'en' ? 'Business Bulk Order' : 'Pedido em Lote para Empresas'}</CardTitle>
                 <CardDescription>{language === 'en' ? 'For teams and organizations' : 'Para equipes e organizações'}</CardDescription>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">€5</span>
+                  <span className="text-3xl font-bold">€4</span>
                   <span className="text-muted-foreground ml-2">{language === 'en' ? 'per card (min. 50 cards)' : 'por cartão (mín. 50 cartões)'}</span>
                 </div>
               </CardHeader>
