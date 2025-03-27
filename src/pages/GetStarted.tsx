@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Check, Package, CreditCard, ArrowRight, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,7 +13,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OrderForm from "@/components/OrderForm";
-
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters."
@@ -42,15 +40,12 @@ const formSchema = z.object({
   }),
   newsletter: z.boolean().default(false).optional()
 });
-
 type FormData = z.infer<typeof formSchema>;
-
 const GetStarted = () => {
   const [orderType, setOrderType] = useState<'individual' | 'business'>('individual');
   const {
     language
   } = useLanguage();
-
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,13 +60,11 @@ const GetStarted = () => {
       newsletter: false
     }
   });
-
   const onSubmit = (data: FormData) => {
     console.log(data);
     // Here you would typically handle order submission
     alert("Order submitted successfully! We'll contact you soon.");
   };
-
   return <div className="container max-w-6xl px-4 py-24 mx-auto">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
@@ -141,7 +134,7 @@ const GetStarted = () => {
                 <CardTitle className="text-2xl">{language === 'en' ? 'Business Bulk Order' : 'Pedido em Lote para Empresas'}</CardTitle>
                 <CardDescription>{language === 'en' ? 'For teams and organizations' : 'Para equipes e organizações'}</CardDescription>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">€4</span>
+                  <span className="text-3xl font-bold">€5</span>
                   <span className="text-muted-foreground ml-2">{language === 'en' ? 'per card (min. 50 cards)' : 'por cartão (mín. 50 cartões)'}</span>
                 </div>
               </CardHeader>
@@ -187,5 +180,4 @@ const GetStarted = () => {
       </Tabs>
     </div>;
 };
-
 export default GetStarted;
