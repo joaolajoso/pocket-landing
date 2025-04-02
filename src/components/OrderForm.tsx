@@ -26,7 +26,7 @@ const OrderForm = () => {
           <div className="min-w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Mail className="h-5 w-5 text-primary" />
           </div>
-          <div className="overflow-hidden">
+          <div className="flex-1 overflow-hidden">
             <h4 className="font-medium">{language === 'en' ? 'Email' : 'Email'}</h4>
             <a href="mailto:pocketcvnetworking@gmail.com" className="text-primary hover:underline transition-all break-all">
               pocketcvnetworking@gmail.com
