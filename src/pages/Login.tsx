@@ -14,7 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Github, Mail, Linkedin } from "lucide-react";
+import { ArrowLeft, Github, Mail, Linkedin, Building2, User } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,6 +34,7 @@ const Login = () => {
   const defaultTab = searchParams.get('signup') === 'true' ? 'signup' : 'login';
   
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [accountType, setAccountType] = useState('personal');
   
   const [loginData, setLoginData] = useState({
     email: '',
@@ -37,7 +45,9 @@ const Login = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    companyName: '',
+    companySize: ''
   });
   
   const [errors, setErrors] = useState({
@@ -49,15 +59,22 @@ const Login = () => {
       name: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      companyName: '',
+      companySize: ''
     }
   });
 
   // Update the URL when tab changes without full page reload
   useEffect(() => {
-    const newUrl = activeTab === 'signup' 
-      ? `${window.location.pathname}?signup=true`
-      : window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    if (activeTab === 'signup') {
+      params.set('signup', 'true');
+    } else {
+      params.delete('signup');
+    }
+    
+    const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
     window.history.replaceState({}, '', newUrl);
   }, [activeTab]);
 
@@ -128,7 +145,9 @@ const Login = () => {
       name: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      companyName: '',
+      companySize: ''
     };
     
     if (!signupData.name) {
@@ -153,12 +172,22 @@ const Login = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
+    if (accountType === 'business') {
+      if (!signupData.companyName) {
+        newErrors.companyName = 'Company name is required';
+      }
+      
+      if (!signupData.companySize) {
+        newErrors.companySize = 'Company size is required';
+      }
+    }
+    
     setErrors(prev => ({
       ...prev,
       signup: newErrors
     }));
     
-    return !newErrors.name && !newErrors.email && !newErrors.password && !newErrors.confirmPassword;
+    return !Object.values(newErrors).some(error => error);
   };
   
   const handleLogin = async (e: React.FormEvent) => {
@@ -203,7 +232,7 @@ const Login = () => {
         setIsLoading(false);
         toast({
           title: "Account created successfully",
-          description: "Welcome to PocketCV!",
+          description: `Welcome to PocketCV${accountType === 'business' ? ' Business' : ''}!`,
         });
         navigate('/dashboard');
       }, 1500);
@@ -258,6 +287,28 @@ const Login = () => {
           <TabsContent value="login">
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4">
+                <div className="flex justify-center gap-4 mb-6">
+                  <Button 
+                    type="button"
+                    variant={accountType === 'personal' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setAccountType('personal')}
+                  >
+                    <User className="h-4 w-4" />
+                    Personal
+                  </Button>
+                  
+                  <Button 
+                    type="button"
+                    variant={accountType === 'business' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setAccountType('business')}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Business
+                  </Button>
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input 
@@ -299,7 +350,7 @@ const Login = () => {
                 </div>
                 
                 <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
+                  {isLoading ? "Signing in..." : `Sign In${accountType === 'business' ? ' to Business Account' : ''}`}
                 </Button>
                 
                 <div className="relative my-4">
@@ -330,8 +381,30 @@ const Login = () => {
           <TabsContent value="signup">
             <form onSubmit={handleSignup}>
               <CardContent className="space-y-4">
+                <div className="flex justify-center gap-4 mb-6">
+                  <Button 
+                    type="button"
+                    variant={accountType === 'personal' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setAccountType('personal')}
+                  >
+                    <User className="h-4 w-4" />
+                    Personal
+                  </Button>
+                  
+                  <Button 
+                    type="button"
+                    variant={accountType === 'business' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setAccountType('business')}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Business
+                  </Button>
+                </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Name</Label>
+                  <Label htmlFor="signup-name">{accountType === 'business' ? 'Admin Name' : 'Full Name'}</Label>
                   <Input 
                     id="signup-name" 
                     name="name"
@@ -344,6 +417,50 @@ const Login = () => {
                     <p className="text-destructive text-sm">{errors.signup.name}</p>
                   )}
                 </div>
+                
+                {accountType === 'business' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-company-name">Company Name</Label>
+                      <Input 
+                        id="signup-company-name" 
+                        name="companyName"
+                        placeholder="Acme Inc." 
+                        value={signupData.companyName}
+                        onChange={handleSignupChange}
+                        disabled={isLoading}
+                      />
+                      {errors.signup.companyName && (
+                        <p className="text-destructive text-sm">{errors.signup.companyName}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-company-size">Company Size</Label>
+                      <Select
+                        disabled={isLoading}
+                        value={signupData.companySize}
+                        onValueChange={(value) => {
+                          setSignupData(prev => ({...prev, companySize: value}));
+                        }}
+                      >
+                        <SelectTrigger id="signup-company-size">
+                          <SelectValue placeholder="Select company size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-10">1-10 employees</SelectItem>
+                          <SelectItem value="11-50">11-50 employees</SelectItem>
+                          <SelectItem value="51-200">51-200 employees</SelectItem>
+                          <SelectItem value="201-500">201-500 employees</SelectItem>
+                          <SelectItem value="501+">501+ employees</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.signup.companySize && (
+                        <p className="text-destructive text-sm">{errors.signup.companySize}</p>
+                      )}
+                    </div>
+                  </>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
@@ -394,7 +511,7 @@ const Login = () => {
                 </div>
                 
                 <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={isLoading}>
-                  {isLoading ? "Creating Account..." : "Create Account"}
+                  {isLoading ? "Creating Account..." : `Create ${accountType === 'business' ? 'Business ' : ''}Account`}
                 </Button>
                 
                 <div className="relative my-4">

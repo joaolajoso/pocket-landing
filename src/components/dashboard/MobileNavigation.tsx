@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { BarChart, LayoutDashboard, Link as LinkIcon, Palette, Settings } from "lucide-react";
+import { BarChart, LayoutDashboard, Link as LinkIcon, Palette, Settings, Building2 } from "lucide-react";
 
 interface MobileNavigationProps {
   activeTab: string;
@@ -46,6 +46,15 @@ const MobileNavigation = ({ activeTab, setActiveTab }: MobileNavigationProps) =>
           >
             <BarChart className="mr-2 h-4 w-4" />
             Analytics
+          </Button>
+          
+          <Button 
+            variant={activeTab === "business" ? "secondary" : "outline"} 
+            size="sm"
+            onClick={() => setActiveTab("business")}
+          >
+            <Building2 className="mr-2 h-4 w-4" />
+            Business
           </Button>
           
           <Button 

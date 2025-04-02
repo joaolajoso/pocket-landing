@@ -11,6 +11,8 @@ import ProfileExample from "./pages/ProfileExample";
 import GetStarted from "./pages/GetStarted";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Preview from "./pages/Preview";
+import BusinessPreview from "./pages/BusinessPreview";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ function App() {
               <Route path="/get-started" element={<GetStarted />} />
               <Route path="/login" element={<Login />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/preview" element={<Preview />} />
+              <Route path="/business-preview" element={<BusinessPreview />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
