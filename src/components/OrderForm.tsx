@@ -1,9 +1,8 @@
 
 import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Mail, Phone, MessageCircle, ArrowRight } from "lucide-react";
+import { Mail, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 const OrderForm = () => {
   const { language } = useLanguage();
@@ -52,7 +51,7 @@ const OrderForm = () => {
           </div>
           <div>
             <h4 className="font-medium">{language === 'en' ? 'Consulting' : 'Consultoria'}</h4>
-            <a href="mailto:pocketcvnetworking@gmail.com?subject=PocketCV%20Consulting" className="text-primary hover:underline transition-all">
+            <a href="mailto:pocketcvnetworking@gmail.com?subject=PocketCV%20Consulting" className="text-primary hover:underline transition-all break-all">
               {language === 'en' ? 'Request Consulting' : 'Solicitar Consultoria'}
             </a>
           </div>

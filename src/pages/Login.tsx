@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Github, Mail } from "lucide-react";
+import { ArrowLeft, Github, Mail, Linkedin } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -298,7 +298,7 @@ const Login = () => {
                   )}
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
                 
@@ -319,8 +319,8 @@ const Login = () => {
                     GitHub
                   </Button>
                   <Button variant="outline" type="button" disabled={isLoading} className="gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
+                    <Linkedin className="h-4 w-4" />
+                    LinkedIn
                   </Button>
                 </div>
               </CardContent>
@@ -393,7 +393,7 @@ const Login = () => {
                   )}
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={isLoading}>
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
                 
@@ -414,8 +414,8 @@ const Login = () => {
                     GitHub
                   </Button>
                   <Button variant="outline" type="button" disabled={isLoading} className="gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
+                    <Linkedin className="h-4 w-4" />
+                    LinkedIn
                   </Button>
                 </div>
                 
