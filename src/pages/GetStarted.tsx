@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Package, CreditCard, ArrowRight, Users } from "lucide-react";
+import { Check, Package, CreditCard, ArrowRight, Users, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OrderForm from "@/components/OrderForm";
+
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters."
@@ -40,9 +41,11 @@ const formSchema = z.object({
   }),
   newsletter: z.boolean().default(false).optional()
 });
+
 type FormData = z.infer<typeof formSchema>;
+
 const GetStarted = () => {
-  const [orderType, setOrderType] = useState<'individual' | 'business'>('individual');
+  const [orderType, setOrderType] = useState<'individual' | 'business' | 'student'>('individual');
   const {
     language
   } = useLanguage();
@@ -60,11 +63,13 @@ const GetStarted = () => {
       newsletter: false
     }
   });
+
   const onSubmit = (data: FormData) => {
     console.log(data);
     // Here you would typically handle order submission
     alert("Order submitted successfully! We'll contact you soon.");
   };
+
   return <div className="container max-w-6xl px-4 py-24 mx-auto">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
@@ -78,9 +83,12 @@ const GetStarted = () => {
       </div>
 
       <Tabs defaultValue="individual" className="max-w-4xl mx-auto">
-        <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-8">
+        <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8">
           <TabsTrigger value="individual" onClick={() => setOrderType('individual')}>
             {language === 'en' ? 'Individual' : 'Individual'}
+          </TabsTrigger>
+          <TabsTrigger value="student" onClick={() => setOrderType('student')}>
+            {language === 'en' ? 'Student' : 'Estudante'}
           </TabsTrigger>
           <TabsTrigger value="business" onClick={() => setOrderType('business')}>
             {language === 'en' ? 'Business' : 'Empresarial'}
@@ -122,6 +130,59 @@ const GetStarted = () => {
             {/* Order Form for Individual */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <h3 className="text-xl font-medium mb-6">{language === 'en' ? 'Order Your PocketCV Card' : 'Peça Seu Cartão PocketCV'}</h3>
+              <OrderForm />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="student">
+          <div className="max-w-3xl mx-auto">
+            <Card className="mb-8 border-2 border-pocketcv-orange">
+              <CardHeader className="pb-4">
+                <div className="mb-2 bg-pocketcv-orange text-white text-sm py-1 px-3 rounded-full w-fit">
+                  {language === 'en' ? 'SPECIAL OFFER' : 'OFERTA ESPECIAL'}
+                </div>
+                <CardTitle className="text-2xl">
+                  {language === 'en' ? 'Student Card' : 'Cartão Estudante'}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'en' ? 'Exclusive discount for students' : 'Desconto exclusivo para estudantes'}
+                </CardDescription>
+                <div className="mt-2 flex items-center">
+                  <span className="text-3xl font-bold">€2</span>
+                  <span className="text-muted-foreground ml-2">{language === 'en' ? '(one-time)' : '(pagamento único)'}</span>
+                  <span className="ml-3 line-through text-muted-foreground">€5</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
+                <ul className="space-y-2">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-pocketcv-orange mr-2" />
+                    <span>{language === 'en' ? '1 NFC-enabled PocketCV Card' : '1 Cartão PocketCV com NFC'}</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-pocketcv-orange mr-2" />
+                    <span>{language === 'en' ? 'Lifetime Cloud Hosting' : 'Hospedagem na Nuvem Vitalícia'}</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-pocketcv-orange mr-2" />
+                    <span>{language === 'en' ? 'Profile Customization' : 'Personalização de Perfil'}</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-pocketcv-orange mr-2" />
+                    <span>{language === 'en' ? 'View Profile Analytics' : 'Análise de Perfil'}</span>
+                  </li>
+                  <li className="flex items-center">
+                    <GraduationCap className="h-5 w-5 text-pocketcv-orange mr-2" />
+                    <span>{language === 'en' ? 'Student verification required' : 'Verificação de estudante necessária'}</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Order Form for Student */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+              <h3 className="text-xl font-medium mb-6">{language === 'en' ? 'Order Your Student PocketCV Card' : 'Peça Seu Cartão PocketCV Estudante'}</h3>
               <OrderForm />
             </div>
           </div>
@@ -180,4 +241,5 @@ const GetStarted = () => {
       </Tabs>
     </div>;
 };
+
 export default GetStarted;

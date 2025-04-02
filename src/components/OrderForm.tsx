@@ -23,20 +23,20 @@ const OrderForm = () => {
       
       <div className="grid gap-6 mb-8">
         <div className="flex items-center gap-4 p-4 rounded-lg border border-purple-100 bg-purple-50/50 hover:bg-purple-50 transition-all">
-          <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Mail className="size-5 text-primary" />
+          <div className="min-w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Mail className="h-5 w-5 text-primary" />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <h4 className="font-medium">{language === 'en' ? 'Email' : 'Email'}</h4>
-            <a href="mailto:pocketcvnetworking@gmail.com" className="text-primary hover:underline transition-all">
+            <a href="mailto:pocketcvnetworking@gmail.com" className="text-primary hover:underline transition-all break-all">
               pocketcvnetworking@gmail.com
             </a>
           </div>
         </div>
         
         <div className="flex items-center gap-4 p-4 rounded-lg border border-purple-100 bg-purple-50/50 hover:bg-purple-50 transition-all">
-          <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Phone className="size-5 text-primary" />
+          <div className="min-w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Phone className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h4 className="font-medium">{language === 'en' ? 'Phone' : 'Telefone'}</h4>
@@ -47,8 +47,8 @@ const OrderForm = () => {
         </div>
         
         <div className="flex items-center gap-4 p-4 rounded-lg border border-purple-100 bg-purple-50/50 hover:bg-purple-50 transition-all">
-          <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <MessageCircle className="size-5 text-primary" />
+          <div className="min-w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <MessageCircle className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h4 className="font-medium">{language === 'en' ? 'Consulting' : 'Consultoria'}</h4>
