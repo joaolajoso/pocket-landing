@@ -2,205 +2,85 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
-
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-
+    --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-
-    --primary: 267 100% 66%; /* #8c52ff */
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 267 100% 66%;
-
-    --radius: 0.75rem;
+    /* Custom PocketCV profile variables with defaults */
+    --profile-primary-color: 262.1 83.3% 57.8%;
+    --profile-bg-color: 0 0% 100%;
+  }
+ 
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
-  }
-  
-  html {
-    @apply scroll-smooth;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-@layer components {
-  .glass-panel {
-    @apply backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border border-white/20 dark:border-gray-800/30 shadow-lg;
-  }
-  
-  .btn-primary {
-    @apply px-6 py-3 bg-primary text-primary-foreground rounded-md transition-all duration-300 hover:opacity-90 active:scale-[0.98];
-  }
-  
-  .btn-secondary {
-    @apply px-6 py-3 bg-secondary text-secondary-foreground rounded-md transition-all duration-300 hover:bg-secondary/80 active:scale-[0.98];
-  }
-  
-  .btn-outline {
-    @apply px-6 py-3 border border-input bg-background text-foreground rounded-md transition-all duration-300 hover:bg-secondary active:scale-[0.98];
-  }
-  
-  .link-card {
-    @apply relative overflow-hidden p-6 flex items-center gap-4 rounded-xl transition-all duration-300 ease-out-expo will-change-transform hover:translate-y-[-2px];
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-3 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300;
-  }
-  
-  /* PocketCV gradient styles */
-  .pocketcv-gradient-bg {
-    @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange;
-  }
-  
-  .pocketcv-gradient-text {
-    @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange bg-clip-text text-transparent;
-  }
-  
-  .logo-text {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .tagline-text {
-    font-family: 'Outfit', sans-serif;
-    letter-spacing: 0.2em;
-    font-weight: 400;
-    text-transform: uppercase;
-  }
-  
-  .pocketcv-gradient-border {
-    @apply border-2 border-transparent bg-white;
-    background-clip: padding-box;
-    position: relative;
-  }
-  
-  .pocketcv-gradient-border::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    margin: -2px;
-    border-radius: inherit;
-    background: linear-gradient(to right, #8c52ff, #ff914d);
-    z-index: -1;
-  }
-  
-  /* 3D Card Effects */
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-  
-  .card-3d-wrapper {
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-  }
-  
-  .card-3d-wrapper:hover {
-    transform: rotateY(5deg) rotateX(5deg);
-  }
-  
-  .card-3d-front {
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
-    transform: translateZ(0) rotateX(0);
-  }
-  
-  .shadow-inner {
-    box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.2);
-  }
+/* PocketCV custom styles */
+.link-card {
+  @apply flex items-center gap-4 p-4 transition-colors hover:bg-muted/30;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .text-gradient {
-    @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange bg-clip-text text-transparent;
-  }
-  
-  .animation-delay-200 {
-    animation-delay: 200ms;
-  }
-  
-  .animation-delay-400 {
-    animation-delay: 400ms;
-  }
-  
-  .animation-delay-600 {
-    animation-delay: 600ms;
-  }
-  
-  .animation-delay-800 {
-    animation-delay: 800ms;
-  }
-  
-  /* Custom animation for CTA buttons */
-  .animate-pulse-slow {
-    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-  
-  @keyframes pulse-slow {
-    0%, 100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.95;
-      transform: scale(1.03);
-    }
-  }
+.profile-section h2 {
+  @apply text-[hsl(var(--profile-primary-color))];
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  @apply w-2;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-600;
+/* Override primary color for profile pages with custom theme */
+.profile-page .text-primary,
+.profile-page .bg-primary,
+.profile-page .border-primary {
+  --tw-text-opacity: 1;
+  --tw-bg-opacity: 1; 
+  --tw-border-opacity: 1;
+  color: hsl(var(--profile-primary-color)) var(--tw-text-opacity);
+  background-color: hsl(var(--profile-primary-color)) var(--tw-bg-opacity);
+  border-color: hsl(var(--profile-primary-color)) var(--tw-border-opacity);
 }

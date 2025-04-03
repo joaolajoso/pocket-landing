@@ -11,12 +11,13 @@ import { LinkEditorForm } from "./LinkEditorForm";
 interface LinkEditorProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (link: Omit<LinkType, "id"> & {id?: string}) => void;
-  editingLink?: LinkType;
+  onSave: (link: Omit<LinkType, "id"> & {id?: string, section?: string}) => void;
+  editingLink?: LinkType & {section?: string};
+  sections?: {id: string, title: string}[];
 }
 
-const LinkEditor = ({ isOpen, onClose, onSave, editingLink }: LinkEditorProps) => {
-  const handleSave = (link: Omit<LinkType, "id"> & {id?: string}) => {
+const LinkEditor = ({ isOpen, onClose, onSave, editingLink, sections = [] }: LinkEditorProps) => {
+  const handleSave = (link: Omit<LinkType, "id"> & {id?: string, section?: string}) => {
     onSave(link);
     onClose();
   };
@@ -32,6 +33,7 @@ const LinkEditor = ({ isOpen, onClose, onSave, editingLink }: LinkEditorProps) =
           onSave={handleSave}
           onCancel={onClose}
           editingLink={editingLink}
+          sections={sections}
         />
       </DialogContent>
     </Dialog>
