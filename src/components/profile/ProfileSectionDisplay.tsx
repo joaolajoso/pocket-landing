@@ -2,6 +2,7 @@
 import LinkDisplay from './LinkDisplay';
 import { LinkType } from '@/components/LinkCard';
 import { Badge } from '@/components/ui/badge';
+import { incrementLinkClick } from '@/lib/supabase';
 
 interface ProfileSection {
   id: string;
@@ -14,6 +15,11 @@ interface ProfileSectionDisplayProps {
 }
 
 const ProfileSectionDisplay = ({ section }: ProfileSectionDisplayProps) => {
+  const handleLinkClick = async (linkId: string) => {
+    // Increment the link click counter
+    await incrementLinkClick(linkId);
+  };
+
   return (
     <div className="profile-section">
       <div className="flex items-center mb-4">
@@ -24,7 +30,11 @@ const ProfileSectionDisplay = ({ section }: ProfileSectionDisplayProps) => {
       </div>
       <div className="space-y-3">
         {section.links.map(link => (
-          <LinkDisplay key={link.id} link={link} />
+          <LinkDisplay 
+            key={link.id} 
+            link={link} 
+            onClick={() => handleLinkClick(link.id)}
+          />
         ))}
       </div>
     </div>

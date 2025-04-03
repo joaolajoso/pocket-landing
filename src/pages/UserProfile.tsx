@@ -2,11 +2,23 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import LinkDisplay from '@/components/profile/LinkDisplay';
+import { Loader2 } from 'lucide-react';
 import ProfileSectionDisplay from '@/components/profile/ProfileSectionDisplay';
 import ProfileFooter from '@/components/profile/ProfileFooter';
-import { LinkType } from '@/components/LinkCard';
-import { Loader2 } from 'lucide-react';
+import { fetchProfile, fetchProfileSections, fetchSectionLinks, incrementProfileView, type Profile, type Section, type Link as DbLink } from '@/lib/supabase';
+
+interface ProfileSection {
+  id: string;
+  title: string;
+  links: LinkType[];
+}
+
+interface LinkType {
+  id: string;
+  title: string;
+  url: string;
+  icon: string | null;
+}
 
 interface UserProfileData {
   name: string;
@@ -17,99 +29,11 @@ interface UserProfileData {
   theme: ProfileTheme;
 }
 
-interface ProfileSection {
-  id: string;
-  title: string;
-  links: LinkType[];
-}
-
 interface ProfileTheme {
   primaryColor: string;
   backgroundColor: string;
   fontFamily: string;
 }
-
-// Mock data - would be replaced with actual API call
-const fetchUserProfile = async (username: string): Promise<UserProfileData | null> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // For demo purposes, try to get theme from localStorage first
-  let themeData = {
-    primaryColor: "#0ea5e9", // sky-500
-    backgroundColor: "#f0f9ff", // sky-50
-    fontFamily: "Inter, sans-serif"
-  };
-  
-  try {
-    const savedTheme = localStorage.getItem('pocketcv-theme');
-    if (savedTheme) {
-      const parsed = JSON.parse(savedTheme);
-      themeData = {
-        primaryColor: parsed.primaryColor || themeData.primaryColor,
-        backgroundColor: parsed.backgroundColor || themeData.backgroundColor,
-        fontFamily: parsed.font === "inter" ? "Inter, sans-serif" : 
-                    parsed.font === "roboto" ? "Roboto, sans-serif" : 
-                    parsed.font === "poppins" ? "Poppins, sans-serif" : 
-                    parsed.font === "opensans" ? "Open Sans, sans-serif" : 
-                    "Inter, sans-serif"
-      };
-    }
-  } catch (err) {
-    console.error("Error parsing theme data", err);
-  }
-  
-  // For demo purposes, return mock data
-  if (username) {
-    return {
-      name: "Victor Julio",
-      username: username,
-      bio: "Welcome to my profile!",
-      avatarUrl: "/lovable-uploads/98e0d60e-a584-4780-8e34-8ae81c3f7c21.png",
-      sections: [
-        {
-          id: "networking",
-          title: "Networking",
-          links: [
-            {
-              id: "1",
-              title: "LinkedIn",
-              url: "https://linkedin.com/in/victorjulio",
-              icon: null
-            },
-            {
-              id: "2",
-              title: "CV",
-              url: "https://victorjulio.com/cv.pdf",
-              icon: null
-            }
-          ]
-        },
-        {
-          id: "projects",
-          title: "My Projects",
-          links: [
-            {
-              id: "3",
-              title: "My Erasmus Journal",
-              url: "https://erasmusjournal.eu",
-              icon: null
-            },
-            {
-              id: "4",
-              title: "Pocket CV",
-              url: "https://pocketcv.com",
-              icon: null
-            }
-          ]
-        }
-      ],
-      theme: themeData
-    };
-  }
-  
-  return null;
-};
 
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -147,37 +71,82 @@ const UserProfile = () => {
           return;
         }
         
-        const userData = await fetchUserProfile(username);
+        // Fetch the profile data from Supabase
+        const profileData = await fetchProfile(username);
         
-        if (!userData) {
+        if (!profileData) {
           setError("Profile not found");
-        } else {
-          setProfile(userData);
-          
-          // Convert hex colors to HSL format for CSS variables
-          const primaryColorHsl = getHslFromHex(userData.theme.primaryColor);
-          const backgroundColorHsl = getHslFromHex(userData.theme.backgroundColor);
-          
-          // Set theme based on user preferences
-          document.documentElement.style.setProperty('--profile-primary-color', primaryColorHsl);
-          document.documentElement.style.setProperty('--profile-bg-color', backgroundColorHsl);
-          
-          // Add custom font if needed
-          if (userData.theme.fontFamily && userData.theme.fontFamily !== "Inter, sans-serif") {
-            const fontLink = document.createElement('link');
-            fontLink.rel = 'stylesheet';
+          setLoading(false);
+          return;
+        }
+        
+        // Increment the profile view counter
+        await incrementProfileView(profileData.id);
+        
+        // Fetch the profile sections
+        const sectionsData = await fetchProfileSections(profileData.id);
+        
+        // Fetch the links for each section
+        const sectionsWithLinks: ProfileSection[] = await Promise.all(
+          sectionsData.map(async (section: Section) => {
+            const linksData = await fetchSectionLinks(section.id);
             
-            if (userData.theme.fontFamily.includes('Roboto')) {
-              fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
-            } else if (userData.theme.fontFamily.includes('Poppins')) {
-              fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
-            } else if (userData.theme.fontFamily.includes('Open Sans')) {
-              fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
-            }
+            // Transform the links to match the expected format
+            const links: LinkType[] = linksData.map((link: DbLink) => ({
+              id: link.id,
+              title: link.title,
+              url: link.url,
+              icon: link.icon || null,
+            }));
             
-            if (fontLink.href) {
-              document.head.appendChild(fontLink);
-            }
+            return {
+              id: section.id,
+              title: section.title,
+              links,
+            };
+          })
+        );
+        
+        // Create the profile data in the expected format
+        const userData: UserProfileData = {
+          name: profileData.name,
+          username: profileData.username,
+          bio: profileData.bio || "",
+          avatarUrl: profileData.avatar_url || "",
+          sections: sectionsWithLinks,
+          theme: {
+            primaryColor: profileData.primary_color || "#0ea5e9",
+            backgroundColor: profileData.background_color || "#f0f9ff",
+            fontFamily: profileData.font_family || "Inter, sans-serif",
+          },
+        };
+        
+        setProfile(userData);
+        
+        // Convert hex colors to HSL format for CSS variables
+        const primaryColorHsl = getHslFromHex(userData.theme.primaryColor);
+        const backgroundColorHsl = getHslFromHex(userData.theme.backgroundColor);
+        
+        // Set theme based on user preferences
+        document.documentElement.style.setProperty('--profile-primary-color', primaryColorHsl);
+        document.documentElement.style.setProperty('--profile-bg-color', backgroundColorHsl);
+        
+        // Add custom font if needed
+        if (userData.theme.fontFamily && userData.theme.fontFamily !== "Inter, sans-serif") {
+          const fontLink = document.createElement('link');
+          fontLink.rel = 'stylesheet';
+          fontLink.setAttribute('data-pocketcv-font', 'true');
+          
+          if (userData.theme.fontFamily.includes('Roboto')) {
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
+          } else if (userData.theme.fontFamily.includes('Poppins')) {
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
+          } else if (userData.theme.fontFamily.includes('Open Sans')) {
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
+          }
+          
+          if (fontLink.href) {
+            document.head.appendChild(fontLink);
           }
         }
       } catch (err) {
