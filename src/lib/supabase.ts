@@ -2,14 +2,36 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase client setup
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase credentials. Please check your environment variables.');
+let supabase: ReturnType<typeof createClient>;
+
+// Check if we have credentials before creating the client
+if (supabaseUrl && supabaseAnonKey) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+} else {
+  console.warn('Supabase credentials missing. Using mock client with limited functionality.');
+  
+  // Create a mock client with dummy implementations
+  supabase = {
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          order: async () => ({ data: [], error: null }),
+        }),
+        order: async () => ({ data: [], error: null }),
+      }),
+      update: () => ({
+        eq: async () => ({ error: null }),
+      }),
+    }),
+    rpc: () => ({}),
+  } as unknown as ReturnType<typeof createClient>;
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export { supabase };
 
 // Type definitions for our database tables
 export type Profile = {
