@@ -85,7 +85,7 @@ export async function fetchProfile(username: string): Promise<Profile | null> {
     return null;
   }
 
-  return data;
+  return data as Profile;
 }
 
 export async function fetchProfileSections(profileId: string): Promise<Section[]> {
@@ -100,7 +100,7 @@ export async function fetchProfileSections(profileId: string): Promise<Section[]
     return [];
   }
 
-  return data || [];
+  return (data || []) as Section[];
 }
 
 export async function fetchSectionLinks(sectionId: string): Promise<Link[]> {
@@ -115,7 +115,7 @@ export async function fetchSectionLinks(sectionId: string): Promise<Link[]> {
     return [];
   }
 
-  return data || [];
+  return (data || []) as Link[];
 }
 
 export async function incrementProfileView(profileId: string): Promise<void> {

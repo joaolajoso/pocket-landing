@@ -4,11 +4,11 @@ import { ReactNode } from "react";
 interface DeviceFrameProps {
   children: ReactNode;
   isFrameVisible: boolean;
-  viewMode: "desktop" | "mobile";
+  deviceType: string;
 }
 
-const DeviceFrame = ({ children, isFrameVisible, viewMode }: DeviceFrameProps) => {
-  if (viewMode === "desktop") {
+const DeviceFrame = ({ children, isFrameVisible, deviceType }: DeviceFrameProps) => {
+  if (deviceType === "desktop") {
     return (
       <div 
         className={`mx-auto ${

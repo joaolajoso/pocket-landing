@@ -20,16 +20,18 @@ interface FormErrors {
 }
 
 interface LinkEditorFormProps {
-  onSave: (link: Omit<LinkType, "id"> & {id?: string}) => void;
+  onSave: (link: Omit<LinkType, "id"> & {id?: string, section?: string}) => void;
   onCancel: () => void;
-  editingLink?: LinkType;
+  editingLink?: LinkType & {section?: string};
+  sections?: {id: string, title: string}[];
 }
 
-export const LinkEditorForm = ({ onSave, onCancel, editingLink }: LinkEditorFormProps) => {
+export const LinkEditorForm = ({ onSave, onCancel, editingLink, sections = [] }: LinkEditorFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
     url: "",
-    type: "website"
+    type: "website",
+    section: ""
   });
 
   const [errors, setErrors] = useState<FormErrors>({
@@ -48,13 +50,15 @@ export const LinkEditorForm = ({ onSave, onCancel, editingLink }: LinkEditorForm
       setFormData({
         title: editingLink.title,
         url: editingLink.url,
-        type: iconType?.id || "other"
+        type: iconType?.id || "other",
+        section: editingLink.section || ""
       });
     } else {
       setFormData({
         title: "",
         url: "",
-        type: "website"
+        type: "website",
+        section: sections.length > 0 ? sections[0].id : ""
       });
     }
     
@@ -62,7 +66,7 @@ export const LinkEditorForm = ({ onSave, onCancel, editingLink }: LinkEditorForm
       title: "",
       url: ""
     });
-  }, [editingLink]);
+  }, [editingLink, sections]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -84,6 +88,13 @@ export const LinkEditorForm = ({ onSave, onCancel, editingLink }: LinkEditorForm
     setFormData(prev => ({
       ...prev,
       type: value
+    }));
+  };
+
+  const handleSectionChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      section: value
     }));
   };
 
@@ -133,12 +144,34 @@ export const LinkEditorForm = ({ onSave, onCancel, editingLink }: LinkEditorForm
       id: editingLink?.id,
       title: formData.title,
       url: url,
-      icon: selectedType.icon
+      icon: selectedType.icon,
+      section: formData.section
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
+      {sections.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="section">Section</Label>
+          <Select 
+            value={formData.section} 
+            onValueChange={handleSectionChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a section" />
+            </SelectTrigger>
+            <SelectContent>
+              {sections.map((section) => (
+                <SelectItem key={section.id} value={section.id}>
+                  {section.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      
       <div className="space-y-2">
         <Label htmlFor="type">Link Type</Label>
         <Select 

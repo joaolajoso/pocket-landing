@@ -106,7 +106,7 @@ const Preview = () => {
         style={{ backgroundColor: theme.backgroundColor }}
       >
         <DeviceFrame
-          isVisible={isFrameVisible}
+          isFrameVisible={isFrameVisible}
           deviceType={viewMode}
         >
           <div className="h-full overflow-y-auto profile-page">
