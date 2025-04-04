@@ -84,3 +84,13 @@
   background-color: hsl(var(--profile-primary-color)) var(--tw-bg-opacity);
   border-color: hsl(var(--profile-primary-color)) var(--tw-border-opacity);
 }
+
+/* Gradient background for PocketCV elements */
+.pocketcv-gradient-bg {
+  @apply bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange;
+}
+
+/* Text gradient for headings */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-pocketcv-purple to-pocketcv-orange;
+}
