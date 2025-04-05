@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileFooterProps {
   username: string;
@@ -10,6 +10,7 @@ interface ProfileFooterProps {
 
 const ProfileFooter = ({ username }: ProfileFooterProps) => {
   const [sharing, setSharing] = useState(false);
+  const { toast } = useToast();
 
   const handleShare = async () => {
     setSharing(true);

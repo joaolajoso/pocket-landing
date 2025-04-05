@@ -116,6 +116,7 @@ const Preview = () => {
                 bio: previewUserData.bio,
                 avatarUrl: previewUserData.avatarUrl,
                 links: previewLinks,
+                username: previewUserData.username,
               }}
               isPreview={true}
             />

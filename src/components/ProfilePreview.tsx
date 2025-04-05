@@ -5,12 +5,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LinkCard, { LinkType } from "./LinkCard";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserProfile {
   name: string;
   bio: string;
   avatarUrl: string;
   links: LinkType[];
+  username?: string;
 }
 
 interface ProfilePreviewProps {
@@ -19,6 +21,8 @@ interface ProfilePreviewProps {
 }
 
 const ProfilePreview = ({ profile, isPreview = false }: ProfilePreviewProps) => {
+  const { toast } = useToast();
+  
   const initials = useMemo(() => {
     if (!profile.name) return "?";
     return profile.name
@@ -28,6 +32,39 @@ const ProfilePreview = ({ profile, isPreview = false }: ProfilePreviewProps) => 
       .toUpperCase()
       .substring(0, 2);
   }, [profile.name]);
+
+  const handleShare = async () => {
+    if (!profile.username) {
+      toast({
+        title: "Cannot share profile",
+        description: "This profile doesn't have a username set",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const shareUrl = `${window.location.origin}/u/${profile.username}`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${profile.name}'s PocketCV profile`,
+          url: shareUrl
+        });
+        toast({
+          title: "Shared successfully!"
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Profile link copied!",
+          description: "Link copied to clipboard"
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center max-w-md mx-auto w-full">
@@ -67,7 +104,7 @@ const ProfilePreview = ({ profile, isPreview = false }: ProfilePreviewProps) => 
       </div>
       
       {!isPreview && (
-        <Button variant="outline" className="gap-2" onClick={() => {}}>
+        <Button variant="outline" className="gap-2" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
           Share Profile
         </Button>

@@ -15,7 +15,7 @@ const translations = {
   }
 };
 
-const NetworkingBanner = () => {
+const NetworkingBanner = (): JSX.Element => {
   const bannerRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations];
