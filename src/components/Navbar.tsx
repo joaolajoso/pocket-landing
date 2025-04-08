@@ -29,7 +29,8 @@ const Navbar = () => {
     <nav className="bg-white border-b py-3 sticky top-0 z-50 px-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="text-2xl font-bold">
-          <span className="text-primary">Pocket</span>CV
+          <span className="text-gradient">Pocket</span>
+          <span>CV</span>
         </Link>
 
         {/* Desktop Navigation */}
