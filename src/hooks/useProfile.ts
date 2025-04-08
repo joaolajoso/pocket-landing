@@ -3,20 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Profile } from '@/lib/supabase';
 
-export interface ProfileData {
-  id: string;
-  name: string | null;
-  headline: string | null;
-  bio: string | null;
-  email: string | null;
-  linkedin: string | null;
-  website: string | null;
-  photo_url: string | null;
-  slug: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
+export interface ProfileData extends Profile {}
 
 export const useProfile = (slug?: string) => {
   const { user } = useAuth();
@@ -33,27 +22,27 @@ export const useProfile = (slug?: string) => {
       
       if (slug) {
         // Fetch by slug (for public profile)
-        query = supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('slug', slug)
           .single();
+          
+        if (error) throw error;
+        setProfile(data);
       } else if (user) {
         // Fetch current user's profile
-        query = supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
+          
+        if (error) throw error;
+        setProfile(data);
       } else {
         throw new Error('No user or slug provided');
       }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      setProfile(data);
     } catch (err: any) {
       console.error('Error fetching profile:', err);
       setError(err.message);

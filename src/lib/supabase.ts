@@ -16,6 +16,13 @@ export type Profile = {
   updated_at: string | null;
 };
 
+// Type for link click tracking
+export type LinkClick = {
+  id: string;
+  link_id: string;
+  created_at: string;
+};
+
 // Database helper functions
 export async function fetchProfile(username: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -70,4 +77,24 @@ export async function uploadProfileImage(userId: string, file: File): Promise<st
     .getPublicUrl(fileName);
   
   return data.publicUrl;
+}
+
+// Function to increment link click count
+export async function incrementLinkClick(linkId: string): Promise<boolean> {
+  try {
+    // For now, we'll just log the click since we haven't created a links table yet
+    console.log(`Link clicked: ${linkId}`);
+    
+    // This is a placeholder - in a real implementation, we would track this in a database table
+    // const { error } = await supabase
+    //   .from('link_clicks')
+    //   .insert({ link_id: linkId });
+    
+    // if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error tracking link click:', error);
+    return false;
+  }
 }
