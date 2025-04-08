@@ -131,7 +131,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <DashboardHeader userData={userData} />
+      <DashboardHeader />
       
       <div className="flex flex-1">
         <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
