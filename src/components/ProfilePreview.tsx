@@ -59,7 +59,7 @@ const ProfilePreview = ({ profile, isPreview = false }: ProfilePreviewProps) => 
         await navigator.clipboard.writeText(shareUrl);
         toast({
           title: "Profile link copied!",
-          description: "Link copied to clipboard"
+          description: `Link copied: ${shareUrl}`
         });
       }
     } catch (error) {

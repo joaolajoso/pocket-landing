@@ -21,6 +21,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) {
+    // Ensure we redirect with full path information
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
