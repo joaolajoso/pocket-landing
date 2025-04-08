@@ -59,21 +59,21 @@ export const useProfile = (slug?: string) => {
   };
 
   // Update profile data
-  const updateProfile = async (updatedData: Partial<ProfileData>) => {
+  const updateProfile = async (updatedData: Partial<ProfileData>): Promise<boolean> => {
     if (!user) {
       toast({
         title: "Authentication required",
         description: "You must be logged in to update your profile",
         variant: "destructive"
       });
-      return;
+      return false;
     }
     
     try {
       setLoading(true);
       console.log("Updating profile with data:", updatedData);
       
-      // If updating slug, ensure it's unique
+      // If updating slug, ensure it's unique and URL-friendly
       if (updatedData.slug) {
         // Create URL-friendly slug
         updatedData.slug = updatedData.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -93,13 +93,19 @@ export const useProfile = (slug?: string) => {
             variant: "destructive"
           });
           setLoading(false);
-          return;
+          return false;
         }
       }
       
+      // Include updated_at timestamp
+      const dataWithTimestamp = {
+        ...updatedData,
+        updated_at: new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from('profiles')
-        .update(updatedData)
+        .update(dataWithTimestamp)
         .eq('id', user.id);
       
       if (error) {
@@ -107,15 +113,10 @@ export const useProfile = (slug?: string) => {
         throw error;
       }
       
+      // Update local state with new data
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully"
-      });
-      
-      // Refresh the profile data
-      await fetchProfile();
+      return true;
       
     } catch (err: any) {
       console.error('Error updating profile:', err);
@@ -124,14 +125,15 @@ export const useProfile = (slug?: string) => {
         description: err.message,
         variant: "destructive"
       });
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
   // Upload profile photo
-  const uploadProfilePhoto = async (file: File) => {
-    if (!user) return;
+  const uploadProfilePhoto = async (file: File): Promise<boolean> => {
+    if (!user) return false;
     
     try {
       setLoading(true);
@@ -155,7 +157,12 @@ export const useProfile = (slug?: string) => {
         .getPublicUrl(fileName);
       
       // Update profile with new photo URL
-      await updateProfile({ photo_url: data.publicUrl });
+      const success = await updateProfile({ 
+        photo_url: data.publicUrl,
+        updated_at: new Date().toISOString()
+      });
+      
+      return success;
       
     } catch (err: any) {
       console.error('Error uploading profile photo:', err);
@@ -164,10 +171,33 @@ export const useProfile = (slug?: string) => {
         description: err.message,
         variant: "destructive"
       });
+      return false;
     } finally {
       setLoading(false);
     }
   };
+
+  // Set up realtime subscription to profile changes
+  useEffect(() => {
+    if (!user) return;
+    
+    const channel = supabase
+      .channel('profile-changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.id}`
+      }, payload => {
+        console.log('Profile updated in real-time:', payload);
+        setProfile(payload.new as ProfileData);
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   // Load profile data on mount or when slug/user changes
   useEffect(() => {

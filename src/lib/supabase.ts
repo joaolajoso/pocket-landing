@@ -39,10 +39,32 @@ export async function fetchProfile(username: string): Promise<Profile | null> {
   return data as Profile;
 }
 
+export async function fetchCurrentUserProfile(): Promise<Profile | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) return null;
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+
+  return data as Profile;
+}
+
 export async function updateProfile(profileId: string, updates: Partial<Profile>): Promise<boolean> {
   const { error } = await supabase
     .from('profiles')
-    .update(updates)
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', profileId);
 
   if (error) {

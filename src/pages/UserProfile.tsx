@@ -70,7 +70,9 @@ const UserProfile = () => {
         contactLinks.push({
           id: 'linkedin-link',
           title: 'LinkedIn',
-          url: profile.linkedin.startsWith('http') ? profile.linkedin : `https://linkedin.com/in/${profile.linkedin}`,
+          url: profile.linkedin.startsWith('http') 
+            ? profile.linkedin 
+            : `https://linkedin.com/in/${profile.linkedin}`,
           icon: null
         });
       }
@@ -79,7 +81,9 @@ const UserProfile = () => {
         contactLinks.push({
           id: 'website-link',
           title: 'Website',
-          url: profile.website.startsWith('http') ? profile.website : `https://${profile.website}`,
+          url: profile.website.startsWith('http') 
+            ? profile.website 
+            : `https://${profile.website}`,
           icon: null
         });
       }
@@ -139,6 +143,7 @@ const UserProfile = () => {
         <ProfileHeader 
           name={profile.name || 'User'} 
           bio={profile.bio || ''} 
+          headline={profile.headline || ''}
           avatarUrl={profile.photo_url || ''} 
         />
         
