@@ -18,7 +18,7 @@ export const useProfile = (slug?: string) => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      let query;
+      setError(null);
       
       if (slug) {
         // Fetch by slug (for public profile)
@@ -32,13 +32,20 @@ export const useProfile = (slug?: string) => {
         setProfile(data);
       } else if (user) {
         // Fetch current user's profile
+        console.log("Fetching profile for user ID:", user.id);
+        
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          throw error;
+        }
+        
+        console.log("Fetched profile data:", data);
         setProfile(data);
       } else {
         throw new Error('No user or slug provided');
@@ -64,6 +71,7 @@ export const useProfile = (slug?: string) => {
     
     try {
       setLoading(true);
+      console.log("Updating profile with data:", updatedData);
       
       // If updating slug, ensure it's unique
       if (updatedData.slug) {
@@ -94,7 +102,10 @@ export const useProfile = (slug?: string) => {
         .update(updatedData)
         .eq('id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
       
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
@@ -102,6 +113,10 @@ export const useProfile = (slug?: string) => {
         title: "Profile updated",
         description: "Your profile has been updated successfully"
       });
+      
+      // Refresh the profile data
+      await fetchProfile();
+      
     } catch (err: any) {
       console.error('Error updating profile:', err);
       toast({

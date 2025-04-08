@@ -14,11 +14,32 @@ const Navbar = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  // Function to handle smooth scroll to section
+  const scrollToSection = (sectionId: string) => {
+    // Close the mobile menu first
+    setIsMenuOpen(false);
+    
+    // If we're not on the home page, navigate to home first
+    if (location.pathname !== '/') {
+      window.location.href = `/#${sectionId}`;
+      return;
+    }
+    
+    // If we're already on the home page, just scroll to the section
+    const section = document.getElementById(sectionId);
+    if (section) {
+      window.scrollTo({
+        top: section.offsetTop - 100, // Offset for navbar height
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const navLinks = [
-    { name: "Features", path: "/#features" },
+    { name: "Features", path: "features" },
     { name: "Example", path: "/example" },
-    { name: "Pricing", path: "/#pricing" },
-    { name: "FAQ", path: "/#faq" },
+    { name: "Pricing", path: "/get-started" },
+    { name: "FAQ", path: "faq" },
   ];
 
   const toggleMenu = () => {
@@ -36,13 +57,23 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className="text-gray-700 hover:text-primary transition-colors"
-            >
-              {link.name}
-            </Link>
+            link.path.startsWith('/') ? (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-gray-700 hover:text-primary transition-colors"
+              >
+                {link.name}
+              </Link>
+            ) : (
+              <button
+                key={link.name}
+                onClick={() => scrollToSection(link.path)}
+                className="text-gray-700 hover:text-primary transition-colors"
+              >
+                {link.name}
+              </button>
+            )
           ))}
         </div>
 
@@ -103,13 +134,23 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white py-4 px-4 space-y-3 shadow-lg mt-3 rounded-md">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className="block py-2 text-gray-700 hover:text-primary transition-colors"
-            >
-              {link.name}
-            </Link>
+            link.path.startsWith('/') ? (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="block py-2 text-gray-700 hover:text-primary transition-colors"
+              >
+                {link.name}
+              </Link>
+            ) : (
+              <button
+                key={link.name}
+                onClick={() => scrollToSection(link.path)}
+                className="block w-full text-left py-2 text-gray-700 hover:text-primary transition-colors"
+              >
+                {link.name}
+              </button>
+            )
           ))}
           <div className="pt-3 border-t space-y-3">
             {isAuthenticated ? (

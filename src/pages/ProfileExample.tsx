@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Linkedin, FileText, Globe, Mail, Github, ArrowLeft } from "lucide-react";
 import ProfilePreview from "@/components/ProfilePreview";
+import Navbar from "@/components/Navbar";
 
 const ProfileExample = () => {
   // Sample profile data that matches what's in the preview
   const profileData = {
     name: "Sarah Johnson",
     bio: "UX Designer & Developer",
-    avatarUrl: "/placeholder.svg",
+    avatarUrl: "/lovable-uploads/42b53831-1939-4eb7-a19a-b64de8155c37.png", // Using a professional female photo from uploads
     username: "sarahjohnson",
     links: [
       {
@@ -47,8 +48,15 @@ const ProfileExample = () => {
     ]
   };
 
+  // Scroll to top on page load
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <Navbar />
+      
       {/* Navigation */}
       <div className="container mx-auto px-4 py-6">
         <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
