@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -13,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Github, Mail, Linkedin, Building2, User } from "lucide-react";
 import {
   Select,
@@ -22,12 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, loading, isAuthenticated } = useAuth();
   
   // Get signup parameter from URL
   const searchParams = new URLSearchParams(location.search);
@@ -64,6 +62,13 @@ const Login = () => {
       companySize: ''
     }
   });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   // Update the URL when tab changes without full page reload
   useEffect(() => {
@@ -195,27 +200,7 @@ const Login = () => {
     
     if (!validateLoginForm()) return;
     
-    setIsLoading(true);
-    
-    try {
-      // Here you would normally make an API call to authenticate
-      // For this demo, we'll simulate a successful login
-      setTimeout(() => {
-        setIsLoading(false);
-        toast({
-          title: "Logged in successfully",
-          description: "Welcome back to PocketCV!",
-        });
-        navigate('/dashboard');
-      }, 1500);
-    } catch (error) {
-      setIsLoading(false);
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again",
-        variant: "destructive",
-      });
-    }
+    await signIn(loginData.email, loginData.password);
   };
   
   const handleSignup = async (e: React.FormEvent) => {
@@ -223,27 +208,10 @@ const Login = () => {
     
     if (!validateSignupForm()) return;
     
-    setIsLoading(true);
+    // Pass name as metadata for the trigger to use
+    const metadata = { name: signupData.name };
     
-    try {
-      // Here you would normally make an API call to register
-      // For this demo, we'll simulate a successful registration
-      setTimeout(() => {
-        setIsLoading(false);
-        toast({
-          title: "Account created successfully",
-          description: `Welcome to PocketCV${accountType === 'business' ? ' Business' : ''}!`,
-        });
-        navigate('/dashboard');
-      }, 1500);
-    } catch (error) {
-      setIsLoading(false);
-      toast({
-        title: "Sign up failed",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    }
+    await signUp(signupData.email, signupData.password, metadata);
   };
 
   return (
@@ -318,7 +286,7 @@ const Login = () => {
                     placeholder="your@email.com" 
                     value={loginData.email}
                     onChange={handleLoginChange}
-                    disabled={isLoading}
+                    disabled={loading}
                   />
                   {errors.login.email && (
                     <p className="text-destructive text-sm">{errors.login.email}</p>
@@ -342,15 +310,15 @@ const Login = () => {
                     placeholder="••••••••" 
                     value={loginData.password}
                     onChange={handleLoginChange}
-                    disabled={isLoading}
+                    disabled={loading}
                   />
                   {errors.login.password && (
                     <p className="text-destructive text-sm">{errors.login.password}</p>
                   )}
                 </div>
                 
-                <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : `Sign In${accountType === 'business' ? ' to Business Account' : ''}`}
+                <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={loading}>
+                  {loading ? "Signing in..." : `Sign In${accountType === 'business' ? ' to Business Account' : ''}`}
                 </Button>
                 
                 <div className="relative my-4">
@@ -365,11 +333,11 @@ const Login = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" type="button" disabled={isLoading} className="gap-2">
+                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
                     <Github className="h-4 w-4" />
                     GitHub
                   </Button>
-                  <Button variant="outline" type="button" disabled={isLoading} className="gap-2">
+                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
                     <Linkedin className="h-4 w-4" />
                     LinkedIn
                   </Button>
@@ -411,7 +379,7 @@ const Login = () => {
                     placeholder="John Doe" 
                     value={signupData.name}
                     onChange={handleSignupChange}
-                    disabled={isLoading}
+                    disabled={loading}
                   />
                   {errors.signup.name && (
                     <p className="text-destructive text-sm">{errors.signup.name}</p>
@@ -428,7 +396,7 @@ const Login = () => {
                         placeholder="Acme Inc." 
                         value={signupData.companyName}
                         onChange={handleSignupChange}
-                        disabled={isLoading}
+                        disabled={loading}
                       />
                       {errors.signup.companyName && (
                         <p className="text-destructive text-sm">{errors.signup.companyName}</p>
@@ -438,7 +406,7 @@ const Login = () => {
                     <div className="space-y-2">
                       <Label htmlFor="signup-company-size">Company Size</Label>
                       <Select
-                        disabled={isLoading}
+                        disabled={loading}
                         value={signupData.companySize}
                         onValueChange={(value) => {
                           setSignupData(prev => ({...prev, companySize: value}));
@@ -471,7 +439,7 @@ const Login = () => {
                     placeholder="your@email.com" 
                     value={signupData.email}
                     onChange={handleSignupChange}
-                    disabled={isLoading}
+                    disabled={loading}
                   />
                   {errors.signup.email && (
                     <p className="text-destructive text-sm">{errors.signup.email}</p>
@@ -487,7 +455,7 @@ const Login = () => {
                     placeholder="••••••••" 
                     value={signupData.password}
                     onChange={handleSignupChange}
-                    disabled={isLoading}
+                    disabled={loading}
                   />
                   {errors.signup.password && (
                     <p className="text-destructive text-sm">{errors.signup.password}</p>
@@ -503,15 +471,15 @@ const Login = () => {
                     placeholder="••••••••" 
                     value={signupData.confirmPassword}
                     onChange={handleSignupChange}
-                    disabled={isLoading}
+                    disabled={loading}
                   />
                   {errors.signup.confirmPassword && (
                     <p className="text-destructive text-sm">{errors.signup.confirmPassword}</p>
                   )}
                 </div>
                 
-                <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={isLoading}>
-                  {isLoading ? "Creating Account..." : `Create ${accountType === 'business' ? 'Business ' : ''}Account`}
+                <Button type="submit" className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90" disabled={loading}>
+                  {loading ? "Creating Account..." : `Create ${accountType === 'business' ? 'Business ' : ''}Account`}
                 </Button>
                 
                 <div className="relative my-4">
@@ -526,11 +494,11 @@ const Login = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" type="button" disabled={isLoading} className="gap-2">
+                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
                     <Github className="h-4 w-4" />
                     GitHub
                   </Button>
-                  <Button variant="outline" type="button" disabled={isLoading} className="gap-2">
+                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
                     <Linkedin className="h-4 w-4" />
                     LinkedIn
                   </Button>

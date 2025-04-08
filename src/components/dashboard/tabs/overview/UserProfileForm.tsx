@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Edit3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 interface UserProfileFormProps {
   userData: {
@@ -19,7 +20,10 @@ interface UserProfileFormProps {
 
 export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { profile, loading, updateProfile, uploadProfilePhoto } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const [profileFormData, setProfileFormData] = useState({
     name: userData.name,
     bio: userData.bio,
@@ -34,28 +38,79 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     }));
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    await updateProfile({
+      name: profileFormData.name,
+      bio: profileFormData.bio,
+      slug: profileFormData.username
+    });
+  };
+  
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive"
       });
-    }, 1000);
+      return;
+    }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 2MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      await uploadProfilePhoto(file);
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been updated successfully"
+      });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <form onSubmit={handleUpdateProfile} className="space-y-6 py-6">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
+      
       <div className="flex justify-center mb-6">
         <div className="relative">
           <Avatar className="w-24 h-24">
-            <AvatarImage src={userData.avatarUrl} alt={userData.name} />
+            <AvatarImage src={profile?.photo_url || userData.avatarUrl} alt={profileFormData.name} />
             <AvatarFallback>
-              {userData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {profileFormData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <Button 
@@ -63,8 +118,14 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
             className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
             variant="secondary"
             type="button"
+            onClick={handleAvatarClick}
+            disabled={isUploading}
           >
-            <Edit3 className="h-4 w-4" />
+            {isUploading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+            ) : (
+              <Edit3 className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
@@ -76,7 +137,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
           name="name"
           value={profileFormData.name}
           onChange={handleProfileChange}
-          disabled={isLoading}
+          disabled={loading}
         />
       </div>
       
@@ -92,7 +153,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
             value={profileFormData.username}
             onChange={handleProfileChange}
             className="rounded-l-none"
-            disabled={isLoading}
+            disabled={loading}
           />
         </div>
       </div>
@@ -105,12 +166,12 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
           value={profileFormData.bio}
           onChange={handleProfileChange}
           rows={3}
-          disabled={isLoading}
+          disabled={loading}
         />
       </div>
       
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Saving..." : "Save Changes"}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Saving..." : "Save Changes"}
       </Button>
     </form>
   );

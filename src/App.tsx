@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProfileExample from "./pages/ProfileExample";
@@ -21,24 +23,38 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <LanguageProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/example" element={<ProfileExample />} />
-              <Route path="/get-started" element={<GetStarted />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/preview" element={<Preview />} />
-              <Route path="/business-preview" element={<BusinessPreview />} />
-              <Route path="/u/:username" element={<UserProfile />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </LanguageProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <LanguageProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/example" element={<ProfileExample />} />
+                <Route path="/get-started" element={<GetStarted />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/preview" element={
+                  <ProtectedRoute>
+                    <Preview />
+                  </ProtectedRoute>
+                } />
+                <Route path="/business-preview" element={
+                  <ProtectedRoute>
+                    <BusinessPreview />
+                  </ProtectedRoute>
+                } />
+                <Route path="/u/:username" element={<UserProfile />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </LanguageProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );

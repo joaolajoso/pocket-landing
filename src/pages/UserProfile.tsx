@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileContent from '@/components/profile/ProfileContent';
 import ProfileThemeManager from '@/components/profile/ProfileThemeManager';
-import { fetchProfile, fetchProfileSections, fetchSectionLinks, incrementProfileView, type Profile, type Section, type Link as DbLink } from '@/lib/supabase';
+import { useProfile } from '@/hooks/useProfile';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileSection {
   id: string;
@@ -20,15 +20,6 @@ interface LinkType {
   icon: string | null;
 }
 
-interface UserProfileData {
-  name: string;
-  username: string;
-  bio: string;
-  avatarUrl: string;
-  sections: ProfileSection[];
-  theme: ProfileTheme;
-}
-
 interface ProfileTheme {
   primaryColor: string;
   backgroundColor: string;
@@ -37,82 +28,52 @@ interface ProfileTheme {
 
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
-  const [profile, setProfile] = useState<UserProfileData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profile, loading, error } = useProfile(username);
+  const [sections, setSections] = useState<ProfileSection[]>([]);
+  const [sectionsLoading, setSectionsLoading] = useState(true);
   
+  // Fetch profile sections and links (dummy data for now)
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        if (!username) {
-          setError("Profile not found");
-          setLoading(false);
-          return;
+    if (profile) {
+      // TODO: Replace with actual section data from Supabase
+      // This is placeholder code until we implement sections table
+      setSections([
+        {
+          id: '1',
+          title: 'Contact Information',
+          links: [
+            {
+              id: '1',
+              title: 'Email',
+              url: `mailto:${profile.email || ''}`,
+              icon: null
+            },
+            {
+              id: '2',
+              title: 'LinkedIn',
+              url: profile.linkedin || 'https://linkedin.com',
+              icon: null
+            },
+            {
+              id: '3',
+              title: 'Website',
+              url: profile.website || 'https://example.com',
+              icon: null
+            }
+          ]
         }
-        
-        // Fetch the profile data from Supabase
-        const profileData = await fetchProfile(username);
-        
-        if (!profileData) {
-          setError("Profile not found");
-          setLoading(false);
-          return;
-        }
-        
-        // Increment the profile view counter
-        await incrementProfileView(profileData.id);
-        
-        // Fetch the profile sections
-        const sectionsData = await fetchProfileSections(profileData.id);
-        
-        // Fetch the links for each section
-        const sectionsWithLinks: ProfileSection[] = await Promise.all(
-          sectionsData.map(async (section: Section) => {
-            const linksData = await fetchSectionLinks(section.id);
-            
-            // Transform the links to match the expected format
-            const links: LinkType[] = linksData.map((link: DbLink) => ({
-              id: link.id,
-              title: link.title,
-              url: link.url,
-              icon: link.icon || null,
-            }));
-            
-            return {
-              id: section.id,
-              title: section.title,
-              links,
-            };
-          })
-        );
-        
-        // Create the profile data in the expected format
-        const userData: UserProfileData = {
-          name: profileData.name,
-          username: profileData.username,
-          bio: profileData.bio || "",
-          avatarUrl: profileData.avatar_url || "",
-          sections: sectionsWithLinks,
-          theme: {
-            primaryColor: profileData.primary_color || "#0ea5e9",
-            backgroundColor: profileData.background_color || "#f0f9ff",
-            fontFamily: profileData.font_family || "Inter, sans-serif",
-          },
-        };
-        
-        setProfile(userData);
-      } catch (err) {
-        setError("Failed to load profile");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadProfile();
+      ]);
+      setSectionsLoading(false);
+    }
+  }, [profile]);
+  
+  // Track profile view
+  useEffect(() => {
+    // TODO: Implement view tracking
+    // This will be implemented in a future update
   }, [username]);
   
-  if (loading) {
+  if (loading || sectionsLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -130,28 +91,35 @@ const UserProfile = () => {
     );
   }
   
+  // Default theme 
+  const theme: ProfileTheme = {
+    primaryColor: "#0ea5e9",
+    backgroundColor: "#f0f9ff",
+    fontFamily: "Inter, sans-serif",
+  };
+  
   return (
     <div 
       className="min-h-screen py-6 px-4 md:py-12 profile-page" 
       style={{ 
-        backgroundColor: profile.theme.backgroundColor,
-        fontFamily: profile.theme.fontFamily
+        backgroundColor: theme.backgroundColor,
+        fontFamily: theme.fontFamily
       }}
     >
-      <ProfileThemeManager theme={profile.theme} />
+      <ProfileThemeManager theme={theme} />
       
       <div className="max-w-md mx-auto">
         {/* Profile Header */}
         <ProfileHeader 
-          name={profile.name} 
-          bio={profile.bio} 
-          avatarUrl={profile.avatarUrl} 
+          name={profile.name || 'User'} 
+          bio={profile.bio || ''} 
+          avatarUrl={profile.photo_url || ''} 
         />
         
         {/* Profile Content */}
         <ProfileContent 
-          sections={profile.sections} 
-          username={profile.username} 
+          sections={sections} 
+          username={profile.slug || ''} 
         />
       </div>
     </div>

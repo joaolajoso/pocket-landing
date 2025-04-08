@@ -1,118 +1,140 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useAuth } from "@/contexts/AuthContext";
+
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const isAuthenticated = false; // This will be replaced with actual auth state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, signOut } = useAuth();
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  // Close menu when navigating to a new page
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-  const navigationLinks = isAuthenticated ? [{
-    name: "Dashboard",
-    path: "/dashboard"
-  }, {
-    name: "Preview",
-    path: "/preview"
-  }] : [
-  // Removed the Features link
-  {
-    name: "How It Works",
-    path: "/#how-it-works"
-  }, {
-    name: "FAQ",
-    path: "/#faq"
-  }];
+    setIsMenuOpen(false);
+  }, [location.pathname]);
 
-  // Handle smooth scrolling for hash links when on the home page
-  const handleNavClick = (path: string, e: React.MouseEvent) => {
-    closeMenu();
+  const navLinks = [
+    { name: "Features", path: "/#features" },
+    { name: "Example", path: "/example" },
+    { name: "Pricing", path: "/#pricing" },
+    { name: "FAQ", path: "/#faq" },
+  ];
 
-    // Check if it's a hash link and we're already on the home page
-    if (path.startsWith('/#') && location.pathname === '/') {
-      e.preventDefault();
-      const targetId = path.replace('/#', '');
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        targetElement.scrollIntoView({
-          behavior: 'smooth'
-        });
-      }
-    }
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
-  return <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "py-2 bg-white/80 backdrop-blur-lg shadow-sm" : "py-4 bg-transparent"}`}>
-      <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
-        <Link to="/" className="flex flex-col items-start" onClick={closeMenu}>
-          <span className="text-2xl font-semibold pocketcv-gradient-text">Pocket CV</span>
-          
+
+  return (
+    <nav className="bg-white border-b py-3 sticky top-0 z-50 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <Link to="/" className="text-2xl font-bold">
+          <span className="text-primary">Pocket</span>CV
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          <div className="flex gap-6">
-            {navigationLinks.map(link => <Link key={link.name} to={link.path} className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === link.path || location.hash === link.path.replace('/', '') ? "text-primary" : "text-muted-foreground"}`} onClick={e => handleNavClick(link.path, e)}>
-                {link.name}
-              </Link>)}
-          </div>
+        <div className="hidden md:flex items-center space-x-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              to={link.path}
+              className="text-gray-700 hover:text-primary transition-colors"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
 
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            
-            {isAuthenticated ? <Button variant="default" size="sm" asChild>
+        {/* Desktop Action Buttons */}
+        <div className="hidden md:flex items-center space-x-3">
+          {isAuthenticated ? (
+            <>
+              <Button variant="outline" asChild>
                 <Link to="/dashboard">Dashboard</Link>
-              </Button> : <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login">Log in</Link>
-                </Button>
-                <Button variant="default" size="sm" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 animate-pulse-slow" asChild>
-                  <Link to="/get-started">Get Your PocketCV Card</Link>
-                </Button>
-              </>}
-          </div>
+              </Button>
+              <Button onClick={signOut}>Logout</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" asChild>
+                <Link to="/login">Log in</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/login?signup=true">Sign up</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
-          <LanguageSwitcher />
-          <Button variant="ghost" size="icon" aria-label="Toggle Menu" onClick={toggleMenu}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </Button>
-        </div>
+        <button
+          className="md:hidden p-2 rounded-md"
+          onClick={toggleMenu}
+          aria-expanded={isMenuOpen}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {isMenuOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
+        </button>
       </div>
 
-      {/* Mobile Menu Panel */}
-      {isMenuOpen && <div className="fixed inset-0 top-16 z-50 bg-background/95 backdrop-blur-sm animate-fadeIn md:hidden">
-          <div className="container h-full flex flex-col gap-8 pt-16 pb-24">
-            <div className="flex flex-col gap-4">
-              {navigationLinks.map(link => <Link key={link.name} to={link.path} className="text-lg font-medium px-4 py-3 transition-colors hover:bg-secondary rounded-md" onClick={e => handleNavClick(link.path, e)}>
-                  {link.name}
-                </Link>)}
-            </div>
-            <div className="mt-auto space-y-4">
-              {isAuthenticated ? <Button className="w-full" asChild>
-                  <Link to="/dashboard" onClick={closeMenu}>Dashboard</Link>
-                </Button> : <>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link to="/login" onClick={closeMenu}>Log in</Link>
-                  </Button>
-                  <Button className="w-full bg-pocketcv-orange hover:bg-pocketcv-orange/90" asChild>
-                    <Link to="/get-started" onClick={closeMenu}>Get Your PocketCV Card</Link>
-                  </Button>
-                </>}
-            </div>
+      {/* Mobile Navigation Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white py-4 px-4 space-y-3 shadow-lg mt-3 rounded-md">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              to={link.path}
+              className="block py-2 text-gray-700 hover:text-primary transition-colors"
+            >
+              {link.name}
+            </Link>
+          ))}
+          <div className="pt-3 border-t space-y-3">
+            {isAuthenticated ? (
+              <>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button onClick={signOut} className="w-full">
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" className="w-full" asChild>
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button className="w-full" asChild>
+                  <Link to="/login?signup=true">Sign up</Link>
+                </Button>
+              </>
+            )}
           </div>
-        </div>}
-    </nav>;
+        </div>
+      )}
+    </nav>
+  );
 };
+
 export default Navbar;
