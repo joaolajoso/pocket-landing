@@ -1,36 +1,30 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, signOut } = useAuth();
 
-  // Close menu when navigating to a new page
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Function to handle smooth scroll to section
   const scrollToSection = (sectionId: string) => {
-    // Close the mobile menu first
     setIsMenuOpen(false);
     
-    // If we're not on the home page, navigate to home first
     if (location.pathname !== '/') {
       window.location.href = `/#${sectionId}`;
       return;
     }
     
-    // If we're already on the home page, just scroll to the section
     const section = document.getElementById(sectionId);
     if (section) {
       window.scrollTo({
-        top: section.offsetTop - 100, // Offset for navbar height
+        top: section.offsetTop - 100,
         behavior: 'smooth'
       });
     }
@@ -44,7 +38,6 @@ const Navbar = () => {
           <span className="text-foreground ml-1">CV</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <button
             onClick={() => scrollToSection('how-it-works')}
@@ -79,7 +72,6 @@ const Navbar = () => {
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
           <LanguageSwitcher />
           <button
@@ -114,7 +106,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white py-4 px-4 space-y-3 shadow-lg mt-3 rounded-md">
           <button
