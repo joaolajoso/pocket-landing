@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -30,15 +31,15 @@ const Hero = () => {
   // Translations for the Hero section
   const translations = {
     en: {
-      title: "Your Digital Identity,",
-      titleSpan: "Simplified",
+      title: "The revolution in networking",
+      titleSpan: "starts now",
       description: "Create your professional landing page in minutes. Share your links, CV, and contact information with a single tap through NFC.",
       getStarted: "Order Now",
       learnMore: "Learn More"
     },
     pt: {
-      title: "Sua Identidade Digital,",
-      titleSpan: "Simplificada",
+      title: "A revolução em networking",
+      titleSpan: "começa agora",
       description: "Crie sua página profissional em minutos. Compartilhe seus links, currículo e informações de contato com um único toque via NFC.",
       getStarted: "Peça Agora",
       learnMore: "Saiba Mais"
