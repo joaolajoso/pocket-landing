@@ -16,3 +16,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage
   }
 });
+
+// Domain configuration
+export const POCKETCV_DOMAIN = "pocketcv.pt";
+
+/**
+ * Gets a full profile URL for a username
+ * @param username The username/slug to get the URL for
+ * @returns Full profile URL with the custom domain
+ */
+export const getProfileUrl = (username: string) => {
+  return `https://${POCKETCV_DOMAIN}/u/${username}`;
+};

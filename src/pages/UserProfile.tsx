@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -32,46 +33,71 @@ const UserProfile = () => {
   const [sections, setSections] = useState<ProfileSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
   
-  // Fetch profile sections and links (dummy data for now)
+  // Track profile view
   useEffect(() => {
-    if (profile) {
-      // TODO: Replace with actual section data from Supabase
-      // This is placeholder code until we implement sections table
-      setSections([
-        {
-          id: '1',
-          title: 'Contact Information',
-          links: [
-            {
-              id: '1',
-              title: 'Email',
-              url: `mailto:${profile.email || ''}`,
-              icon: null
-            },
-            {
-              id: '2',
-              title: 'LinkedIn',
-              url: profile.linkedin || 'https://linkedin.com',
-              icon: null
-            },
-            {
-              id: '3',
-              title: 'Website',
-              url: profile.website || 'https://example.com',
-              icon: null
-            }
-          ]
+    const trackView = async () => {
+      try {
+        if (profile?.id) {
+          console.log('Tracking view for profile:', profile.id);
+          // This is where you would implement view tracking when ready
         }
-      ]);
-      setSectionsLoading(false);
+      } catch (error) {
+        console.error('Error tracking profile view:', error);
+      }
+    };
+    
+    if (profile) {
+      trackView();
     }
   }, [profile]);
   
-  // Track profile view
+  // Fetch profile sections and links
   useEffect(() => {
-    // TODO: Implement view tracking
-    // This will be implemented in a future update
-  }, [username]);
+    if (profile) {
+      // Create contact section from profile data
+      const contactLinks = [];
+      
+      if (profile.email) {
+        contactLinks.push({
+          id: 'email-link',
+          title: 'Email',
+          url: `mailto:${profile.email}`,
+          icon: null
+        });
+      }
+      
+      if (profile.linkedin) {
+        contactLinks.push({
+          id: 'linkedin-link',
+          title: 'LinkedIn',
+          url: profile.linkedin.startsWith('http') ? profile.linkedin : `https://linkedin.com/in/${profile.linkedin}`,
+          icon: null
+        });
+      }
+      
+      if (profile.website) {
+        contactLinks.push({
+          id: 'website-link',
+          title: 'Website',
+          url: profile.website.startsWith('http') ? profile.website : `https://${profile.website}`,
+          icon: null
+        });
+      }
+      
+      const sections = [];
+      
+      if (contactLinks.length > 0) {
+        sections.push({
+          id: 'contact-section',
+          title: 'Contact Information',
+          links: contactLinks
+        });
+      }
+      
+      setSections(sections);
+      setSectionsLoading(false);
+    }
+  }, [profile]);
   
   if (loading || sectionsLoading) {
     return (

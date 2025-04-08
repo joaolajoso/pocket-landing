@@ -9,6 +9,7 @@ const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, signOut } = useAuth();
+  const domain = "pocketcv.pt"; // Using the custom domain
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -18,7 +19,7 @@ const Navbar = () => {
     setIsMenuOpen(false);
     
     if (location.pathname !== '/') {
-      window.location.href = `/#${sectionId}`;
+      window.location.href = `https://${domain}/#${sectionId}`;
       return;
     }
     
@@ -54,13 +55,29 @@ const Navbar = () => {
           </button>
           <LanguageSwitcher />
           
-          <Button variant="ghost" asChild>
-            <Link to="/login">Log in</Link>
-          </Button>
-          
-          <Button className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white" asChild>
-            <Link to="/get-started">Get Your PocketCV Card</Link>
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <Button variant="ghost" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={signOut}
+              >
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" asChild>
+                <Link to="/login">Log in</Link>
+              </Button>
+              
+              <Button className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white" asChild>
+                <Link to="/get-started">Get Your PocketCV Card</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <div className="md:hidden flex items-center gap-2">
@@ -112,12 +129,29 @@ const Navbar = () => {
             FAQ
           </button>
           <div className="pt-3 border-t space-y-3">
-            <Button variant="ghost" className="w-full" asChild>
-              <Link to="/login">Log in</Link>
-            </Button>
-            <Button className="w-full bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white" asChild>
-              <Link to="/get-started">Get Your PocketCV Card</Link>
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button variant="ghost" className="w-full" asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button 
+                  className="w-full" 
+                  variant="outline" 
+                  onClick={signOut}
+                >
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" className="w-full" asChild>
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button className="w-full bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white" asChild>
+                  <Link to="/get-started">Get Your PocketCV Card</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

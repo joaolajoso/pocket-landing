@@ -6,6 +6,7 @@ import LinkCard, { LinkType } from "./LinkCard";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { POCKETCV_DOMAIN, getProfileUrl } from "@/integrations/supabase/client";
 
 interface UserProfile {
   name: string;
@@ -43,7 +44,7 @@ const ProfilePreview = ({ profile, isPreview = false }: ProfilePreviewProps) => 
       return;
     }
     
-    const shareUrl = `${window.location.origin}/u/${profile.username}`;
+    const shareUrl = getProfileUrl(profile.username);
     
     try {
       if (navigator.share) {

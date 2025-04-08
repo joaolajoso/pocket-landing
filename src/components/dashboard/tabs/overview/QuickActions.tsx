@@ -6,6 +6,7 @@ import { Edit3, Eye, PlusCircle, Share2 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { UserProfileForm } from "./UserProfileForm";
 import { useToast } from "@/hooks/use-toast";
+import { POCKETCV_DOMAIN, getProfileUrl } from "@/integrations/supabase/client";
 
 interface QuickActionsProps {
   userData: {
@@ -21,7 +22,7 @@ const QuickActions = ({ userData, onOpenLinkEditor }: QuickActionsProps) => {
   const { toast } = useToast();
 
   const handleCopyProfileLink = () => {
-    const profileUrl = `${window.location.origin}/u/${userData.username}`;
+    const profileUrl = getProfileUrl(userData.username);
     navigator.clipboard.writeText(profileUrl);
     toast({
       title: "Link copied",
