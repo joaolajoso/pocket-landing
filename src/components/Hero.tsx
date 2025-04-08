@@ -51,7 +51,7 @@ const Hero = () => {
   const t = translations[language as keyof typeof translations];
 
   return (
-    <div ref={heroRef} className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden">
+    <div ref={heroRef} className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden bg-[#fcf6ff]">
       {/* Background elements */}
       <div className="absolute top-0 inset-0 -z-10 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-pocketcv-purple/10 blur-3xl" />
@@ -63,7 +63,7 @@ const Hero = () => {
           <div className="max-w-2xl text-left lg:text-left space-y-8 lg:flex-1">
             <h1 className="text-4xl md:text-6xl font-bold leading-tight md:leading-tight tracking-tight animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
               {t.title} <br />
-              <span className="text-[#9370db]">{t.titleSpan}</span>
+              <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">{t.titleSpan}</span>
             </h1>
             
             <p className="text-lg md:text-xl text-gray-600 animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
@@ -73,7 +73,7 @@ const Hero = () => {
             <div className="flex flex-row gap-4 justify-start lg:justify-start animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
               <Button size="lg" className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white rounded-md px-8 py-3" asChild>
                 <Link to="/get-started">
-                  {t.getStarted}
+                  {t.getStarted} <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" className="rounded-md px-8 py-3" asChild>
@@ -90,7 +90,7 @@ const Hero = () => {
               <div className="animate-float">
                 <AspectRatio ratio={16 / 9}>
                   <img 
-                    src="/lovable-uploads/a9adab42-1a55-4b37-814c-8f7cc8a9d89a.png" 
+                    src="/lovable-uploads/80dc1990-cda3-4475-9460-288478697dad.png" 
                     alt="PocketCV Card" 
                     className="w-full h-full object-cover rounded-lg" 
                   />
