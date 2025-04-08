@@ -14,13 +14,31 @@ import { Bell, LogOut, Settings, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 
-const DashboardHeader = () => {
+interface DashboardHeaderProps {
+  userData?: {
+    id: string;
+    name: string;
+    bio: string;
+    email: string;
+    avatarUrl: string;
+    username: string;
+    profileViews: number;
+    totalClicks: number;
+  };
+}
+
+const DashboardHeader = ({ userData }: DashboardHeaderProps) => {
   const { signOut, user } = useAuth();
   const { profile } = useProfile();
 
-  const avatarInitials = profile?.name
-    ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
-    : user?.email?.substring(0, 2).toUpperCase() || "?";
+  // Use userData if provided, otherwise use profile data
+  const displayName = userData?.name || profile?.name;
+  const displayEmail = userData?.email || profile?.email || user?.email;
+  const displayAvatar = userData?.avatarUrl || profile?.photo_url;
+  
+  const avatarInitials = displayName
+    ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+    : displayEmail?.substring(0, 2).toUpperCase() || "?";
 
   return (
     <header className="border-b bg-background px-4 lg:px-6">
@@ -45,7 +63,7 @@ const DashboardHeader = () => {
                 className="relative h-8 w-8 rounded-full"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={profile?.photo_url || ""} alt={profile?.name || user?.email || ""} />
+                  <AvatarImage src={displayAvatar || ""} alt={displayName || displayEmail || ""} />
                   <AvatarFallback>{avatarInitials}</AvatarFallback>
                 </Avatar>
               </Button>

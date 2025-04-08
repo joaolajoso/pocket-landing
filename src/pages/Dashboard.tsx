@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "lucide-react";
@@ -131,7 +130,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <DashboardHeader />
+      <DashboardHeader userData={userData} />
       
       <div className="flex flex-1">
         <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
