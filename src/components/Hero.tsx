@@ -1,15 +1,14 @@
-
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const { language } = useLanguage();
-
+  const {
+    language
+  } = useLanguage();
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -21,10 +20,8 @@ const Hero = () => {
     }, {
       threshold: 0.1
     });
-    
     const elements = heroRef.current?.querySelectorAll(".animate-on-scroll");
     elements?.forEach(el => observer.observe(el));
-    
     return () => {
       elements?.forEach(el => observer.unobserve(el));
     };
@@ -47,11 +44,8 @@ const Hero = () => {
       learnMore: "Saiba Mais"
     }
   };
-  
   const t = translations[language as keyof typeof translations];
-
-  return (
-    <div ref={heroRef} className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden bg-[#fcf6ff]">
+  return <div ref={heroRef} className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden bg-[#fcf6ff]">
       {/* Background elements */}
       <div className="absolute top-0 inset-0 -z-10 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-pocketcv-purple/10 blur-3xl" />
@@ -89,19 +83,13 @@ const Hero = () => {
             <div className="relative perspective-1000">
               <div className="animate-float">
                 <AspectRatio ratio={16 / 9}>
-                  <img 
-                    src="/lovable-uploads/80dc1990-cda3-4475-9460-288478697dad.png" 
-                    alt="PocketCV Card" 
-                    className="w-full h-full object-cover rounded-lg" 
-                  />
+                  <img alt="PocketCV Card" className="w-full h-full object-cover rounded-lg" src="/lovable-uploads/75cdccc7-0584-45cc-bcd1-1f2b72d8c7b2.png" />
                 </AspectRatio>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Hero;
