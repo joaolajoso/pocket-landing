@@ -37,10 +37,10 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Remove type parameter to let TypeScript infer the correct type
+          // Fix the type issue by specifying the correct parameter type
           const { data, error } = await supabase.rpc('count_link_clicks', {
             user_id_param: user.id
-          });
+          } as { user_id_param: string });
             
           if (!error && data !== null) {
             setTotalClicks(Number(data));
