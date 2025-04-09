@@ -8,6 +8,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProfileExample from "./pages/ProfileExample";
@@ -38,6 +39,17 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
+              <Helmet
+                titleTemplate="%s | PocketCV"
+                defaultTitle="PocketCV - Create your online professional profile"
+              >
+                <meta name="description" content="PocketCV is a simple way to create a professional online profile to share with recruiters, clients, and connections." />
+                <meta property="og:title" content="PocketCV - Your professional online presence" />
+                <meta property="og:description" content="Create a professional online profile to share with recruiters, clients, and connections." />
+                <meta property="og:image" content="/og-image.png" />
+                <meta property="og:url" content="https://pocketcv.pt" />
+                <meta property="og:type" content="website" />
+              </Helmet>
               <ScrollToTop />
               <Toaster />
               <Sonner />

@@ -1,12 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileContent from '@/components/profile/ProfileContent';
 import ProfileThemeManager from '@/components/profile/ProfileThemeManager';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
+import { trackProfileView } from '@/lib/supabase';
+import { Helmet } from 'react-helmet';
 
 interface ProfileSection {
   id: string;
@@ -29,6 +31,7 @@ interface ProfileTheme {
 
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
+  const location = useLocation();
   const { profile, loading, error } = useProfile(username);
   const [sections, setSections] = useState<ProfileSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
@@ -39,7 +42,12 @@ const UserProfile = () => {
       try {
         if (profile?.id) {
           console.log('Tracking view for profile:', profile.id);
-          // This is where you would implement view tracking when ready
+          // Get source from URL params if available
+          const urlParams = new URLSearchParams(location.search);
+          const source = urlParams.get('utm_source') || urlParams.get('source') || 'direct';
+          
+          // Track the view
+          await trackProfileView(profile.id, source);
         }
       } catch (error) {
         console.error('Error tracking profile view:', error);
@@ -49,7 +57,7 @@ const UserProfile = () => {
     if (profile) {
       trackView();
     }
-  }, [profile]);
+  }, [profile, location.search]);
   
   // Fetch profile sections and links
   useEffect(() => {
@@ -129,31 +137,43 @@ const UserProfile = () => {
   };
   
   return (
-    <div 
-      className="min-h-screen py-6 px-4 md:py-12 profile-page" 
-      style={{ 
-        backgroundColor: theme.backgroundColor,
-        fontFamily: theme.fontFamily
-      }}
-    >
-      <ProfileThemeManager theme={theme} />
+    <>
+      <Helmet>
+        <title>{profile.name || 'Profile'} | PocketCV</title>
+        <meta name="description" content={profile.bio || `${profile.name}'s online resume and contact information`} />
+        <meta property="og:title" content={`${profile.name} | PocketCV`} />
+        <meta property="og:description" content={profile.bio || `${profile.name}'s online resume and contact information`} />
+        {profile.photo_url && <meta property="og:image" content={profile.photo_url} />}
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={window.location.href} />
+      </Helmet>
       
-      <div className="max-w-md mx-auto">
-        {/* Profile Header */}
-        <ProfileHeader 
-          name={profile.name || 'User'} 
-          bio={profile.bio || ''} 
-          headline={profile.headline || ''}
-          avatarUrl={profile.photo_url || ''} 
-        />
+      <div 
+        className="min-h-screen py-6 px-4 md:py-12 profile-page" 
+        style={{ 
+          backgroundColor: theme.backgroundColor,
+          fontFamily: theme.fontFamily
+        }}
+      >
+        <ProfileThemeManager theme={theme} />
         
-        {/* Profile Content */}
-        <ProfileContent 
-          sections={sections} 
-          username={profile.slug || ''} 
-        />
+        <div className="max-w-md mx-auto">
+          {/* Profile Header */}
+          <ProfileHeader 
+            name={profile.name || 'User'} 
+            bio={profile.bio || ''} 
+            headline={profile.headline || profile.job_title || ''}
+            avatarUrl={profile.photo_url || profile.avatar_url || ''} 
+          />
+          
+          {/* Profile Content */}
+          <ProfileContent 
+            sections={sections} 
+            username={profile.slug || ''} 
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

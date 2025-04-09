@@ -3,60 +3,52 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getProfileUrl } from '@/integrations/supabase/client';
+import ProfileQRCode from './ProfileQRCode';
 
 interface ProfileFooterProps {
   username: string;
 }
 
 const ProfileFooter = ({ username }: ProfileFooterProps) => {
-  const [sharing, setSharing] = useState(false);
   const { toast } = useToast();
-
+  
   const handleShare = async () => {
-    setSharing(true);
-    const shareUrl = `${window.location.origin}/u/${username}`;
-
     try {
+      const profileUrl = getProfileUrl(username);
+      
       if (navigator.share) {
         await navigator.share({
           title: 'Check out my PocketCV profile',
-          url: shareUrl
-        });
-        toast({
-          title: "Shared successfully!"
+          url: profileUrl
         });
       } else {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(profileUrl);
         toast({
-          title: "Profile link copied!",
-          description: "Link copied to clipboard"
+          title: 'Link copied',
+          description: 'Profile link copied to clipboard'
         });
       }
     } catch (error) {
       console.error('Error sharing:', error);
-    } finally {
-      setSharing(false);
     }
   };
-
+  
   return (
-    <div className="mt-12 mb-6 text-center">
-      <p className="text-sm text-muted-foreground mb-4">
-        Powered by <span className="font-semibold">PocketCV</span>
-      </p>
+    <div className="mt-8 text-center space-y-4">
+      <Button variant="outline" className="gap-2" onClick={handleShare}>
+        <Share2 className="h-4 w-4" />
+        Share Profile
+      </Button>
       
-      <div className="flex justify-center">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2"
-          onClick={handleShare}
-          disabled={sharing}
-        >
-          <Share2 className="h-4 w-4" />
-          {sharing ? 'Sharing...' : 'Share Profile'}
-        </Button>
-      </div>
+      <ProfileQRCode 
+        profileUrl={getProfileUrl(username)} 
+        profileName={username}
+      />
+      
+      <p className="text-sm text-muted-foreground">
+        Powered by <a href="/" className="font-medium hover:underline">PocketCV</a>
+      </p>
     </div>
   );
 };

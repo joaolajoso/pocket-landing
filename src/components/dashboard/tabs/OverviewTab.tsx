@@ -5,6 +5,7 @@ import StatisticsCards from "./overview/StatisticsCards";
 import UserLinks from "./overview/UserLinks";
 import QuickActions from "./overview/QuickActions";
 import CompletionTasks from "./overview/CompletionTasks";
+import ProfileViewStats from "./overview/ProfileViewStats";
 
 interface OverviewTabProps {
   userData: {
@@ -34,6 +35,9 @@ const OverviewTab = ({ userData, links, onOpenLinkEditor, onDeleteLink }: Overvi
         profileViews={userData.profileViews} 
         totalClicks={userData.totalClicks} 
       />
+      
+      {/* Profile View Stats */}
+      <ProfileViewStats />
       
       {/* Quick Actions & Links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

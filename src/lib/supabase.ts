@@ -14,6 +14,9 @@ export type Profile = {
   slug: string | null;
   created_at: string | null;
   updated_at: string | null;
+  job_title: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
 };
 
 // Type for link click tracking
@@ -21,6 +24,16 @@ export type LinkClick = {
   id: string;
   link_id: string;
   created_at: string;
+};
+
+// Type for profile view tracking
+export type ProfileView = {
+  id: string;
+  profile_id: string;
+  timestamp: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  source: string | null;
 };
 
 // Initialize storage bucket for profile photos
@@ -123,6 +136,125 @@ export async function uploadProfileImage(userId: string, file: File): Promise<st
     .getPublicUrl(fileName);
   
   return data.publicUrl;
+}
+
+// Function to track profile view
+export async function trackProfileView(profileId: string, source?: string): Promise<boolean> {
+  try {
+    // Get basic browser info
+    const userAgent = navigator.userAgent;
+    
+    // Insert the view record
+    const { error } = await supabase
+      .from('profile_views')
+      .insert({
+        profile_id: profileId,
+        user_agent: userAgent,
+        source: source || 'direct'
+      });
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error tracking profile view:', error);
+    return false;
+  }
+}
+
+// Function to get profile view stats
+export async function getProfileViewStats(profileId: string): Promise<{
+  total: number;
+  lastWeek: number;
+  lastMonth: number;
+  daily: { date: string; count: number; }[];
+}> {
+  try {
+    // Get total views
+    const { count: total, error: totalError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', profileId);
+    
+    if (totalError) throw totalError;
+    
+    // Get views from last week
+    const lastWeekDate = new Date();
+    lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+    
+    const { count: lastWeek, error: weekError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', profileId)
+      .gte('timestamp', lastWeekDate.toISOString());
+    
+    if (weekError) throw weekError;
+    
+    // Get views from last month
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+    
+    const { count: lastMonth, error: monthError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', profileId)
+      .gte('timestamp', lastMonthDate.toISOString());
+    
+    if (monthError) throw monthError;
+    
+    // Get daily breakdown for the last week
+    const { data: dailyData, error: dailyError } = await supabase
+      .from('profile_views')
+      .select('timestamp')
+      .eq('profile_id', profileId)
+      .gte('timestamp', lastWeekDate.toISOString());
+    
+    if (dailyError) throw dailyError;
+    
+    // Process daily data
+    const dailyCounts: Record<string, number> = {};
+    const today = new Date();
+    
+    // Initialize the last 7 days with 0 counts
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      dailyCounts[dateString] = 0;
+    }
+    
+    // Count views by day
+    if (dailyData) {
+      dailyData.forEach(view => {
+        const dateString = new Date(view.timestamp).toISOString().split('T')[0];
+        if (dailyCounts[dateString] !== undefined) {
+          dailyCounts[dateString]++;
+        }
+      });
+    }
+    
+    // Convert to array format for charts
+    const daily = Object.entries(dailyCounts).map(([date, count]) => ({
+      date,
+      count
+    }));
+    
+    return {
+      total: total || 0,
+      lastWeek: lastWeek || 0,
+      lastMonth: lastMonth || 0,
+      daily
+    };
+    
+  } catch (error) {
+    console.error('Error fetching profile view stats:', error);
+    return {
+      total: 0,
+      lastWeek: 0,
+      lastMonth: 0,
+      daily: []
+    };
+  }
 }
 
 // Function to increment link click count

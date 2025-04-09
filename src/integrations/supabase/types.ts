@@ -9,13 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      profile_views: {
+        Row: {
+          id: string
+          ip_address: string | null
+          profile_id: string
+          source: string | null
+          timestamp: string
+          user_agent: string | null
+        }
+        Insert: {
+          id?: string
+          ip_address?: string | null
+          profile_id: string
+          source?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Update: {
+          id?: string
+          ip_address?: string | null
+          profile_id?: string
+          source?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           created_at: string | null
           email: string | null
+          full_name: string | null
           headline: string | null
           id: string
+          job_title: string | null
           linkedin: string | null
           name: string | null
           photo_url: string | null
@@ -24,11 +62,14 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          full_name?: string | null
           headline?: string | null
           id: string
+          job_title?: string | null
           linkedin?: string | null
           name?: string | null
           photo_url?: string | null
@@ -37,11 +78,14 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          full_name?: string | null
           headline?: string | null
           id?: string
+          job_title?: string | null
           linkedin?: string | null
           name?: string | null
           photo_url?: string | null
