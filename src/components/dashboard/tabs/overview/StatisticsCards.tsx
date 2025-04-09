@@ -30,17 +30,25 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
       if (!userData.id) return;
       
       try {
-        // Explicitly type the parameters to fix type errors
-        const { data: viewData, error: viewError } = await supabase.rpc('get_profile_view_count', {
-          user_id_param: userData.id
-        });
+        // Define parameter types explicitly to fix TypeScript errors
+        type RpcParams = {
+          user_id_param: string;
+        };
+        
+        // Get profile view count
+        const { data: viewData, error: viewError } = await supabase.rpc<number>(
+          'get_profile_view_count',
+          { user_id_param: userData.id } as RpcParams
+        );
         
         if (viewError) throw viewError;
         setProfileViews(viewData || 0);
         
-        const { data: linkData, error: linkError } = await supabase.rpc('get_total_link_clicks', {
-          user_id_param: userData.id
-        });
+        // Get link click count
+        const { data: linkData, error: linkError } = await supabase.rpc<number>(
+          'get_total_link_clicks',
+          { user_id_param: userData.id } as RpcParams
+        );
         
         if (linkError) throw linkError;
         setLinkClicks(linkData || 0);
