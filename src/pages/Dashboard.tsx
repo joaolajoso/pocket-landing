@@ -15,9 +15,12 @@ import LinksTab from "@/components/dashboard/tabs/LinksTab";
 import AppearanceTab from "@/components/dashboard/tabs/AppearanceTab";
 import AnalyticsTab from "@/components/dashboard/tabs/AnalyticsTab";
 import SettingsTab from "@/components/dashboard/tabs/SettingsTab";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   // Mock user data
   const [userData, setUserData] = useState({
@@ -133,48 +136,50 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col">
       <DashboardHeader userData={userData} />
       
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative">
         <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         
-        <MobileNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-        
-        <main className="flex-1 py-8 px-4 md:px-8 overflow-auto">
-          {activeTab === "overview" && (
-            <OverviewTab 
-              userData={userData} 
-              links={links}
-              onOpenLinkEditor={handleOpenLinkEditor}
-              onDeleteLink={handleDeleteLink}
-            />
-          )}
+        <div className="flex flex-col flex-1">
+          <MobileNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
           
-          {activeTab === "links" && (
-            <LinksTab 
-              links={links}
-              onOpenLinkEditor={handleOpenLinkEditor}
-              onDeleteLink={handleDeleteLink}
-            />
-          )}
-          
-          {activeTab === "appearance" && (
-            <AppearanceTab 
-              userData={userData} 
-              links={links}
-            />
-          )}
-          
-          {activeTab === "analytics" && (
-            <AnalyticsTab 
-              mockAnalyticsData={mockAnalyticsData}
-            />
-          )}
-          
-          {activeTab === "settings" && (
-            <SettingsTab 
-              userData={userData}
-            />
-          )}
-        </main>
+          <main className="flex-1 py-4 md:py-8 px-4 md:px-8 overflow-auto">
+            {activeTab === "overview" && (
+              <OverviewTab 
+                userData={userData} 
+                links={links}
+                onOpenLinkEditor={handleOpenLinkEditor}
+                onDeleteLink={handleDeleteLink}
+              />
+            )}
+            
+            {activeTab === "links" && (
+              <LinksTab 
+                links={links}
+                onOpenLinkEditor={handleOpenLinkEditor}
+                onDeleteLink={handleDeleteLink}
+              />
+            )}
+            
+            {activeTab === "appearance" && (
+              <AppearanceTab 
+                userData={userData} 
+                links={links}
+              />
+            )}
+            
+            {activeTab === "analytics" && (
+              <AnalyticsTab 
+                mockAnalyticsData={mockAnalyticsData}
+              />
+            )}
+            
+            {activeTab === "settings" && (
+              <SettingsTab 
+                userData={userData}
+              />
+            )}
+          </main>
+        </div>
       </div>
       
       <LinkEditor 

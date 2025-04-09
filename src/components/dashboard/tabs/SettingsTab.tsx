@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SettingsTabProps {
   userData: {
@@ -25,22 +26,23 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const { profile } = useProfile();
+  const isMobile = useIsMobile();
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Settings</h2>
         <p className="text-muted-foreground">Manage your account settings and preferences.</p>
       </div>
       
-      <Tabs defaultValue="profile">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="profile" className="space-y-4 pt-4">
+        <TabsContent value="profile" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
@@ -54,7 +56,7 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="account" className="space-y-4 pt-4">
+        <TabsContent value="account" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Account Settings</CardTitle>
@@ -102,7 +104,7 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="notifications" className="space-y-4 pt-4">
+        <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Notification Preferences</CardTitle>
