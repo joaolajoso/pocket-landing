@@ -1,17 +1,26 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PreviewHeader from "@/components/preview/PreviewHeader";
 import ProfilePreview from "@/components/ProfilePreview";
 import DeviceFrame from "@/components/preview/DeviceFrame";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Preview = () => {
   const [viewMode, setViewMode] = useState("desktop");
   const [isFrameVisible, setIsFrameVisible] = useState(true);
   const { user } = useAuth();
   const { profile, loading } = useProfile();
+  const isMobile = useIsMobile();
+
+  // Automatically switch to mobile view on small screens
+  useEffect(() => {
+    if (isMobile) {
+      setViewMode("mobile");
+    }
+  }, [isMobile]);
 
   const toggleFrameVisibility = () => {
     setIsFrameVisible(!isFrameVisible);
@@ -70,7 +79,7 @@ const Preview = () => {
                 viewMode === "mobile" ? "max-w-[100%]" : ""
               }`}
             >
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <ProfilePreview profile={previewData} isPreview={true} />
               </div>
             </div>

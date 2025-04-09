@@ -1,5 +1,6 @@
 
 import { ReactNode } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DeviceFrameProps {
   children: ReactNode;
@@ -8,6 +9,8 @@ interface DeviceFrameProps {
 }
 
 const DeviceFrame = ({ children, isFrameVisible, deviceType }: DeviceFrameProps) => {
+  const isMobile = useIsMobile();
+  
   if (deviceType === "desktop") {
     return (
       <div 
@@ -46,6 +49,9 @@ const DeviceFrame = ({ children, isFrameVisible, deviceType }: DeviceFrameProps)
           ? "max-w-xs bg-white/40 backdrop-blur-sm border-4 border-gray-800 rounded-[2.5rem] p-2 shadow-xl" 
           : "max-w-xs"
       }`}
+      style={{ 
+        width: isMobile ? "90%" : "auto"
+      }}
     >
       {isFrameVisible && (
         <div className="flex justify-center w-full mb-2">
@@ -56,9 +62,10 @@ const DeviceFrame = ({ children, isFrameVisible, deviceType }: DeviceFrameProps)
       <div 
         className={`bg-background rounded-2xl ${
           isFrameVisible ? "border border-gray-300" : ""
-        } overflow-hidden`}
+        } overflow-auto`}
         style={{ 
-          height: isFrameVisible ? "70vh" : "auto",
+          height: isFrameVisible ? (isMobile ? "60vh" : "70vh") : "auto",
+          maxHeight: isMobile ? "80vh" : "auto",
           overflowY: "auto"
         }}
       >
