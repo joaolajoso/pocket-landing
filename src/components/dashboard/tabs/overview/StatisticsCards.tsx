@@ -42,10 +42,10 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Fix: Use any as a generic type parameter to bypass TypeScript constraint error
+          // Let TypeScript infer the types without explicit type parameters
           const { data, error } = await supabase.rpc('count_link_clicks', {
             user_id_param: user.id
-          });
+          } as CountLinkClicksParams);
             
           if (!error && data !== null) {
             setTotalClicks(Number(data));
