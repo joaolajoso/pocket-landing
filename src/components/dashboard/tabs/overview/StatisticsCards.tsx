@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,9 +6,8 @@ import { getProfileViewStats } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
-// Define the interface for the RPC parameters
 interface CountLinkClicksParams {
-  user_id_param: string;
+  user_id_param: string | undefined;
 }
 
 interface StatisticsCardsProps {
@@ -42,8 +40,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Use type assertion to bypass TypeScript error
-          const { data, error } = await supabase.rpc('count_link_clicks', {
+          const { data, error } = await supabase.rpc<number>('count_link_clicks', {
             user_id_param: user.id
           } as CountLinkClicksParams);
             
