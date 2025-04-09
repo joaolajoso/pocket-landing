@@ -36,18 +36,18 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
         };
         
         // Get profile view count
-        const { data: viewData, error: viewError } = await supabase.rpc<number>(
+        const { data: viewData, error: viewError } = await supabase.rpc<number, RpcParams>(
           'get_profile_view_count',
-          { user_id_param: userData.id } as RpcParams
+          { user_id_param: userData.id }
         );
         
         if (viewError) throw viewError;
         setProfileViews(viewData || 0);
         
         // Get link click count
-        const { data: linkData, error: linkError } = await supabase.rpc<number>(
+        const { data: linkData, error: linkError } = await supabase.rpc<number, RpcParams>(
           'get_total_link_clicks',
-          { user_id_param: userData.id } as RpcParams
+          { user_id_param: userData.id }
         );
         
         if (linkError) throw linkError;
