@@ -46,11 +46,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, metadata?: { name?: string }) => {
     try {
       setLoading(true);
+      
+      // First, check if this email already exists
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error("Error checking existing user:", checkError);
+      }
+      
+      if (existingUsers) {
+        toast({
+          title: "Email already in use",
+          description: "This email address is already registered. Please log in or use a different email.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Try to create the user
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: metadata
+          data: metadata,
+          emailRedirectTo: window.location.origin + '/dashboard'
         }
       });
 
@@ -61,14 +85,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "You can now sign in to your account"
       });
       
+      // Instead of immediately navigating, provide confirmation
+      setLoading(false);
       navigate('/login');
     } catch (error: any) {
+      console.error('Error creating account:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "There was a problem creating your account";
+      
+      if (error.message.includes("unique constraint")) {
+        errorMessage = "This email is already registered. Please try signing in.";
+      } else if (error.message.includes("password")) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error creating account",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -90,9 +126,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('Error signing in:', error);
+      let errorMessage = "Invalid email or password";
+      
+      if (error.message.includes("email") || error.message.includes("password")) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error signing in",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
