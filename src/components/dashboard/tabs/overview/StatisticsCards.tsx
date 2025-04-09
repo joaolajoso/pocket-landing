@@ -7,6 +7,7 @@ import { getProfileViewStats } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
+// Define the interface for the RPC parameters
 interface CountLinkClicksParams {
   user_id_param: string;
 }
@@ -41,11 +42,10 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Fix the type issue by removing explicit generic type parameters
-          // and letting TypeScript infer them based on context
-          const { data, error } = await supabase.rpc('count_link_clicks', {
+          // Define the correct type for the RPC by using a type assertion
+          const { data, error } = await supabase.rpc<number>('count_link_clicks', {
             user_id_param: user.id
-          });
+          } as CountLinkClicksParams);
             
           if (!error && data !== null) {
             setTotalClicks(Number(data));
