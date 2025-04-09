@@ -46,13 +46,14 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
 
         // Fetch link clicks from database using RPC
         try {
-          // We need to explicitly tell TypeScript about the RPC function parameters and return type
-          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>('count_link_clicks', {
+          // Fix the type parameters for the rpc call
+          const { data, error } = await supabase.rpc('count_link_clicks', {
             user_id_param: user.id
           });
             
           if (!error && data !== null) {
-            setTotalClicks(data);
+            // Cast data to number before setting state
+            setTotalClicks(Number(data));
           } else {
             console.error("Error fetching link clicks:", error);
           }
