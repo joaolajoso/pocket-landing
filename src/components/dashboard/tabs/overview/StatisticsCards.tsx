@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,7 +41,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          const { data, error } = await supabase.rpc('count_link_clicks', {
+          const { data, error } = await supabase.rpc<number>('count_link_clicks', {
             user_id_param: user.id
           } as CountLinkClicksParams);
             
