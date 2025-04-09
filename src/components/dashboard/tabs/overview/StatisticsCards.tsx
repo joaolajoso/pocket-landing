@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Link } from "lucide-react";
@@ -29,17 +30,17 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
       if (!userData.id) return;
       
       try {
-        // Fix type error by providing the correct parameter type
+        // Explicitly type the parameters to fix type errors
         const { data: viewData, error: viewError } = await supabase.rpc('get_profile_view_count', {
           user_id_param: userData.id
-        } as { user_id_param: string });
+        });
         
         if (viewError) throw viewError;
         setProfileViews(viewData || 0);
         
         const { data: linkData, error: linkError } = await supabase.rpc('get_total_link_clicks', {
           user_id_param: userData.id
-        } as { user_id_param: string });
+        });
         
         if (linkError) throw linkError;
         setLinkClicks(linkData || 0);

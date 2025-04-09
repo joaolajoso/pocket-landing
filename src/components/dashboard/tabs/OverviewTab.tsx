@@ -38,10 +38,12 @@ const OverviewTab = ({
       <WelcomeHeader firstName={firstName} />
       
       {/* Stats Cards */}
-      <StatisticsCards 
-        profileViews={userData.profileViews} 
-        totalClicks={userData.totalClicks} 
-      />
+      <div className="grid grid-cols-4 gap-6">
+        <StatisticsCards 
+          userData={userData}
+          onNavigateToTab={onNavigateToTab}
+        />
+      </div>
       
       {/* Profile View Stats */}
       <ProfileViewStats />

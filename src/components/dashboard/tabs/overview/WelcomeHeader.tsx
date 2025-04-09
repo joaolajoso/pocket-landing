@@ -32,6 +32,20 @@ const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
     });
   };
   
+  const handleViewPublicProfile = () => {
+    if (!profile?.slug) {
+      toast({
+        title: "Username not set",
+        description: "Please set a username in your profile settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const profileUrl = getProfileUrl(profile.slug);
+    window.open(profileUrl, '_blank');
+  };
+  
   return (
     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
       <div>
@@ -40,11 +54,9 @@ const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
       </div>
       
       <div className="flex gap-4">
-        <Button variant="outline" asChild>
-          <Link to="/preview">
-            <Eye className="mr-2 h-4 w-4" />
-            Preview
-          </Link>
+        <Button variant="outline" onClick={handleViewPublicProfile}>
+          <Eye className="mr-2 h-4 w-4" />
+          View public page
         </Button>
         
         <Button className="bg-[#8c52ff] hover:bg-[#8c52ff]/90">
