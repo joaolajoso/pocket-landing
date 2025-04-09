@@ -1,58 +1,78 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
 
 export const useNetworkPrivacy = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { profile, refreshProfile } = useProfile();
+  const [allowNetworkSaves, setAllowNetworkSaves] = useState(true);
   const [loading, setLoading] = useState(false);
-  
-  // Toggle whether others can save your profile
-  const toggleAllowNetworkSaves = async (): Promise<boolean> => {
-    if (!user || !profile) return false;
+
+  // Fetch the current privacy setting
+  useEffect(() => {
+    const fetchPrivacySetting = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('allow_network_saves')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        if (data) {
+          setAllowNetworkSaves(data.allow_network_saves ?? true);
+        }
+      } catch (err: any) {
+        console.error('Error fetching network privacy setting:', err);
+      }
+    };
+    
+    fetchPrivacySetting();
+  }, [user]);
+
+  // Toggle the privacy setting
+  const toggleAllowNetworkSaves = async () => {
+    if (!user) return;
+    
+    setLoading(true);
     
     try {
-      setLoading(true);
+      const newValue = !allowNetworkSaves;
       
-      const newValue = !(profile.allow_network_saves ?? true);
-      
-      // Use any type to bypass TypeScript checking since Supabase types don't know about our column
       const { error } = await supabase
         .from('profiles')
-        .update({ allow_network_saves: newValue } as any)
+        .update({ allow_network_saves: newValue })
         .eq('id', user.id);
-      
+        
       if (error) throw error;
+      
+      setAllowNetworkSaves(newValue);
       
       toast({
         title: newValue ? "Profile can be saved" : "Profile cannot be saved",
         description: newValue 
           ? "Others can now save your profile to their network" 
-          : "Others cannot save your profile to their network",
+          : "Others can no longer save your profile to their network",
       });
-      
-      // Refresh profile data
-      await refreshProfile();
-      return true;
     } catch (err: any) {
-      console.error('Error updating privacy setting:', err);
+      console.error('Error updating network privacy setting:', err);
       toast({
-        title: "Error updating privacy setting",
+        title: "Error updating setting",
         description: err.message,
         variant: "destructive"
       });
-      return false;
     } finally {
       setLoading(false);
     }
   };
 
   return {
-    allowNetworkSaves: profile?.allow_network_saves ?? true,
+    allowNetworkSaves,
     toggleAllowNetworkSaves,
     loading
   };

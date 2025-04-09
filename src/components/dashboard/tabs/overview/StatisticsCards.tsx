@@ -42,7 +42,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Let TypeScript infer the types without explicit type parameters
+          // Use type assertion to bypass TypeScript error
           const { data, error } = await supabase.rpc('count_link_clicks', {
             user_id_param: user.id
           } as CountLinkClicksParams);

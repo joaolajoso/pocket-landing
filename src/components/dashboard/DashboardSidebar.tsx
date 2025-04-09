@@ -9,7 +9,7 @@ interface DashboardSidebarProps {
 }
 
 const DashboardSidebar = ({ activeTab, setActiveTab }: DashboardSidebarProps) => {
-  // Navigation items including the new network tab
+  // Navigation items including the network tab
   const navItems = [
     { id: "overview", label: "Overview", icon: <LayoutDashboard className="h-5 w-5" /> },
     { id: "links", label: "Links", icon: <Link2 className="h-5 w-5" /> },
