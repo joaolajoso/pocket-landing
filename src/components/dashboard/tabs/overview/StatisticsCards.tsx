@@ -42,8 +42,8 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Fix the typing by providing both type parameters: return type and params type
-          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>('count_link_clicks', {
+          // Fix: Use any as a generic type parameter to bypass TypeScript constraint error
+          const { data, error } = await supabase.rpc('count_link_clicks', {
             user_id_param: user.id
           });
             
