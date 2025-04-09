@@ -30,28 +30,27 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
       if (!userData.id) return;
       
       try {
-        // Define parameter types explicitly to fix TypeScript errors
-        type RpcParams = {
-          user_id_param: string;
-        };
-        
         // Get profile view count
-        const { data: viewData, error: viewError } = await supabase.rpc<number, RpcParams>(
+        const { data: viewData, error: viewError } = await supabase.rpc(
           'get_profile_view_count',
           { user_id_param: userData.id }
         );
         
         if (viewError) throw viewError;
-        setProfileViews(viewData || 0);
+        if (viewData !== null) {
+          setProfileViews(Number(viewData));
+        }
         
         // Get link click count
-        const { data: linkData, error: linkError } = await supabase.rpc<number, RpcParams>(
+        const { data: linkData, error: linkError } = await supabase.rpc(
           'get_total_link_clicks',
           { user_id_param: userData.id }
         );
         
         if (linkError) throw linkError;
-        setLinkClicks(linkData || 0);
+        if (linkData !== null) {
+          setLinkClicks(Number(linkData));
+        }
       } catch (error) {
         console.error('Error fetching statistics:', error);
       } finally {
