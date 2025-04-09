@@ -33,18 +33,6 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
     }
   };
 
-  // Determine button size from settings
-  const getButtonPadding = () => {
-    switch (settings.button_size) {
-      case 'S': return 'p-2';
-      case 'L': return 'p-6';
-      case 'XL': return 'p-7';
-      case '2XL': return 'p-8';
-      case 'M':
-      default: return 'p-4';
-    }
-  };
-
   // Determine border style based on settings
   const getBorderStyle = () => {
     if (!settings.button_border_color || settings.button_border_style === 'none') {
@@ -67,7 +55,7 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
 
   return (
     <Card
-      className={`w-full hover:shadow-md transition-shadow cursor-pointer link-card-container ${getButtonPadding()}`}
+      className="w-full hover:shadow-md transition-shadow cursor-pointer link-card-container p-4"
       onClick={handleClick}
       style={{
         backgroundColor: "var(--profile-button-bg, var(--primary))",

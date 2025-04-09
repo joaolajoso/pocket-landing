@@ -21,6 +21,8 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
   
   // Generate CSS custom properties based on design settings
   useEffect(() => {
+    if (!designSettings) return;
+    
     // Prepare background style
     let backgroundStyle = '';
     if (designSettings.background_type === 'solid') {
@@ -59,25 +61,8 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
         borderStyle = 'none';
     }
     
-    // Calculate button padding based on size
-    let buttonPadding = '0.5rem 1rem';
-    switch (designSettings.button_size) {
-      case 'S':
-        buttonPadding = '0.25rem 0.5rem';
-        break;
-      case 'M':
-        buttonPadding = '0.5rem 1rem';
-        break;
-      case 'L':
-        buttonPadding = '0.75rem 1.5rem';
-        break;
-      case 'XL':
-        buttonPadding = '1rem 2rem';
-        break;
-      case '2XL':
-        buttonPadding = '1.25rem 2.5rem';
-        break;
-    }
+    // Standard button padding since we're removing size options
+    const buttonPadding = '0.75rem 1rem';
     
     const styles = `
       .profile-preview {
@@ -134,6 +119,24 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
     `;
     
     setCssStyles(styles);
+    
+    // Apply styles directly to document for real-time preview
+    const styleId = 'profile-design-preview-styles';
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+    
+    styleEl.textContent = styles;
+    
+    return () => {
+      if (styleEl && document.getElementById(styleId)) {
+        styleEl.remove();
+      }
+    };
   }, [designSettings]);
 
   return (

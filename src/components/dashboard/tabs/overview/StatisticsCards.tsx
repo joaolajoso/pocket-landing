@@ -41,10 +41,8 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          const { data, error } = await supabase.rpc(
-            'count_link_clicks', 
-            { user_id_param: user.id }
-          );
+          const params: CountLinkClicksParams = { user_id_param: user.id };
+          const { data, error } = await supabase.rpc('count_link_clicks', params);
             
           if (!error && data !== null) {
             setTotalClicks(Number(data));

@@ -34,59 +34,61 @@ const ProfilePreview = ({
   
   // Apply design settings
   useEffect(() => {
-    if (designSettings) {
-      // Apply background
-      let backgroundStyle = '';
-      if (designSettings.background_type === 'solid') {
-        backgroundStyle = designSettings.background_color;
-        document.documentElement.style.setProperty('--profile-bg', designSettings.background_color);
-      } else if (designSettings.background_type === 'gradient' && designSettings.background_gradient_start && designSettings.background_gradient_end) {
-        backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
-        document.documentElement.style.setProperty('--profile-bg', `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`);
-      } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
-        backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
-        document.documentElement.style.setProperty('--profile-bg', `url(${designSettings.background_image_url})`);
-        document.documentElement.style.setProperty('--profile-bg-position', 'center');
-        document.documentElement.style.setProperty('--profile-bg-size', 'cover');
-      }
-      
-      // Set text colors
-      document.documentElement.style.setProperty('--profile-name-color', designSettings.name_color);
-      document.documentElement.style.setProperty('--profile-description-color', designSettings.description_color);
-      document.documentElement.style.setProperty('--profile-section-title-color', designSettings.section_title_color);
-      document.documentElement.style.setProperty('--profile-link-text-color', designSettings.link_text_color);
-      
-      // Set button styles
-      document.documentElement.style.setProperty('--profile-button-bg', designSettings.button_background_color);
-      document.documentElement.style.setProperty('--profile-button-text', designSettings.button_text_color);
-      document.documentElement.style.setProperty('--profile-button-icon', designSettings.button_icon_color);
-      
-      if (designSettings.button_border_color) {
-        document.documentElement.style.setProperty('--profile-button-border', `1px solid ${designSettings.button_border_color}`);
-      }
-      
-      // Set layout
-      document.documentElement.style.setProperty('--profile-text-align', designSettings.text_alignment);
-      document.documentElement.style.setProperty('--profile-font-family', designSettings.font_family);
+    if (!designSettings) return;
+    
+    // Create a unique style ID for this component instance
+    const styleId = 'profile-preview-realtime-styles';
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
     }
+    
+    // Prepare background style
+    let backgroundStyle = '';
+    if (designSettings.background_type === 'solid') {
+      backgroundStyle = designSettings.background_color;
+    } else if (designSettings.background_type === 'gradient' && 
+               designSettings.background_gradient_start && 
+               designSettings.background_gradient_end) {
+      backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
+    } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
+      backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
+    }
+    
+    // Generate border style
+    let borderStyle = 'none';
+    if (designSettings.button_border_color && designSettings.button_border_style !== 'none') {
+      borderStyle = `1px solid ${designSettings.button_border_color}`;
+    }
+    
+    // Create CSS
+    const css = `
+      :root {
+        --profile-bg: ${backgroundStyle};
+        --profile-bg-position: center;
+        --profile-bg-size: cover;
+        --profile-name-color: ${designSettings.name_color};
+        --profile-description-color: ${designSettings.description_color};
+        --profile-section-title-color: ${designSettings.section_title_color};
+        --profile-link-text-color: ${designSettings.link_text_color};
+        --profile-button-bg: ${designSettings.button_background_color};
+        --profile-button-text: ${designSettings.button_text_color};
+        --profile-button-icon: ${designSettings.button_icon_color};
+        --profile-button-border: ${borderStyle};
+        --profile-text-align: ${designSettings.text_alignment};
+        --profile-font-family: ${designSettings.font_family};
+      }
+    `;
+    
+    styleEl.textContent = css;
     
     // Clean up
     return () => {
-      if (isPreview) {
-        // Clear styles when component unmounts
-        document.documentElement.style.removeProperty('--profile-bg');
-        document.documentElement.style.removeProperty('--profile-bg-position');
-        document.documentElement.style.removeProperty('--profile-bg-size');
-        document.documentElement.style.removeProperty('--profile-name-color');
-        document.documentElement.style.removeProperty('--profile-description-color');
-        document.documentElement.style.removeProperty('--profile-section-title-color');
-        document.documentElement.style.removeProperty('--profile-link-text-color');
-        document.documentElement.style.removeProperty('--profile-button-bg');
-        document.documentElement.style.removeProperty('--profile-button-text');
-        document.documentElement.style.removeProperty('--profile-button-icon');
-        document.documentElement.style.removeProperty('--profile-button-border');
-        document.documentElement.style.removeProperty('--profile-text-align');
-        document.documentElement.style.removeProperty('--profile-font-family');
+      if (isPreview && styleEl && document.getElementById(styleId)) {
+        styleEl.remove();
       }
     };
   }, [designSettings, isPreview]);

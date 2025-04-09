@@ -21,7 +21,7 @@ export interface ProfileDesignSettings {
   button_background_color: string;
   button_icon_color: string;
   button_icon_position: 'left' | 'right';
-  button_size: 'S' | 'M' | 'L' | 'XL' | '2XL';
+  // Removed button_size field
   button_border_color?: string | null;
   button_border_style?: 'none' | 'all' | 'left' | 'right' | 'top' | 'bottom' | 'x' | 'y' | null;
   text_alignment: 'left' | 'center' | 'right';
@@ -44,7 +44,7 @@ export const defaultDesignSettings: ProfileDesignSettings = {
   button_background_color: '#0ea5e9',
   button_icon_color: '#ffffff',
   button_icon_position: 'left',
-  button_size: 'M',
+  // Removed button_size
   button_border_color: '#e5e7eb',
   button_border_style: 'all',
   text_alignment: 'center',
@@ -89,7 +89,9 @@ export const useProfileDesign = (profileId?: string) => {
       
       if (data) {
         // Cast the data to our expected type with type assertion
-        setSettings(data as unknown as ProfileDesignSettings);
+        // Remove the button_size field from the data if it exists
+        const { button_size, ...cleanedData } = data as any;
+        setSettings(cleanedData as ProfileDesignSettings);
       } else {
         setSettings(defaultDesignSettings);
       }
@@ -189,7 +191,9 @@ export const useProfileDesign = (profileId?: string) => {
         filter: `user_id=eq.${user.id}`
       }, payload => {
         console.log('Design settings updated in real-time:', payload);
-        setSettings(payload.new as ProfileDesignSettings);
+        // Remove button_size from the payload data if it exists
+        const { button_size, ...cleanedData } = payload.new as any;
+        setSettings(cleanedData as ProfileDesignSettings);
       })
       .subscribe();
     
