@@ -3,6 +3,7 @@ import LinkDisplay from './LinkDisplay';
 import { LinkType } from '@/components/LinkCard';
 import { Badge } from '@/components/ui/badge';
 import { incrementLinkClick } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileSection {
   id: string;
@@ -15,9 +16,11 @@ interface ProfileSectionDisplayProps {
 }
 
 const ProfileSectionDisplay = ({ section }: ProfileSectionDisplayProps) => {
+  const { user } = useAuth();
+  
   const handleLinkClick = async (linkId: string) => {
-    // Increment the link click counter
-    await incrementLinkClick(linkId);
+    // Increment the link click counter with user ID if available
+    await incrementLinkClick(linkId, user?.id);
   };
 
   return (

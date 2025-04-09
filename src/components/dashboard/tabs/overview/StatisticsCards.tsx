@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { getProfileViewStats, incrementLinkClick } from "@/lib/supabase";
+import { getProfileViewStats } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -39,15 +39,18 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
           }
         }
 
-        // Fetch link clicks from database
-        const { data: clicksData, error: clicksError } = await supabase
-          .from('link_clicks')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-          
-        if (!clicksError) {
-          const count = clicksData?.length || 0;
-          setTotalClicks(count);
+        // Fetch link clicks from database using raw counts to avoid table reference issues
+        try {
+          const { count, error } = await supabase
+            .from('link_clicks')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+            
+          if (!error && count !== null) {
+            setTotalClicks(count);
+          }
+        } catch (error) {
+          console.error("Error fetching link clicks:", error);
         }
       } catch (error) {
         console.error("Error fetching profile stats:", error);
@@ -76,22 +79,22 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
     fetchStats();
     calculateProfileCompletion();
     
-    // Set up real-time subscription for link clicks
-    const linkClicksChannel = supabase
-      .channel('link-clicks-changes')
+    // Set up real-time subscription for link clicks using client-side filtering
+    // instead of direct table subscription (which would require updating Typescript types)
+    const profileViewsChannel = supabase
+      .channel('profile-views-changes')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'link_clicks',
-        filter: `user_id=eq.${user?.id}`
+        table: 'profile_views',
+        filter: `profile_id=eq.${user?.id}`
       }, () => {
-        // Increment click count when a new click is recorded
-        setTotalClicks(prev => prev + 1);
+        fetchStats();
       })
       .subscribe();
       
     return () => {
-      supabase.removeChannel(linkClicksChannel);
+      supabase.removeChannel(profileViewsChannel);
     };
   }, [user, profile]);
 

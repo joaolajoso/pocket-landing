@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ExternalLink } from 'lucide-react';
 import { incrementLinkClick } from '@/lib/supabase';
 import { useProfileDesign } from '@/hooks/profile/useProfileDesign';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LinkDisplayProps {
   link: LinkType;
@@ -13,6 +14,7 @@ interface LinkDisplayProps {
 
 const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
   const { settings } = useProfileDesign();
+  const { user } = useAuth();
   
   const handleClick = async () => {
     // Call the onClick handler if provided
@@ -21,8 +23,8 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
     }
     
     try {
-      // Track the click in the database
-      await incrementLinkClick(link.id);
+      // Track the click in the database, passing the user ID if available
+      await incrementLinkClick(link.id, user?.id);
       
       // Open the link in a new tab
       window.open(link.url, '_blank', 'noopener,noreferrer');

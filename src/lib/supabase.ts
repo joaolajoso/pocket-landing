@@ -23,6 +23,7 @@ export type Profile = {
 export type LinkClick = {
   id: string;
   link_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -257,9 +258,19 @@ export async function getProfileViewStats(profileId: string): Promise<{
   }
 }
 
-// Function to increment link click count
-export async function incrementLinkClick(linkId: string, userId: string): Promise<boolean> {
+// Function to increment link click count - modified to handle userId correctly
+export async function incrementLinkClick(linkId: string, userId?: string): Promise<boolean> {
   try {
+    // Get current user if userId is not provided
+    if (!userId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No user found when trying to increment link click');
+        return false;
+      }
+      userId = user.id;
+    }
+
     // Insert a new link click record
     const { error } = await supabase
       .from('link_clicks')
@@ -268,7 +279,13 @@ export async function incrementLinkClick(linkId: string, userId: string): Promis
         user_id: userId
       });
     
-    if (error) throw error;
+    if (error) {
+      // Check if it's a database structure issue
+      if (error.message.includes('relation "link_clicks" does not exist')) {
+        console.error('link_clicks table not found - may need to run migrations');
+      }
+      throw error;
+    }
     
     return true;
   } catch (error) {
