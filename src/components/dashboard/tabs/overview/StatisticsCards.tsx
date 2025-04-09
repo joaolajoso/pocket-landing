@@ -41,8 +41,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Fix by providing both type parameters to the rpc call
-          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>(
+          const { data, error } = await supabase.rpc(
             'count_link_clicks', 
             { user_id_param: user.id }
           );
