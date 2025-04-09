@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +5,10 @@ import { useEffect, useState } from "react";
 import { getProfileViewStats } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+
+interface CountLinkClicksParams {
+  user_id_param: string;
+}
 
 interface StatisticsCardsProps {
   profileViews: number;
@@ -21,16 +24,13 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
   const [profileCompletion, setProfileCompletion] = useState(0);
   
   useEffect(() => {
-    // Get real-time profile view stats from Supabase
     const fetchStats = async () => {
       if (!user?.id) return;
       
       try {
-        // Fetch profile views
         const stats = await getProfileViewStats(user.id);
         setProfileViews(stats.total);
         
-        // Calculate weekly growth percentage
         if (stats.lastWeek > 0 && stats.total > 0) {
           const previousWeekViews = stats.total - stats.lastWeek;
           if (previousWeekViews > 0) {
@@ -39,15 +39,12 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
           }
         }
 
-        // Fetch link clicks from database using RPC
         try {
-          // Using type assertion with any to avoid type constraints
-          const { data, error } = await supabase.rpc('count_link_clicks', {
+          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>('count_link_clicks', {
             user_id_param: user.id
           });
             
           if (!error && data !== null) {
-            // Cast data to number before setting state
             setTotalClicks(Number(data));
           } else {
             console.error("Error fetching link clicks:", error);
@@ -60,12 +57,11 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
       }
     };
     
-    // Calculate profile completion percentage
     const calculateProfileCompletion = () => {
       if (!profile) return 0;
       
       let completedFields = 0;
-      const totalFields = 7; // Total fields we're checking
+      const totalFields = 7;
       
       if (profile.name) completedFields++;
       if (profile.bio) completedFields++;
@@ -82,7 +78,6 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
     fetchStats();
     calculateProfileCompletion();
     
-    // Set up real-time subscription for profile views
     const profileViewsChannel = supabase
       .channel('profile-views-changes')
       .on('postgres_changes', {
