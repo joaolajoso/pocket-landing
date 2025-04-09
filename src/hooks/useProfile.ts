@@ -29,7 +29,7 @@ export const useProfile = (slug?: string) => {
           .single();
           
         if (error) throw error;
-        setProfile(data);
+        if (data) setProfile(data as ProfileData);
       } else if (user) {
         // Fetch current user's profile
         console.log("Fetching profile for user ID:", user.id);
@@ -46,7 +46,7 @@ export const useProfile = (slug?: string) => {
         }
         
         console.log("Fetched profile data:", data);
-        setProfile(data);
+        if (data) setProfile(data as ProfileData);
       } else {
         throw new Error('No user or slug provided');
       }
@@ -114,7 +114,7 @@ export const useProfile = (slug?: string) => {
       }
       
       // Update local state with new data
-      setProfile(prev => prev ? { ...prev, ...updatedData } : null);
+      setProfile(prev => prev ? { ...prev, ...updatedData } as ProfileData : null);
       
       toast({
         title: "Profile updated",
