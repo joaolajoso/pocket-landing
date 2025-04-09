@@ -26,6 +26,7 @@ const UserLinks = ({ links, onOpenLinkEditor, onDeleteLink }: UserLinksProps) =>
               link={link}
               onEdit={onOpenLinkEditor}
               onDelete={onDeleteLink}
+              isEditable={true}
             />
           ))
         ) : (

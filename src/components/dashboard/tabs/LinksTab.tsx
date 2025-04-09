@@ -35,6 +35,7 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
                   link={link}
                   onEdit={onOpenLinkEditor}
                   onDelete={onDeleteLink}
+                  isEditable={true}
                 />
               ))}
             </div>
