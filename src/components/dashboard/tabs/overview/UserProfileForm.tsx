@@ -1,14 +1,16 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit3, Loader2 } from "lucide-react";
+import { Edit3, Loader2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
+import { getProfileUrl } from "@/lib/supabase";
 
 interface ProfileFormValues {
   name: string;
@@ -34,6 +36,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
   const { profile, loading, updateProfile, uploadProfilePhoto, refreshProfile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const form = useForm<ProfileFormValues>({
     defaultValues: {
@@ -163,6 +166,29 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     }
   };
 
+  const copyProfileLink = () => {
+    const username = form.getValues("username");
+    if (!username) {
+      toast({
+        title: "No username set",
+        description: "Please set a username first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const profileUrl = getProfileUrl(username);
+    navigator.clipboard.writeText(profileUrl);
+    
+    setCopied(true);
+    toast({
+      title: "Profile link copied",
+      description: `${profileUrl} copied to clipboard`
+    });
+    
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const displayName = profile?.name || userData.name;
   const photoUrl = profile?.photo_url || userData.avatarUrl;
 
@@ -242,7 +268,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Your profile link</FormLabel>
               <div className="flex items-center">
                 <span className="px-3 py-2 bg-muted rounded-l-md border-y border-l border-input">
                   pocketcv.pt/u/
@@ -255,6 +281,20 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
                     placeholder="yourname"
                   />
                 </FormControl>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="ml-2"
+                  onClick={copyProfileLink}
+                  disabled={!field.value}
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
               <FormMessage />
             </FormItem>

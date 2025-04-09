@@ -35,7 +35,7 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { settings: designSettings, saveDesignSettings } = useProfileDesign();
+  const { settings: designSettings, saveDesignSettings, loading: designLoading } = useProfileDesign();
 
   // Set initial values from design settings
   useEffect(() => {
@@ -87,6 +87,24 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
     navigate('/preview');
   };
 
+  // Create a preview design settings object that updates in real-time
+  const livePreviewSettings: ProfileDesignSettings = {
+    ...designSettings || {},
+    background_color: backgroundColor,
+    button_background_color: primaryColor,
+    font_family: `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`,
+    button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
+    background_type: 'solid',
+    name_color: '#000000',
+    description_color: '#555555',
+    section_title_color: '#333333',
+    link_text_color: '#ffffff',
+    button_text_color: '#ffffff',
+    button_icon_color: '#ffffff',
+    button_icon_position: 'left',
+    text_alignment: 'center'
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -101,15 +119,50 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
         
         <TabsContent value="design">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 space-y-6">
               <DesignTab />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ColorSelector 
+                  primaryColor={primaryColor}
+                  setPrimaryColor={setPrimaryColor}
+                  backgroundColor={backgroundColor}
+                  setBackgroundColor={setBackgroundColor}
+                />
+                
+                <LayoutSelector 
+                  font={font}
+                  setFont={setFont}
+                  buttonStyle={buttonStyle}
+                  setButtonStyle={setButtonStyle}
+                  saving={saving}
+                  onSave={handleSaveAppearance}
+                />
+              </div>
+              
+              <div className="flex justify-end">
+                <Button onClick={handlePreview} variant="outline" className="mr-2">
+                  Preview Full Page
+                </Button>
+                <Button
+                  onClick={handleSaveAppearance}
+                  disabled={saving || designLoading}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : "Save Changes"}
+                </Button>
+              </div>
             </div>
             <div className="lg:col-span-2">
               <h3 className="text-lg font-medium mb-4">Live Preview</h3>
               <ProfileDesignPreview 
                 userData={userData}
                 links={links}
-                designSettings={designSettings}
+                designSettings={livePreviewSettings}
               />
             </div>
           </div>
