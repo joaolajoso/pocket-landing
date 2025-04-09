@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,7 +41,9 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          const { data, error } = await supabase.rpc('count_link_clicks', {
+          // Properly type the RPC call with a function signature that accepts a string
+          // and returns a number, allowing TypeScript to understand the parameter type
+          const { data, error } = await supabase.rpc<number>('count_link_clicks', {
             user_id_param: user.id
           });
             
