@@ -1,95 +1,101 @@
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Trash2, ExternalLink, Edit, Copy, Check } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Trash2, Edit, ExternalLink, ArrowUpDown } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { CSSProperties } from "react";
 
-export type LinkType = {
+export interface LinkType {
   id: string;
   title: string;
   url: string;
   icon: React.ReactNode;
-};
+}
 
 interface LinkCardProps {
   link: LinkType;
-  onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
-  isEditable?: boolean;
+  onEdit?: (id: string) => void;
+  isEditable: boolean;
+  style?: CSSProperties;
 }
 
-const LinkCard = ({ link, onEdit, onDelete, isEditable = true }: LinkCardProps) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = (url: string) => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+const LinkCard = ({ link, onDelete, onEdit, isEditable, style = {} }: LinkCardProps) => {
+  const [alertOpen, setAlertOpen] = useState(false);
+  
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(link.id);
+    }
+    setAlertOpen(false);
   };
-
+  
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(link.id);
+    }
+  };
+  
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isEditable) {
+      // Stop propagation to prevent double opening (from parent container)
+      e.stopPropagation();
+      window.open(link.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+  
   return (
-    <Card className={cn(
-      "link-card group",
-      isEditable ? "hover:bg-secondary/50" : "hover:bg-muted/30"
-    )}>
-      <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-md bg-primary/10 text-primary">
-        {link.icon}
-      </div>
-      
-      <div className="flex-1 min-w-0">
-        <h4 className="text-base font-medium truncate">{link.title}</h4>
-        <p className="text-sm text-muted-foreground truncate">{link.url}</p>
-      </div>
-      
-      <div className={cn(
-        "flex items-center gap-1",
-        isEditable ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""
-      )}>
+    <Card className="w-full bg-card shadow-sm border">
+      <CardContent className="p-4 flex items-center justify-between">
+        <div 
+          className={`flex items-center gap-3 ${!isEditable ? "cursor-pointer flex-1" : ""}`}
+          onClick={!isEditable ? handleClick : undefined}
+          style={!isEditable ? style : {}}
+        >
+          {link.icon}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{link.title}</div>
+            <div className="text-sm text-muted-foreground truncate">{link.url}</div>
+          </div>
+        </div>
+        
         {isEditable ? (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onDelete && onDelete(link.id)}
-              aria-label="Delete link"
-            >
-              <Trash2 className="h-4 w-4" />
+          <div className="flex gap-1 ml-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onEdit && onEdit(link.id)}
-              aria-label="Edit link"
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleEdit}>
               <Edit className="h-4 w-4" />
             </Button>
-          </>
+            <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete the link to "{link.title}".
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         ) : (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handleCopy(link.url)}
-              aria-label={copied ? "Copied" : "Copy link"}
-            >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => window.open(link.url, "_blank")}
-              aria-label="Open link"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          </>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleClick}>
+            <ExternalLink className="h-4 w-4" />
+          </Button>
         )}
-      </div>
+      </CardContent>
     </Card>
   );
 };

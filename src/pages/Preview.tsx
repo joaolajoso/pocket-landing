@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useProfileDesign } from "@/hooks/profile/useProfileDesign";
 
 const Preview = () => {
   const [viewMode, setViewMode] = useState("desktop");
@@ -14,6 +15,7 @@ const Preview = () => {
   const { user } = useAuth();
   const { profile, loading } = useProfile();
   const isMobile = useIsMobile();
+  const { settings: designSettings, loading: designLoading } = useProfileDesign();
 
   // Automatically switch to mobile view on small screens
   useEffect(() => {
@@ -26,11 +28,11 @@ const Preview = () => {
     setIsFrameVisible(!isFrameVisible);
   };
 
-  if (loading) {
+  if (loading || designLoading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Loading your profile...</p>
+        <p className="text-muted-foreground">Loading your profile preview...</p>
       </div>
     );
   }
@@ -56,6 +58,7 @@ const Preview = () => {
         icon: "Globe",
       },
     ],
+    designSettings: designSettings,
   };
 
   return (
@@ -80,7 +83,11 @@ const Preview = () => {
               }`}
             >
               <div className="p-4 md:p-6">
-                <ProfilePreview profile={previewData} isPreview={true} />
+                <ProfilePreview 
+                  profile={previewData} 
+                  isPreview={true} 
+                  designSettings={designSettings}
+                />
               </div>
             </div>
           </DeviceFrame>

@@ -8,6 +8,7 @@ import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getProfileUrl } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { ProfileDesignSettings, defaultDesignSettings } from "@/hooks/profile/useProfileDesign";
 
 interface UserProfile {
   name: string;
@@ -20,11 +21,75 @@ interface UserProfile {
 interface ProfilePreviewProps {
   profile: UserProfile;
   isPreview?: boolean;
+  designSettings?: ProfileDesignSettings;
 }
 
-const ProfilePreview = ({ profile: initialProfile, isPreview = false }: ProfilePreviewProps) => {
+const ProfilePreview = ({ 
+  profile: initialProfile, 
+  isPreview = false,
+  designSettings 
+}: ProfilePreviewProps) => {
   const { toast } = useToast();
   const { profile: supabaseProfile } = useProfile();
+  
+  // Apply design settings
+  useEffect(() => {
+    if (designSettings) {
+      // Apply background
+      let backgroundStyle = '';
+      if (designSettings.background_type === 'solid') {
+        backgroundStyle = designSettings.background_color;
+        document.documentElement.style.setProperty('--profile-bg', designSettings.background_color);
+      } else if (designSettings.background_type === 'gradient' && designSettings.background_gradient_start && designSettings.background_gradient_end) {
+        backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
+        document.documentElement.style.setProperty('--profile-bg', `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`);
+      } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
+        backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
+        document.documentElement.style.setProperty('--profile-bg', `url(${designSettings.background_image_url})`);
+        document.documentElement.style.setProperty('--profile-bg-position', 'center');
+        document.documentElement.style.setProperty('--profile-bg-size', 'cover');
+      }
+      
+      // Set text colors
+      document.documentElement.style.setProperty('--profile-name-color', designSettings.name_color);
+      document.documentElement.style.setProperty('--profile-description-color', designSettings.description_color);
+      document.documentElement.style.setProperty('--profile-section-title-color', designSettings.section_title_color);
+      document.documentElement.style.setProperty('--profile-link-text-color', designSettings.link_text_color);
+      
+      // Set button styles
+      document.documentElement.style.setProperty('--profile-button-bg', designSettings.button_background_color);
+      document.documentElement.style.setProperty('--profile-button-text', designSettings.button_text_color);
+      document.documentElement.style.setProperty('--profile-button-icon', designSettings.button_icon_color);
+      
+      if (designSettings.button_border_color) {
+        document.documentElement.style.setProperty('--profile-button-border', `1px solid ${designSettings.button_border_color}`);
+      }
+      
+      // Set layout
+      document.documentElement.style.setProperty('--profile-text-align', designSettings.text_alignment);
+      document.documentElement.style.setProperty('--profile-font-family', designSettings.font_family);
+    }
+    
+    // Clean up
+    return () => {
+      if (isPreview) {
+        // Clear styles when component unmounts
+        document.documentElement.style.removeProperty('--profile-bg');
+        document.documentElement.style.removeProperty('--profile-bg-position');
+        document.documentElement.style.removeProperty('--profile-bg-size');
+        document.documentElement.style.removeProperty('--profile-name-color');
+        document.documentElement.style.removeProperty('--profile-description-color');
+        document.documentElement.style.removeProperty('--profile-section-title-color');
+        document.documentElement.style.removeProperty('--profile-link-text-color');
+        document.documentElement.style.removeProperty('--profile-button-bg');
+        document.documentElement.style.removeProperty('--profile-button-text');
+        document.documentElement.style.removeProperty('--profile-button-icon');
+        document.documentElement.style.removeProperty('--profile-button-border');
+        document.documentElement.style.removeProperty('--profile-text-align');
+        document.documentElement.style.removeProperty('--profile-font-family');
+      }
+    };
+  }, [designSettings, isPreview]);
   
   // Merge initial profile with Supabase profile data if available
   const profile = useMemo(() => {
@@ -82,6 +147,12 @@ const ProfilePreview = ({ profile: initialProfile, isPreview = false }: ProfileP
     }
   };
 
+  // Get the text alignment style
+  const getAlignmentStyle = () => {
+    const alignment = designSettings?.text_alignment || 'center';
+    return { textAlign: alignment as 'left' | 'center' | 'right' };
+  };
+
   return (
     <div className="flex flex-col items-center max-w-md mx-auto w-full">
       {isPreview && (
@@ -90,15 +161,25 @@ const ProfilePreview = ({ profile: initialProfile, isPreview = false }: ProfileP
         </div>
       )}
       
-      <div className="text-center mb-8">
+      <div className="text-center mb-8" style={getAlignmentStyle()}>
         <Avatar className="w-24 h-24 mb-4 mx-auto">
           <AvatarImage src={profile.avatarUrl} alt={profile.name} />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         
-        <h2 className="text-2xl font-bold">{profile.name}</h2>
+        <h2 
+          className="text-2xl font-bold"
+          style={{ color: designSettings?.name_color || 'inherit' }}
+        >
+          {profile.name}
+        </h2>
         {profile.bio && (
-          <p className="text-muted-foreground mt-2 max-w-xs mx-auto">{profile.bio}</p>
+          <p 
+            className="mt-2 max-w-xs mx-auto"
+            style={{ color: designSettings?.description_color || 'var(--muted-foreground)' }}
+          >
+            {profile.bio}
+          </p>
         )}
       </div>
       
@@ -109,6 +190,11 @@ const ProfilePreview = ({ profile: initialProfile, isPreview = false }: ProfileP
               key={link.id} 
               link={link} 
               isEditable={false} 
+              style={{
+                backgroundColor: designSettings?.button_background_color || 'var(--primary)',
+                color: designSettings?.button_text_color || 'white',
+                border: designSettings?.button_border_color ? `1px solid ${designSettings.button_border_color}` : 'none'
+              }}
             />
           ))
         ) : (

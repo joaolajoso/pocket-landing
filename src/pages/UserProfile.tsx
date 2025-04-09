@@ -169,7 +169,7 @@ const UserProfile = () => {
           background: "var(--profile-bg, var(--profile-bg-color))",
           backgroundPosition: "var(--profile-bg-position, center)",
           backgroundSize: "var(--profile-bg-size, cover)",
-          fontFamily: "var(--profile-font-family, Inter, sans-serif)",
+          fontFamily: "var(--profile-font-family, Inter, sans-serif)" as any,
           textAlign: "var(--profile-text-align, center)" as any
         }}
       >

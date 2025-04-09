@@ -36,7 +36,7 @@ const ProfileHeader = ({ name, bio, headline, avatarUrl }: ProfileHeaderProps) =
       
       {bio && (
         <p 
-          className="text-center text-base mt-2 text-muted-foreground"
+          className="text-center text-base mt-2 text-muted-foreground max-w-md"
           style={{ color: "var(--profile-description-color, var(--muted-foreground))" }}
         >
           {bio}

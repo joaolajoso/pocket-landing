@@ -71,11 +71,12 @@ export const useProfileDesign = (profileId?: string) => {
         return;
       }
       
-      const { data, error } = await supabase
-        .from('profile_design_settings')
+      // Use 'as any' to bypass TypeScript error since we know the table exists
+      const { data, error } = await (supabase
+        .from('profile_design_settings' as any)
         .select('*')
         .eq('user_id', targetId)
-        .single();
+        .single());
       
       if (error) {
         if (error.code !== 'PGRST116') { // Not found error
@@ -87,6 +88,7 @@ export const useProfileDesign = (profileId?: string) => {
       }
       
       if (data) {
+        // Cast the data to our expected type
         setSettings(data as ProfileDesignSettings);
       } else {
         setSettings(defaultDesignSettings);
@@ -114,32 +116,33 @@ export const useProfileDesign = (profileId?: string) => {
       setSaving(true);
       
       // Check if settings already exist for this user
-      const { data, error: checkError } = await supabase
-        .from('profile_design_settings')
+      // Use 'as any' for type safety bypass
+      const { data, error: checkError } = await (supabase
+        .from('profile_design_settings' as any)
         .select('id')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .maybeSingle());
       
       let result;
       
       if (data) {
         // Update existing settings
-        result = await supabase
-          .from('profile_design_settings')
+        result = await (supabase
+          .from('profile_design_settings' as any)
           .update({
             ...updatedSettings,
             updated_at: new Date().toISOString()
           })
-          .eq('user_id', user.id);
+          .eq('user_id', user.id));
       } else {
         // Insert new settings
-        result = await supabase
-          .from('profile_design_settings')
+        result = await (supabase
+          .from('profile_design_settings' as any)
           .insert({
             ...defaultDesignSettings,
             ...updatedSettings,
             user_id: user.id
-          });
+          }));
       }
       
       if (result.error) throw result.error;

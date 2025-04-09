@@ -21,7 +21,7 @@ const ProfileSectionDisplay = ({ section }: ProfileSectionDisplayProps) => {
   };
 
   return (
-    <div className="profile-section">
+    <div className="profile-section mb-8">
       <div className="flex items-center mb-4">
         <h2 
           className="text-xl font-medium border-b pb-2 text-primary"
