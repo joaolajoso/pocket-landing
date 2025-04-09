@@ -3,23 +3,31 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useProfileData, ProfileData } from '@/hooks/profile/useProfileData';
 
-interface Connection {
+export interface Connection {
   id: string;
   user_id: string;
   connected_user_id: string;
   note?: string | null;
   tag?: string | null;
   created_at: string;
+  profile?: ProfileData | null;
+}
+
+interface ConnectionUpdate {
+  note?: string;
+  tag?: string;
 }
 
 export const useNetworkConnections = () => {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch all connections
+  // Fetch all connections with profile data
   const fetchConnections = async () => {
     if (!user) {
       setConnections([]);
@@ -29,6 +37,7 @@ export const useNetworkConnections = () => {
 
     try {
       setLoading(true);
+      setError(null);
       
       const { data, error } = await supabase
         .from('connections')
@@ -38,9 +47,34 @@ export const useNetworkConnections = () => {
       
       if (error) throw error;
       
-      setConnections(data || []);
+      // Fetch profile data for each connection
+      const connectionsWithProfiles = await Promise.all(
+        (data || []).map(async (connection) => {
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', connection.connected_user_id)
+              .single();
+              
+            return {
+              ...connection,
+              profile: profileData
+            };
+          } catch (err) {
+            console.error('Error fetching profile data:', err);
+            return {
+              ...connection,
+              profile: null
+            };
+          }
+        })
+      );
+      
+      setConnections(connectionsWithProfiles);
     } catch (err: any) {
       console.error('Error fetching connections:', err);
+      setError(err.message);
       toast({
         title: 'Error fetching connections',
         description: err.message,
@@ -106,6 +140,52 @@ export const useNetworkConnections = () => {
       console.error('Error adding connection:', err);
       toast({
         title: 'Error adding connection',
+        description: err.message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  // Update a connection
+  const updateConnection = async (connectionId: string, updates: ConnectionUpdate): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'You must be logged in to update connections',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('connections')
+        .update(updates)
+        .eq('id', connectionId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setConnections(prev => 
+        prev.map(conn => 
+          conn.id === connectionId 
+            ? { ...conn, ...updates } 
+            : conn
+        )
+      );
+      
+      toast({
+        title: 'Connection updated',
+        description: 'Connection details have been updated',
+      });
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error updating connection:', err);
+      toast({
+        title: 'Error updating connection',
         description: err.message,
         variant: 'destructive',
       });
@@ -180,7 +260,9 @@ export const useNetworkConnections = () => {
   return {
     connections,
     loading,
+    error,
     addConnection,
+    updateConnection,
     removeConnection,
     refreshConnections: fetchConnections,
     isConnected,

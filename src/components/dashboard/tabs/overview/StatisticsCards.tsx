@@ -11,6 +11,10 @@ interface StatisticsCardsProps {
   totalClicks: number;
 }
 
+interface CountLinkClicksParams {
+  user_id_param: string;
+}
+
 const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClicks }: StatisticsCardsProps) => {
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -36,7 +40,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          const { data, error } = await supabase.rpc(
+          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>(
             'count_link_clicks', 
             { user_id_param: user.id }
           );
