@@ -39,7 +39,7 @@ const UserLinks = ({ links, onOpenLinkEditor, onDeleteLink }: UserLinksProps) =>
         <Button 
           onClick={() => onOpenLinkEditor()} 
           variant="outline" 
-          className="w-full"
+          className="w-full bg-gradient-to-r from-[#FE6479] to-[#8B5CF6] text-white hover:from-[#FE6479] hover:to-[#9B87F5] border-none"
         >
           View All Links
         </Button>

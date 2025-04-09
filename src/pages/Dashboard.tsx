@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "lucide-react";
 import LinkEditor from "@/components/LinkEditor";
 import Footer from "@/components/Footer";
 import { LinkType } from "@/components/LinkCard";
+import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import refactored components
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -18,22 +19,41 @@ import AnalyticsTab from "@/components/dashboard/tabs/AnalyticsTab";
 import SettingsTab from "@/components/dashboard/tabs/SettingsTab";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
   
-  // Mock user data
+  // User data from profile
   const [userData, setUserData] = useState({
-    id: "user-1",
-    name: "Alex Johnson",
-    bio: "Product Designer & Developer",
-    email: "alex@example.com",
+    id: "",
+    name: "",
+    bio: "",
+    email: "",
     avatarUrl: "",
-    username: "alexjohnson",
-    profileViews: 246,
-    totalClicks: 124,
+    username: "",
+    profileViews: 0,
+    totalClicks: 0,
   });
+  
+  // Update user data when profile is loaded
+  useEffect(() => {
+    if (profile && user) {
+      setUserData({
+        id: user.id || "",
+        name: profile.name || "",
+        bio: profile.bio || "",
+        email: profile.email || user.email || "",
+        avatarUrl: profile.photo_url || "",
+        username: profile.slug || "",
+        profileViews: 0, // This will be updated by StatisticsCards component
+        totalClicks: 0,  // This will be updated by StatisticsCards component
+      });
+    }
+  }, [profile, user]);
   
   // Mock links data
   const [links, setLinks] = useState<LinkType[]>([]);
@@ -64,19 +84,19 @@ const Dashboard = () => {
         {
           id: "1",
           title: "LinkedIn Profile",
-          url: "https://linkedin.com/in/alexjohnson",
+          url: "https://linkedin.com/in/profile",
           icon: <User className="h-4 w-4" />,
         },
         {
           id: "2",
           title: "Portfolio Website",
-          url: "https://alexjohnson.design",
+          url: "https://example.com",
           icon: <User className="h-4 w-4" />,
         },
         {
           id: "3",
           title: "Resume/CV",
-          url: "https://alexjohnson.design/resume.pdf",
+          url: "https://example.com/resume.pdf",
           icon: <User className="h-4 w-4" />,
         },
       ]);
@@ -132,6 +152,15 @@ const Dashboard = () => {
       description: "Your link has been removed",
     });
   };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

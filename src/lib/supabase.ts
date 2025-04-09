@@ -258,17 +258,17 @@ export async function getProfileViewStats(profileId: string): Promise<{
 }
 
 // Function to increment link click count
-export async function incrementLinkClick(linkId: string): Promise<boolean> {
+export async function incrementLinkClick(linkId: string, userId: string): Promise<boolean> {
   try {
-    // For now, we'll just log the click since we haven't created a links table yet
-    console.log(`Link clicked: ${linkId}`);
+    // Insert a new link click record
+    const { error } = await supabase
+      .from('link_clicks')
+      .insert({ 
+        link_id: linkId,
+        user_id: userId
+      });
     
-    // This is a placeholder - in a real implementation, we would track this in a database table
-    // const { error } = await supabase
-    //   .from('link_clicks')
-    //   .insert({ link_id: linkId });
-    
-    // if (error) throw error;
+    if (error) throw error;
     
     return true;
   } catch (error) {

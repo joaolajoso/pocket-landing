@@ -35,7 +35,7 @@ const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
   return (
     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
       <div>
-        <h1 className="text-3xl font-bold">Welcome back, {firstName}</h1>
+        <h1 className="text-3xl font-bold">Welcome back, {firstName || 'there'}</h1>
         <p className="text-muted-foreground">Manage your PocketCV profile and links</p>
       </div>
       
@@ -47,7 +47,7 @@ const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
           </Link>
         </Button>
         
-        <Button onClick={handleShareProfile}>
+        <Button onClick={handleShareProfile} className="bg-gradient-to-r from-[#FE6479] to-[#8B5CF6] hover:from-[#FE6479] hover:to-[#9B87F5]">
           <Share2 className="mr-2 h-4 w-4" />
           Share Profile
         </Button>

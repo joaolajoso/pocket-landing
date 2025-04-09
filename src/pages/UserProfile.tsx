@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -40,17 +39,13 @@ const UserProfile = () => {
   const [sectionsLoading, setSectionsLoading] = useState(true);
   const [requiresLogin, setRequiresLogin] = useState(false);
   
-  // Track profile view
   useEffect(() => {
     const trackView = async () => {
       try {
         if (profile?.id) {
           console.log('Tracking view for profile:', profile.id);
-          // Get source from URL params if available
           const urlParams = new URLSearchParams(location.search);
           const source = urlParams.get('utm_source') || urlParams.get('source') || 'direct';
-          
-          // Track the view
           await trackProfileView(profile.id, source);
         }
       } catch (error) {
@@ -63,10 +58,8 @@ const UserProfile = () => {
     }
   }, [profile, location.search]);
   
-  // Fetch profile sections and links
   useEffect(() => {
     if (profile) {
-      // Create contact section from profile data
       const contactLinks = [];
       
       if (profile.email) {
@@ -115,7 +108,6 @@ const UserProfile = () => {
     }
   }, [profile]);
   
-  // Determine if login is required to save the profile
   useEffect(() => {
     if (profile && !user) {
       setRequiresLogin(true);
@@ -142,7 +134,6 @@ const UserProfile = () => {
     );
   }
   
-  // Default theme 
   const theme: ProfileTheme = {
     primaryColor: "#0ea5e9",
     backgroundColor: "#f0f9ff",
@@ -162,21 +153,18 @@ const UserProfile = () => {
       </Helmet>
       
       <div 
-        className="min-h-screen py-6 px-4 md:py-12 profile-page" 
-        style={{ 
-          backgroundColor: theme.backgroundColor,
-          fontFamily: theme.fontFamily,
+        className="min-h-screen py-8 px-4"
+        style={{
           background: "var(--profile-bg, var(--profile-bg-color))",
           backgroundPosition: "var(--profile-bg-position, center)",
           backgroundSize: "var(--profile-bg-size, cover)",
           fontFamily: "var(--profile-font-family, Inter, sans-serif)",
-          textAlign: "var(--profile-text-align, center)" as any
+          textAlign: "var(--profile-text-align, center)" as "left" | "center" | "right"
         }}
       >
         <ProfileThemeManager theme={theme} profileId={profile.id} />
         
         <div className="max-w-md mx-auto">
-          {/* Profile Header */}
           <ProfileHeader 
             name={profile.name || 'User'} 
             bio={profile.bio || ''} 
@@ -184,7 +172,6 @@ const UserProfile = () => {
             avatarUrl={profile.photo_url || profile.avatar_url || ''} 
           />
           
-          {/* Save Profile Button */}
           {profile.id && profile.id !== user?.id && (
             <div className="flex justify-center mb-6">
               <SaveProfileButton 
@@ -194,7 +181,6 @@ const UserProfile = () => {
             </div>
           )}
           
-          {/* Profile Content */}
           <ProfileContent 
             sections={sections} 
             username={profile.slug || ''} 
