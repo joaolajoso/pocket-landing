@@ -9,17 +9,86 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getProfileViewStats = async (profileId: string) => {
   try {
-    const { data, error } = await supabase.from('profile_views_stats').select('*').eq('profile_id', profileId).single();
-
-    if (error) {
-      console.error('Error fetching profile views:', error);
-      return { total: 0, lastWeek: 0 };
+    // Since profile_views_stats table doesn't exist yet, let's return mock data
+    // that matches the expected schema until the table is created
+    
+    // Check if the profile_views table exists
+    const { count, error: countError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', profileId);
+    
+    if (countError) {
+      console.error('Error checking profile views:', countError);
+      return { total: 0, lastWeek: 0, lastMonth: 0, daily: [] };
     }
-
-    return data || { total: 0, lastWeek: 0 };
+    
+    // Calculate dates for filtering
+    const now = new Date();
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(now.getDate() - 7);
+    
+    const oneMonthAgo = new Date(now);
+    oneMonthAgo.setDate(now.getDate() - 30);
+    
+    // Get count of views in the past week
+    const { count: weekCount, error: weekError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', profileId)
+      .gte('timestamp', oneWeekAgo.toISOString());
+    
+    if (weekError) {
+      console.error('Error counting weekly profile views:', weekError);
+    }
+    
+    // Get count of views in the past month
+    const { count: monthCount, error: monthError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', profileId)
+      .gte('timestamp', oneMonthAgo.toISOString());
+    
+    if (monthError) {
+      console.error('Error counting monthly profile views:', monthError);
+    }
+    
+    // Get daily view counts for the past 7 days
+    const dailyData = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      
+      const { count: dayCount, error: dayError } = await supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_id', profileId)
+        .gte('timestamp', date.toISOString())
+        .lt('timestamp', nextDate.toISOString());
+      
+      if (dayError) {
+        console.error(`Error counting views for ${date.toISOString()}:`, dayError);
+      }
+      
+      dailyData.push({
+        date: date.toISOString().split('T')[0],
+        count: dayCount || 0
+      });
+    }
+    
+    return {
+      total: count || 0,
+      lastWeek: weekCount || 0,
+      lastMonth: monthCount || 0,
+      daily: dailyData
+    };
   } catch (error) {
     console.error('Error fetching profile views:', error);
-    return { total: 0, lastWeek: 0 };
+    return { total: 0, lastWeek: 0, lastMonth: 0, daily: [] };
   }
 };
 

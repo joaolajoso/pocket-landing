@@ -29,9 +29,21 @@ const ProfileViewStats = () => {
       try {
         setLoading(true);
         const stats = await getProfileViewStats(user.id);
-        setViewStats(stats);
+        // Ensure we have a daily array even if the API doesn't return one
+        const safeStats = {
+          ...stats,
+          daily: Array.isArray(stats.daily) ? stats.daily : []
+        };
+        setViewStats(safeStats);
       } catch (error) {
         console.error('Error fetching profile view stats:', error);
+        // Ensure we have a safe default state if there's an error
+        setViewStats({
+          total: 0,
+          lastWeek: 0,
+          lastMonth: 0,
+          daily: []
+        });
       } finally {
         setLoading(false);
       }
@@ -55,7 +67,12 @@ const ProfileViewStats = () => {
         console.log('New profile view:', payload);
         // Refresh stats on new view
         getProfileViewStats(user.id).then(stats => {
-          setViewStats(stats);
+          // Ensure we have a daily array when updating from real-time events
+          const safeStats = {
+            ...stats,
+            daily: Array.isArray(stats.daily) ? stats.daily : []
+          };
+          setViewStats(safeStats);
         });
       })
       .subscribe();
@@ -71,11 +88,13 @@ const ProfileViewStats = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Prepare chart data with formatted dates
-  const chartData = viewStats.daily.map(item => ({
-    name: formatDate(item.date),
-    views: item.count
-  }));
+  // Prepare chart data with formatted dates - ensure dailyArray exists before mapping
+  const chartData = viewStats.daily && viewStats.daily.length > 0 
+    ? viewStats.daily.map(item => ({
+        name: formatDate(item.date),
+        views: item.count
+      }))
+    : [];
 
   return (
     <Card>
@@ -106,14 +125,20 @@ const ProfileViewStats = () => {
             </div>
             
             <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" fontSize={12} />
-                  <YAxis allowDecimals={false} fontSize={12} />
-                  <Tooltip />
-                  <Bar dataKey="views" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <XAxis dataKey="name" fontSize={12} />
+                    <YAxis allowDecimals={false} fontSize={12} />
+                    <Tooltip />
+                    <Bar dataKey="views" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-muted-foreground">No view data available yet</p>
+                </div>
+              )}
             </div>
           </>
         )}
