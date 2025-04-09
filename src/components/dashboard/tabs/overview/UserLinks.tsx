@@ -7,9 +7,15 @@ interface UserLinksProps {
   links: LinkType[];
   onOpenLinkEditor: (linkId?: string) => void;
   onDeleteLink: (linkId: string) => void;
+  onNavigateToLinksTab: () => void;
 }
 
-const UserLinks = ({ links, onOpenLinkEditor, onDeleteLink }: UserLinksProps) => {
+const UserLinks = ({ 
+  links, 
+  onOpenLinkEditor, 
+  onDeleteLink,
+  onNavigateToLinksTab 
+}: UserLinksProps) => {
   return (
     <Card className="md:col-span-2">
       <CardHeader>
@@ -37,7 +43,7 @@ const UserLinks = ({ links, onOpenLinkEditor, onDeleteLink }: UserLinksProps) =>
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={() => onOpenLinkEditor()} 
+          onClick={onNavigateToLinksTab} 
           variant="outline" 
           className="w-full bg-gradient-to-r from-[#FE6479] to-[#8B5CF6] text-white hover:from-[#FE6479] hover:to-[#9B87F5] border-none"
         >

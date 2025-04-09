@@ -26,7 +26,8 @@ const ProfileFooter = ({ username }: ProfileFooterProps) => {
       
       const profileUrl = getProfileUrl(username);
       
-      if (navigator.share) {
+      if (navigator.share && navigator.canShare({ url: profileUrl })) {
+        // For mobile devices that support web share API
         await navigator.share({
           title: 'Check out my PocketCV profile',
           url: profileUrl
@@ -35,6 +36,7 @@ const ProfileFooter = ({ username }: ProfileFooterProps) => {
           title: 'Profile shared successfully',
         });
       } else {
+        // Fallback to clipboard copy for desktop
         await navigator.clipboard.writeText(profileUrl);
         toast({
           title: 'Link copied',

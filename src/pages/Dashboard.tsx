@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "lucide-react";
@@ -103,6 +104,10 @@ const Dashboard = () => {
     }, 500);
   }, []);
 
+  const handleNavigateToTab = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   const handleOpenLinkEditor = (linkId?: string) => {
     if (linkId) {
       const linkToEdit = links.find(link => link.id === linkId);
@@ -179,6 +184,7 @@ const Dashboard = () => {
                 links={links}
                 onOpenLinkEditor={handleOpenLinkEditor}
                 onDeleteLink={handleDeleteLink}
+                onNavigateToTab={handleNavigateToTab}
               />
             )}
             

@@ -21,9 +21,16 @@ interface OverviewTabProps {
   links: LinkType[];
   onOpenLinkEditor: (linkId?: string) => void;
   onDeleteLink: (linkId: string) => void;
+  onNavigateToTab: (tab: string) => void;
 }
 
-const OverviewTab = ({ userData, links, onOpenLinkEditor, onDeleteLink }: OverviewTabProps) => {
+const OverviewTab = ({ 
+  userData, 
+  links, 
+  onOpenLinkEditor, 
+  onDeleteLink,
+  onNavigateToTab
+}: OverviewTabProps) => {
   const firstName = userData.name.split(' ')[0];
 
   return (
@@ -44,7 +51,8 @@ const OverviewTab = ({ userData, links, onOpenLinkEditor, onDeleteLink }: Overvi
         <UserLinks 
           links={links} 
           onOpenLinkEditor={onOpenLinkEditor} 
-          onDeleteLink={onDeleteLink} 
+          onDeleteLink={onDeleteLink}
+          onNavigateToLinksTab={() => onNavigateToTab('links')}
         />
         
         <QuickActions 
