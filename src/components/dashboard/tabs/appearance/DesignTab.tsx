@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,12 +54,10 @@ const DesignTab = () => {
   const [currentTab, setCurrentTab] = useState("background");
   const [tempSettings, setTempSettings] = useState<ProfileDesignSettings>(settings);
   
-  // Update temp settings when settings change
   useState(() => {
     setTempSettings(settings);
   });
   
-  // Update a single setting
   const updateSetting = <K extends keyof ProfileDesignSettings>(
     key: K,
     value: ProfileDesignSettings[K]
@@ -71,12 +68,10 @@ const DesignTab = () => {
     }));
   };
   
-  // Save all changes
   const handleSaveChanges = async () => {
     await saveDesignSettings(tempSettings);
   };
   
-  // Reset to defaults
   const handleResetDesign = async () => {
     if (confirm("Are you sure you want to reset your design to defaults?")) {
       await resetDesignSettings();
@@ -84,29 +79,24 @@ const DesignTab = () => {
     }
   };
   
-  // Handle background image upload
   const handleImageUpload = async (file: File) => {
     try {
       if (!file) return;
       
-      // Create a unique file path
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `background_images/${fileName}`;
       
-      // Upload the file to storage
       const { error: uploadError } = await supabase.storage
         .from('profile_photos')
         .upload(filePath, file);
       
       if (uploadError) throw uploadError;
       
-      // Get the public URL
       const { data } = supabase.storage
         .from('profile_photos')
         .getPublicUrl(filePath);
       
-      // Update the background image URL
       updateSetting('background_image_url', data.publicUrl);
       updateSetting('background_type', 'image');
       
@@ -119,7 +109,7 @@ const DesignTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Design Editor</h2>
+          <h2 className="text-2xl font-bold">Profile Design</h2>
           <p className="text-muted-foreground">Customize the look and feel of your profile</p>
         </div>
         
@@ -157,7 +147,6 @@ const DesignTab = () => {
           <TabsTrigger value="layout">Layout</TabsTrigger>
         </TabsList>
         
-        {/* Background Tab */}
         <TabsContent value="background">
           <Card>
             <CardHeader>
@@ -228,7 +217,6 @@ const DesignTab = () => {
               
               <Separator />
               
-              {/* Options based on background type */}
               {tempSettings.background_type === "solid" && (
                 <div className="space-y-4">
                   <ColorPicker 
@@ -286,7 +274,6 @@ const DesignTab = () => {
           </Card>
         </TabsContent>
         
-        {/* Text Tab */}
         <TabsContent value="text">
           <Card>
             <CardHeader>
@@ -400,7 +387,6 @@ const DesignTab = () => {
           </Card>
         </TabsContent>
         
-        {/* Buttons Tab */}
         <TabsContent value="buttons">
           <Card>
             <CardHeader>
@@ -637,7 +623,6 @@ const DesignTab = () => {
           </Card>
         </TabsContent>
         
-        {/* Layout Tab */}
         <TabsContent value="layout">
           <Card>
             <CardHeader>

@@ -26,7 +26,7 @@ interface AppearanceTabProps {
 }
 
 const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
-  const [activeTab, setActiveTab] = useState<"basic" | "design">("basic");
+  const [activeTab, setActiveTab] = useState<"design">("design");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [primaryColor, setPrimaryColor] = useState<string>("#8b5cf6");
   const [backgroundColor, setBackgroundColor] = useState<string>("#faf5ff");
@@ -94,63 +94,10 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
         <p className="text-muted-foreground">Customize how your profile looks</p>
       </div>
       
-      <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as "basic" | "design")}>
+      <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as "design")}>
         <TabsList className="mb-4">
-          <TabsTrigger value="basic">Basic Settings</TabsTrigger>
-          <TabsTrigger value="design">Advanced Design</TabsTrigger>
+          <TabsTrigger value="design">Profile Design</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="basic">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ProfilePreviewCard 
-              userData={userData}
-              links={links}
-              backgroundColor={backgroundColor}
-              buttonStyle={buttonStyle}
-              font={font}
-              primaryColor={primaryColor}
-              onPreview={handlePreview}
-            />
-            
-            <div className="md:col-span-2 space-y-6">
-              <ThemeSelector 
-                theme={theme}
-                setTheme={setTheme}
-              />
-              
-              <ColorSelector 
-                primaryColor={primaryColor}
-                setPrimaryColor={setPrimaryColor}
-                backgroundColor={backgroundColor}
-                setBackgroundColor={setBackgroundColor}
-              />
-              
-              <LayoutSelector 
-                font={font}
-                setFont={setFont}
-                buttonStyle={buttonStyle}
-                setButtonStyle={setButtonStyle}
-              />
-              
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleSaveAppearance}
-                  disabled={saving}
-                  className="w-full md:w-auto"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Appearance"
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
         
         <TabsContent value="design">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
