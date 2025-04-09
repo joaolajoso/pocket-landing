@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { BarChart, LayoutDashboard, Link as LinkIcon, Palette, QrCode, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
+import { getProfileUrl } from "@/integrations/supabase/client";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -10,9 +12,19 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar = ({ activeTab, setActiveTab }: DashboardSidebarProps) => {
   const { toast } = useToast();
+  const { profile } = useProfile();
 
   const handleCopyProfileLink = () => {
-    const profileUrl = `${window.location.origin}/u/alexjohnson`; // This would be dynamic in a real app
+    if (!profile?.slug) {
+      toast({
+        title: "Username not set",
+        description: "Please set a username in your profile settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const profileUrl = getProfileUrl(profile.slug);
     navigator.clipboard.writeText(profileUrl);
     toast({
       title: "Link copied",

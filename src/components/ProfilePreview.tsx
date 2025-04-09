@@ -6,7 +6,7 @@ import LinkCard, { LinkType } from "./LinkCard";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { POCKETCV_DOMAIN, getProfileUrl } from "@/integrations/supabase/client";
+import { getProfileUrl } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
 interface UserProfile {

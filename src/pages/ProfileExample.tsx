@@ -9,11 +9,11 @@ import ProfilePreview from "@/components/ProfilePreview";
 import Navbar from "@/components/Navbar";
 
 const ProfileExample = () => {
-  // Sample profile data that matches what's in the preview
+  // Sample profile data - this is just an example profile
   const profileData = {
     name: "Sarah Johnson",
     bio: "UX Designer & Developer",
-    avatarUrl: "/lovable-uploads/42b53831-1939-4eb7-a19a-b64de8155c37.png", // Using a professional female photo from uploads
+    avatarUrl: "/lovable-uploads/42b53831-1939-4eb7-a19a-b64de8155c37.png", // Sample profile photo
     username: "sarahjohnson",
     links: [
       {
@@ -64,6 +64,12 @@ const ProfileExample = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to home
         </Link>
+      </div>
+      
+      <div className="container mx-auto px-4 mb-8">
+        <div className="w-full bg-blue-100 text-blue-800 px-4 py-3 text-center text-sm rounded-lg">
+          This is an example profile. Your own profile will display your information when you create an account.
+        </div>
       </div>
       
       {/* Profile Content */}

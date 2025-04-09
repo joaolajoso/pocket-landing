@@ -6,7 +6,7 @@ import { Edit3, Eye, PlusCircle, Share2, QrCode } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { UserProfileForm } from "./UserProfileForm";
 import { useToast } from "@/hooks/use-toast";
-import { POCKETCV_DOMAIN, getProfileUrl } from "@/integrations/supabase/client";
+import { getProfileUrl } from "@/integrations/supabase/client";
 import { useState } from "react";
 import ProfileQRCode from "@/components/profile/ProfileQRCode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
