@@ -66,10 +66,10 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
 
   // Helper function to map link types to profile fields
   const getLinkFieldName = (link: LinkType): string | null => {
-    const title = link.title.toLowerCase();
-    if (title.includes('linkedin')) return 'linkedin';
-    if (title.includes('website') || title.includes('portfolio')) return 'website';
-    if (title.includes('email')) return 'email';
+    const type = link.id.split('-')[0];
+    if (type === 'linkedin') return 'linkedin';
+    if (type === 'website') return 'website';
+    if (type === 'email') return 'email';
     return null;
   };
 

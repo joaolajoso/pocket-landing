@@ -141,13 +141,21 @@ const Dashboard = () => {
     }
     
     try {
-      // Determine field to update based on link title
+      // Determine field to update based on link type, not title
       let fieldToUpdate: string | null = null;
-      const title = linkData.title.toLowerCase();
+      const type = linkData.id?.split('-')[0] || linkData.title.toLowerCase();
       
-      if (title.includes('linkedin')) fieldToUpdate = 'linkedin';
-      else if (title.includes('website') || title.includes('portfolio')) fieldToUpdate = 'website';
-      else if (title.includes('email')) fieldToUpdate = 'email';
+      // If it's an existing link, use its ID to determine the type
+      if (linkData.id) {
+        if (linkData.id.startsWith('linkedin')) fieldToUpdate = 'linkedin';
+        else if (linkData.id.startsWith('website')) fieldToUpdate = 'website';
+        else if (linkData.id.startsWith('email')) fieldToUpdate = 'email';
+      } else {
+        // For new links, use the selected link type
+        if (type.includes('linkedin')) fieldToUpdate = 'linkedin';
+        else if (type.includes('website') || type.includes('portfolio')) fieldToUpdate = 'website';
+        else if (type.includes('email')) fieldToUpdate = 'email';
+      }
       
       if (fieldToUpdate) {
         const { error } = await supabase
@@ -164,7 +172,7 @@ const Dashboard = () => {
               link.id === linkData.id ? { 
                 ...linkData, 
                 id: link.id,
-                icon: getIconForLinkType(linkData.title)
+                icon: getIconForLinkType(fieldToUpdate)
               } as LinkType : link
             )
           );
@@ -178,7 +186,7 @@ const Dashboard = () => {
           const newLink = {
             ...linkData,
             id: `${fieldToUpdate}-link`,
-            icon: getIconForLinkType(linkData.title)
+            icon: getIconForLinkType(fieldToUpdate)
           } as LinkType;
           
           setLinks(prevLinks => {
@@ -198,10 +206,19 @@ const Dashboard = () => {
         // Refresh profile data to get the updated links
         refreshProfile();
       } else {
+        // The link type wasn't recognized, but we'll save it anyway
+        const unknownType = type || 'custom';
+        const newLink = {
+          ...linkData,
+          id: linkData.id || `custom-${Date.now()}`,
+          icon: getIconForLinkType('website') // Default icon
+        } as LinkType;
+        
+        setLinks(prevLinks => [...prevLinks, newLink]);
+        
         toast({
-          title: "Link not saved",
-          description: "Could not determine link type. Please use LinkedIn, Website, or Email in the title.",
-          variant: "destructive",
+          title: "Link added",
+          description: "Your custom link has been added. Note that it won't be saved to your profile.",
         });
       }
     } catch (error) {
@@ -214,11 +231,10 @@ const Dashboard = () => {
     }
   };
 
-  const getIconForLinkType = (title: string) => {
-    const lowerTitle = title.toLowerCase();
-    if (lowerTitle.includes('linkedin')) return <Linkedin className="h-4 w-4" />;
-    if (lowerTitle.includes('website') || lowerTitle.includes('portfolio')) return <Globe className="h-4 w-4" />;
-    if (lowerTitle.includes('email')) return <Mail className="h-4 w-4" />;
+  const getIconForLinkType = (type: string) => {
+    if (type === 'linkedin') return <Linkedin className="h-4 w-4" />;
+    if (type === 'website') return <Globe className="h-4 w-4" />;
+    if (type === 'email') return <Mail className="h-4 w-4" />;
     return <User className="h-4 w-4" />;
   };
 
