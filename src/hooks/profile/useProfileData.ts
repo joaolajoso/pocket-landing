@@ -2,9 +2,22 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Profile } from '@/lib/supabase';
 
-export interface ProfileData extends Profile {
+export interface ProfileData {
+  id: string;
+  name?: string;
+  bio?: string;
+  email?: string;
+  photo_url?: string;
+  avatar_url?: string;
+  slug?: string;
+  headline?: string;
+  job_title?: string;
+  linkedin?: string;
+  website?: string;
+  created_at?: string;
+  updated_at?: string;
+  full_name?: string;
   allow_network_saves?: boolean;
 }
 

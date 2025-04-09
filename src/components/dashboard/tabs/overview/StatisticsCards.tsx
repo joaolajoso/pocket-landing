@@ -114,7 +114,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         </CardContent>
       </Card>
       
-      <Card className="bg-gradient-to-r from-[#FE6479] to-[#FF914D] text-white">
+      <Card className="bg-gradient-to-r from-[#8c52ff] to-[#5ce1e6] text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-white">
             Link Clicks
@@ -128,7 +128,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         </CardContent>
       </Card>
       
-      <Card className="bg-gradient-to-r from-[#FF914D] to-[#FE6479] text-white">
+      <Card className="bg-gradient-to-r from-[#5ce1e6] to-[#8c52ff] text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-white">
             Profile Completion

@@ -1,3 +1,4 @@
+
 import { LinkType } from '@/components/LinkCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,8 +22,7 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
       onClick();
     } else {
       // If no onClick was provided, track the click directly
-      const userId = user?.id || undefined;
-      await incrementLinkClick(link.id, userId);
+      await incrementLinkClick(link.id);
     }
     
     try {      

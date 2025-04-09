@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -42,5 +43,27 @@ export const incrementLinkClick = async (linkId: string): Promise<void> => {
     }
   } catch (error) {
     console.error('Error incrementing link click:', error);
+  }
+};
+
+/**
+ * Track a profile view
+ * @param profileId The ID of the profile that was viewed
+ * @param source The source of the view (e.g., 'direct', 'linkedin')
+ */
+export const trackProfileView = async (profileId: string, source: string = 'direct'): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('profile_views')
+      .insert({
+        profile_id: profileId,
+        source: source
+      });
+
+    if (error) {
+      console.error('Error tracking profile view:', error);
+    }
+  } catch (error) {
+    console.error('Error tracking profile view:', error);
   }
 };
