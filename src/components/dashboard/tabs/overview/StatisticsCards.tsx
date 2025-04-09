@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,9 +6,9 @@ import { getProfileViewStats } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
-interface CountLinkClicksParams {
-  user_id_param: string | undefined;
-}
+type CountLinkClicksParams = {
+  user_id_param: string;
+};
 
 interface StatisticsCardsProps {
   profileViews: number;
@@ -41,10 +40,11 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          // Changed to use a more generic approach that doesn't require strict typing
-          const { data, error } = await supabase.rpc('count_link_clicks', {
+          const params: CountLinkClicksParams = {
             user_id_param: user.id
-          });
+          };
+          
+          const { data, error } = await supabase.rpc('count_link_clicks', params);
             
           if (!error && data !== null) {
             setTotalClicks(Number(data));
