@@ -61,7 +61,7 @@ const Preview = () => {
       <div className="flex-1 overflow-auto bg-slate-100 p-4 md:p-8">
         <div className="flex justify-center items-start">
           <DeviceFrame
-            viewMode={viewMode}
+            deviceType={viewMode}
             isFrameVisible={isFrameVisible}
             key={viewMode}
           >
