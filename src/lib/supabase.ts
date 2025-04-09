@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Type definitions for our database tables
@@ -17,6 +16,7 @@ export type Profile = {
   job_title: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  allow_network_saves?: boolean;
 };
 
 // Type for link click tracking

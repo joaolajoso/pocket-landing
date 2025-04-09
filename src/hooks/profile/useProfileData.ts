@@ -4,7 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Profile } from '@/lib/supabase';
 
-export interface ProfileData extends Profile {}
+export interface ProfileData extends Profile {
+  allow_network_saves?: boolean;
+}
 
 export const useProfileData = (slug?: string) => {
   const { user } = useAuth();

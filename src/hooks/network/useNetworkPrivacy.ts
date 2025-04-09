@@ -20,9 +20,10 @@ export const useNetworkPrivacy = () => {
       
       const newValue = !(profile.allow_network_saves ?? true);
       
+      // Use any type to bypass TypeScript checking since Supabase types don't know about our column
       const { error } = await supabase
         .from('profiles')
-        .update({ allow_network_saves: newValue })
+        .update({ allow_network_saves: newValue } as any)
         .eq('id', user.id);
       
       if (error) throw error;
