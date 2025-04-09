@@ -39,7 +39,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
           }
         }
 
-        // Fetch link clicks from database using raw SQL count to avoid type issues
+        // Fetch link clicks from database using RPC
         try {
           const { data, error } = await supabase.rpc('count_link_clicks', { 
             user_id_param: user.id 
@@ -114,7 +114,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         </CardContent>
       </Card>
       
-      <Card className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
+      <Card className="bg-gradient-to-r from-[#FE6479] to-[#FF914D] text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-white">
             Link Clicks
@@ -128,7 +128,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         </CardContent>
       </Card>
       
-      <Card className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+      <Card className="bg-gradient-to-r from-[#FF914D] to-[#FE6479] text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-white">
             Profile Completion
@@ -136,7 +136,10 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{profileCompletion}%</div>
-          <Progress value={profileCompletion} className="h-2 mt-2 bg-white/20" indicatorClassName="bg-white" />
+          <Progress 
+            value={profileCompletion} 
+            className="h-2 mt-2 bg-white/20" 
+          />
         </CardContent>
       </Card>
     </div>
