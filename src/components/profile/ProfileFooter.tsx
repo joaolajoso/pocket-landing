@@ -15,6 +15,15 @@ const ProfileFooter = ({ username }: ProfileFooterProps) => {
   
   const handleShare = async () => {
     try {
+      if (!username) {
+        toast({
+          title: 'Error sharing profile',
+          description: 'Username is not available',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
       const profileUrl = getProfileUrl(username);
       
       if (navigator.share) {
@@ -41,10 +50,12 @@ const ProfileFooter = ({ username }: ProfileFooterProps) => {
         Share Profile
       </Button>
       
-      <ProfileQRCode 
-        profileUrl={getProfileUrl(username)} 
-        profileName={username}
-      />
+      {username && (
+        <ProfileQRCode 
+          profileUrl={getProfileUrl(username)} 
+          profileName={username}
+        />
+      )}
       
       <p className="text-sm text-muted-foreground">
         Powered by <a href="/" className="font-medium hover:underline">PocketCV</a>

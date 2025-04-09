@@ -11,6 +11,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Laptop, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
+import { getProfileUrl } from "@/integrations/supabase/client";
 
 interface PreviewHeaderProps {
   viewMode: string;
@@ -27,15 +29,29 @@ const PreviewHeader = ({
 }: PreviewHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useProfile();
 
   const handleReturn = () => {
     navigate('/dashboard');
   };
 
   const handleOpenActual = () => {
+    if (!profile?.slug) {
+      toast({
+        title: "Username not set",
+        description: "Please set a username in your profile settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Open the actual profile in a new tab
+    const profileUrl = getProfileUrl(profile.slug);
+    window.open(profileUrl, '_blank');
+    
     toast({
       title: "Opening profile",
-      description: "Your public profile would open in a new tab",
+      description: "Your public profile is opening in a new tab",
     });
   };
 

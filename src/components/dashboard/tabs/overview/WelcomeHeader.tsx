@@ -2,12 +2,36 @@
 import { Link } from "react-router-dom";
 import { Eye, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
+import { getProfileUrl } from "@/integrations/supabase/client";
 
 interface WelcomeHeaderProps {
   firstName: string;
 }
 
 const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
+  const { toast } = useToast();
+  const { profile } = useProfile();
+  
+  const handleShareProfile = () => {
+    if (!profile?.slug) {
+      toast({
+        title: "Username not set",
+        description: "Please set a username in your profile settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const profileUrl = getProfileUrl(profile.slug);
+    navigator.clipboard.writeText(profileUrl);
+    toast({
+      title: "Link copied",
+      description: "Your profile link has been copied to clipboard",
+    });
+  };
+  
   return (
     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
       <div>
@@ -23,7 +47,7 @@ const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
           </Link>
         </Button>
         
-        <Button>
+        <Button onClick={handleShareProfile}>
           <Share2 className="mr-2 h-4 w-4" />
           Share Profile
         </Button>

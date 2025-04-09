@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,7 +46,6 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     }
   });
   
-  // Update form when profile data changes
   useEffect(() => {
     if (profile) {
       console.log("Updating form with profile data:", profile);
@@ -62,14 +60,23 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     }
   }, [profile, userData, form]);
   
+  const generateSlugFromName = (name: string): string => {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  };
+  
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       console.log("Submitting form with values:", values);
       
+      let username = values.username;
+      if (!username && values.name) {
+        username = generateSlugFromName(values.name);
+      }
+      
       const success = await updateProfile({
         name: values.name,
         bio: values.bio,
-        slug: values.username,
+        slug: username,
         headline: values.headline,
         linkedin: values.linkedin,
         website: values.website
@@ -81,7 +88,6 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
           description: "Your changes have been saved"
         });
         
-        // Refresh profile data
         refreshProfile();
       }
     } catch (error) {
@@ -91,6 +97,15 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
         description: "There was a problem saving your changes",
         variant: "destructive"
       });
+    }
+  };
+  
+  const handleNameChange = (name: string) => {
+    const currentUsername = form.getValues("username");
+    
+    if (!currentUsername) {
+      const suggestedUsername = generateSlugFromName(name);
+      form.setValue("username", suggestedUsername);
     }
   };
   
@@ -106,7 +121,6 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     
     const file = files[0];
     
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
@@ -116,7 +130,6 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
       return;
     }
     
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -150,7 +163,6 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     }
   };
 
-  // Use profile data if available, otherwise fallback to userData
   const displayName = profile?.name || userData.name;
   const photoUrl = profile?.photo_url || userData.avatarUrl;
 
@@ -197,7 +209,14 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
             <FormItem>
               <FormLabel>Display Name</FormLabel>
               <FormControl>
-                <Input {...field} disabled={loading} />
+                <Input 
+                  {...field} 
+                  disabled={loading} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleNameChange(e.target.value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -226,13 +245,14 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
               <FormLabel>Username</FormLabel>
               <div className="flex items-center">
                 <span className="px-3 py-2 bg-muted rounded-l-md border-y border-l border-input">
-                  {window.location.host}/u/
+                  pocketcv.pt/u/
                 </span>
                 <FormControl>
                   <Input
                     {...field}
                     className="rounded-l-none"
                     disabled={loading}
+                    placeholder="yourname"
                   />
                 </FormControl>
               </div>
