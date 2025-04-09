@@ -41,6 +41,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
 
         // Fetch link clicks from database using RPC
         try {
+          // Direct RPC call without type checking
           const { data, error } = await supabase.rpc('count_link_clicks', { 
             user_id_param: user.id 
           });
