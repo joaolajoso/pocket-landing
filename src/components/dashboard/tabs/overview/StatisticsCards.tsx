@@ -39,15 +39,16 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
           }
         }
 
-        // Fetch link clicks from database using raw counts to avoid table reference issues
+        // Fetch link clicks from database using raw SQL count to avoid type issues
         try {
-          const { count, error } = await supabase
-            .from('link_clicks')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
+          const { data, error } = await supabase.rpc('count_link_clicks', { 
+            user_id_param: user.id 
+          });
             
-          if (!error && count !== null) {
-            setTotalClicks(count);
+          if (!error && data !== null) {
+            setTotalClicks(data);
+          } else {
+            console.error("Error fetching link clicks:", error);
           }
         } catch (error) {
           console.error("Error fetching link clicks:", error);
@@ -79,8 +80,7 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
     fetchStats();
     calculateProfileCompletion();
     
-    // Set up real-time subscription for link clicks using client-side filtering
-    // instead of direct table subscription (which would require updating Typescript types)
+    // Set up real-time subscription for profile views
     const profileViewsChannel = supabase
       .channel('profile-views-changes')
       .on('postgres_changes', {
@@ -114,29 +114,29 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         </CardContent>
       </Card>
       
-      <Card>
+      <Card className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-white">
             Link Clicks
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{totalClicks}</div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-white/80 mt-1">
             {totalClicks > 0 ? "Tracking real-time clicks" : "No link clicks yet"}
           </p>
         </CardContent>
       </Card>
       
-      <Card>
+      <Card className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-white">
             Profile Completion
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{profileCompletion}%</div>
-          <Progress value={profileCompletion} className="h-2 mt-2" />
+          <Progress value={profileCompletion} className="h-2 mt-2 bg-white/20" indicatorClassName="bg-white" />
         </CardContent>
       </Card>
     </div>

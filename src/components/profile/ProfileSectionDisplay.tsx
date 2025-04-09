@@ -19,8 +19,9 @@ const ProfileSectionDisplay = ({ section }: ProfileSectionDisplayProps) => {
   const { user } = useAuth();
   
   const handleLinkClick = async (linkId: string) => {
-    // Increment the link click counter with user ID if available
-    await incrementLinkClick(linkId, user?.id);
+    // Pass linkId and user ID to increment the link click counter
+    const userId = user?.id || undefined;
+    await incrementLinkClick(linkId, userId);
   };
 
   return (

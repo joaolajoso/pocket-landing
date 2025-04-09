@@ -20,18 +20,17 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
     // Call the onClick handler if provided
     if (onClick) {
       onClick();
+    } else {
+      // If no onClick was provided, track the click directly
+      const userId = user?.id || undefined;
+      await incrementLinkClick(link.id, userId);
     }
     
-    try {
-      // Track the click in the database, passing the user ID if available
-      await incrementLinkClick(link.id, user?.id);
-      
+    try {      
       // Open the link in a new tab
       window.open(link.url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error('Error tracking link click:', error);
-      // Still open the link even if tracking fails
-      window.open(link.url, '_blank', 'noopener,noreferrer');
+      console.error('Error opening link:', error);
     }
   };
 
