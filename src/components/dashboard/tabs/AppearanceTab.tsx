@@ -87,6 +87,15 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
     navigate('/preview');
   };
 
+  // Handle color communication with DesignTab
+  const handleExternalColorChange = (property: string, value: string) => {
+    if (property === 'background_color') {
+      setBackgroundColor(value);
+    } else if (property === 'button_background_color') {
+      setPrimaryColor(value);
+    }
+  };
+
   // Create a preview design settings object that updates in real-time
   const livePreviewSettings: ProfileDesignSettings = {
     ...designSettings || {},
@@ -112,6 +121,23 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
         <p className="text-muted-foreground">Customize how your profile looks</p>
       </div>
       
+      <div className="flex justify-end mb-4">
+        <Button onClick={handlePreview} variant="outline" className="mr-2">
+          Preview Full Page
+        </Button>
+        <Button
+          onClick={handleSaveAppearance}
+          disabled={saving || designLoading}
+        >
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : "Save Changes"}
+        </Button>
+      </div>
+      
       <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as "design")}>
         <TabsList className="mb-4">
           <TabsTrigger value="design">Profile Design</TabsTrigger>
@@ -120,7 +146,11 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
         <TabsContent value="design">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-3 space-y-6">
-              <DesignTab />
+              <DesignTab 
+                onExternalColorChange={handleExternalColorChange}
+                externalBackgroundColor={backgroundColor}
+                externalButtonColor={primaryColor}
+              />
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ColorSelector 
@@ -136,25 +166,8 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
                   buttonStyle={buttonStyle}
                   setButtonStyle={setButtonStyle}
                   saving={saving}
-                  onSave={handleSaveAppearance}
+                  onSave={null} // Remove save button from LayoutSelector
                 />
-              </div>
-              
-              <div className="flex justify-end">
-                <Button onClick={handlePreview} variant="outline" className="mr-2">
-                  Preview Full Page
-                </Button>
-                <Button
-                  onClick={handleSaveAppearance}
-                  disabled={saving || designLoading}
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : "Save Changes"}
-                </Button>
               </div>
             </div>
             <div className="lg:col-span-2">

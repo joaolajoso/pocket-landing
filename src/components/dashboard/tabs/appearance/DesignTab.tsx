@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, RefreshCw, Save } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useProfileDesign, ProfileDesignSettings } from "@/hooks/profile/useProfileDesign";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UploadButton } from "@/components/UploadButton";
@@ -18,6 +17,12 @@ interface ColorPickerProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+}
+
+interface DesignTabProps {
+  onExternalColorChange?: (property: string, value: string) => void;
+  externalBackgroundColor?: string;
+  externalButtonColor?: string;
 }
 
 const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => {
@@ -50,14 +55,34 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => {
   );
 };
 
-const DesignTab = () => {
+const DesignTab = ({ 
+  onExternalColorChange, 
+  externalBackgroundColor, 
+  externalButtonColor 
+}: DesignTabProps = {}) => {
   const { settings, saving, saveDesignSettings, resetDesignSettings } = useProfileDesign();
   const [currentTab, setCurrentTab] = useState("background");
   const [tempSettings, setTempSettings] = useState<ProfileDesignSettings>(settings);
   
-  useState(() => {
+  useEffect(() => {
     setTempSettings(settings);
-  });
+  }, [settings]);
+
+  useEffect(() => {
+    if (externalBackgroundColor) {
+      setTempSettings(prev => ({
+        ...prev,
+        background_color: externalBackgroundColor
+      }));
+    }
+    
+    if (externalButtonColor) {
+      setTempSettings(prev => ({
+        ...prev,
+        button_background_color: externalButtonColor
+      }));
+    }
+  }, [externalBackgroundColor, externalButtonColor]);
   
   const updateSetting = <K extends keyof ProfileDesignSettings>(
     key: K,
@@ -67,10 +92,10 @@ const DesignTab = () => {
       ...prev,
       [key]: value
     }));
-  };
-  
-  const handleSaveChanges = async () => {
-    await saveDesignSettings(tempSettings);
+    
+    if (onExternalColorChange && (key === 'background_color' || key === 'button_background_color')) {
+      onExternalColorChange(key, value as string);
+    }
   };
   
   const handleResetDesign = async () => {
@@ -123,19 +148,6 @@ const DesignTab = () => {
           >
             <RefreshCw className="h-4 w-4" />
             Reset
-          </Button>
-          
-          <Button 
-            onClick={handleSaveChanges}
-            disabled={saving}
-            className="flex items-center gap-2"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            Save Changes
           </Button>
         </div>
       </div>
