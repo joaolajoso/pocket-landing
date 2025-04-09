@@ -1,5 +1,5 @@
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LinkCard, { LinkType } from "./LinkCard";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { POCKETCV_DOMAIN, getProfileUrl } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 
 interface UserProfile {
   name: string;
@@ -21,8 +22,22 @@ interface ProfilePreviewProps {
   isPreview?: boolean;
 }
 
-const ProfilePreview = ({ profile, isPreview = false }: ProfilePreviewProps) => {
+const ProfilePreview = ({ profile: initialProfile, isPreview = false }: ProfilePreviewProps) => {
   const { toast } = useToast();
+  const { profile: supabaseProfile } = useProfile();
+  
+  // Merge initial profile with Supabase profile data if available
+  const profile = useMemo(() => {
+    if (!supabaseProfile) return initialProfile;
+    
+    return {
+      ...initialProfile,
+      name: supabaseProfile.name || initialProfile.name,
+      bio: supabaseProfile.bio || initialProfile.bio,
+      avatarUrl: supabaseProfile.photo_url || initialProfile.avatarUrl,
+      username: supabaseProfile.slug || initialProfile.username,
+    };
+  }, [initialProfile, supabaseProfile]);
   
   const initials = useMemo(() => {
     if (!profile.name) return "?";

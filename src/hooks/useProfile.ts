@@ -116,6 +116,11 @@ export const useProfile = (slug?: string) => {
       // Update local state with new data
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated",
+      });
+      
       return true;
       
     } catch (err: any) {
@@ -132,8 +137,8 @@ export const useProfile = (slug?: string) => {
   };
 
   // Upload profile photo
-  const uploadProfilePhoto = async (file: File): Promise<boolean> => {
-    if (!user) return false;
+  const uploadProfilePhoto = async (file: File): Promise<string | null> => {
+    if (!user) return null;
     
     try {
       setLoading(true);
@@ -156,13 +161,16 @@ export const useProfile = (slug?: string) => {
         .from('profile_photos')
         .getPublicUrl(fileName);
       
+      if (!data.publicUrl) throw new Error("Could not get public URL");
+      
       // Update profile with new photo URL
       const success = await updateProfile({ 
-        photo_url: data.publicUrl,
-        updated_at: new Date().toISOString()
+        photo_url: data.publicUrl
       });
       
-      return success;
+      if (!success) throw new Error("Failed to update profile with new photo URL");
+      
+      return data.publicUrl;
       
     } catch (err: any) {
       console.error('Error uploading profile photo:', err);
@@ -171,7 +179,7 @@ export const useProfile = (slug?: string) => {
         description: err.message,
         variant: "destructive"
       });
-      return false;
+      return null;
     } finally {
       setLoading(false);
     }

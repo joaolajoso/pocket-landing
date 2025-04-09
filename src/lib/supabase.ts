@@ -23,6 +23,30 @@ export type LinkClick = {
   created_at: string;
 };
 
+// Initialize storage bucket for profile photos
+export const initializeStorage = async () => {
+  try {
+    // Check if profile_photos bucket exists, if not create it
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const profileBucketExists = buckets?.some(bucket => bucket.name === 'profile_photos');
+    
+    if (!profileBucketExists) {
+      // Create the bucket
+      await supabase.storage.createBucket('profile_photos', {
+        public: true,
+        fileSizeLimit: 2 * 1024 * 1024, // 2MB limit
+      });
+      
+      console.log('Created profile_photos storage bucket');
+    }
+  } catch (error) {
+    console.error('Error initializing storage:', error);
+  }
+};
+
+// Call initializeStorage once when the app loads
+initializeStorage();
+
 // Database helper functions
 export async function fetchProfile(username: string): Promise<Profile | null> {
   const { data, error } = await supabase

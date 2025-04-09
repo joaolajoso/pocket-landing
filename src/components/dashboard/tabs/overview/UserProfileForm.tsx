@@ -3,13 +3,13 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Edit3, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileFormValues {
   name: string;
@@ -31,15 +31,16 @@ interface UserProfileFormProps {
 
 export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { profile, loading, updateProfile, uploadProfilePhoto, refreshProfile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<ProfileFormValues>({
     defaultValues: {
-      name: userData.name,
-      bio: userData.bio,
-      username: userData.username,
+      name: profile?.name || userData.name,
+      bio: profile?.bio || userData.bio,
+      username: profile?.slug || userData.username,
       headline: profile?.headline || "",
       linkedin: profile?.linkedin || "",
       website: profile?.website || ""
@@ -49,6 +50,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
   // Update form when profile data changes
   useEffect(() => {
     if (profile) {
+      console.log("Updating form with profile data:", profile);
       form.reset({
         name: profile.name || userData.name,
         bio: profile.bio || userData.bio,
@@ -62,7 +64,9 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
   
   const onSubmit = async (values: ProfileFormValues) => {
     try {
-      await updateProfile({
+      console.log("Submitting form with values:", values);
+      
+      const success = await updateProfile({
         name: values.name,
         bio: values.bio,
         slug: values.username,
@@ -71,13 +75,15 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
         website: values.website
       });
       
-      toast({
-        title: "Profile updated successfully",
-        description: "Your changes have been saved"
-      });
-      
-      // Refresh profile data
-      refreshProfile();
+      if (success) {
+        toast({
+          title: "Profile updated successfully",
+          description: "Your changes have been saved"
+        });
+        
+        // Refresh profile data
+        refreshProfile();
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
@@ -123,12 +129,15 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
     setIsUploading(true);
     
     try {
-      await uploadProfilePhoto(file);
-      toast({
-        title: "Profile picture updated",
-        description: "Your profile picture has been updated successfully"
-      });
-      refreshProfile();
+      const photoUrl = await uploadProfilePhoto(file);
+      
+      if (photoUrl) {
+        toast({
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully"
+        });
+        refreshProfile();
+      }
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       toast({
@@ -140,6 +149,10 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
       setIsUploading(false);
     }
   };
+
+  // Use profile data if available, otherwise fallback to userData
+  const displayName = profile?.name || userData.name;
+  const photoUrl = profile?.photo_url || userData.avatarUrl;
 
   return (
     <Form {...form}>
@@ -155,9 +168,9 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
         <div className="flex justify-center mb-6">
           <div className="relative">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={profile?.photo_url || userData.avatarUrl} alt={form.getValues("name")} />
+              <AvatarImage src={photoUrl} alt={displayName} />
               <AvatarFallback>
-                {form.getValues("name").split(' ').map(n => n[0]).join('').toUpperCase()}
+                {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <Button 
@@ -166,7 +179,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
               variant="secondary"
               type="button"
               onClick={handleAvatarClick}
-              disabled={isUploading}
+              disabled={isUploading || !user}
             >
               {isUploading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -283,7 +296,7 @@ export const UserProfileForm = ({ userData }: UserProfileFormProps) => {
           )}
         />
         
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading || !user}>
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SettingsTabProps {
   userData: {
@@ -25,8 +27,21 @@ interface SettingsTabProps {
 const SettingsTab = ({ userData }: SettingsTabProps) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const { profile } = useProfile();
+  const { profile, loading, error } = useProfile();
   const isMobile = useIsMobile();
+  
+  // Check if user is logged in
+  if (!user) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Authentication required</AlertTitle>
+        <AlertDescription>
+          You need to be logged in to access settings.
+        </AlertDescription>
+      </Alert>
+    );
+  }
   
   return (
     <div className="space-y-4 md:space-y-6">
@@ -67,7 +82,7 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium">Email Address</p>
-                <p className="text-sm text-muted-foreground">{userData.email || user?.email || 'No email available'}</p>
+                <p className="text-sm text-muted-foreground">{profile?.email || user?.email || 'No email available'}</p>
               </div>
               
               <div className="space-y-4">
