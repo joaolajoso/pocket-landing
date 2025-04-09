@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNetworkConnections } from '@/hooks/network/useNetworkConnections';
+import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, CheckCircle2, Loader2, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -15,16 +15,35 @@ interface SaveProfileButtonProps {
 const SaveProfileButton = ({ profileId, requiresLogin = false }: SaveProfileButtonProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { addConnection, isConnected } = useNetworkConnections();
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Check if this profile is already saved
   useEffect(() => {
-    if (user) {
-      setSaved(isConnected(profileId));
-    }
-  }, [profileId, isConnected, user]);
+    const checkConnection = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('connections')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('connected_user_id', profileId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error checking connection:', error);
+          return;
+        }
+        
+        setSaved(!!data);
+      } catch (err) {
+        console.error('Error checking connection:', err);
+      }
+    };
+    
+    checkConnection();
+  }, [profileId, user]);
 
   // Don't show button if viewing own profile
   if (user?.id === profileId) {
@@ -57,11 +76,33 @@ const SaveProfileButton = ({ profileId, requiresLogin = false }: SaveProfileButt
     }
     
     setLoading(true);
-    const success = await addConnection(profileId);
-    setLoading(false);
     
-    if (success) {
+    try {
+      const { error } = await supabase
+        .from('connections')
+        .insert({
+          user_id: user!.id,
+          connected_user_id: profileId,
+          note: '',
+        });
+      
+      if (error) throw error;
+      
       setSaved(true);
+      
+      toast({
+        title: "Profile saved",
+        description: "This profile has been added to your network",
+      });
+    } catch (err: any) {
+      console.error('Error saving profile:', err);
+      toast({
+        title: "Error saving profile",
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -1,9 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { LinkType } from "@/components/LinkCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 // Import our components
 import ThemeSelector from "./appearance/ThemeSelector";
@@ -12,7 +14,7 @@ import LayoutSelector from "./appearance/LayoutSelector";
 import ProfilePreviewCard from "./appearance/ProfilePreviewCard";
 import DesignTab from "./appearance/DesignTab";
 import ProfileDesignPreview from "./appearance/ProfileDesignPreview";
-import { useProfileDesign } from "@/hooks/profile/useProfileDesign";
+import { useProfileDesign, ProfileDesignSettings } from "@/hooks/profile/useProfileDesign";
 
 interface AppearanceTabProps {
   userData: {
@@ -33,40 +35,54 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { settings: designSettings } = useProfileDesign();
+  const { settings: designSettings, saveDesignSettings } = useProfileDesign();
 
-  const handleSaveAppearance = () => {
+  // Set initial values from design settings
+  useEffect(() => {
+    if (designSettings) {
+      // Attempt to extract primary color from button settings
+      setPrimaryColor(designSettings.button_background_color);
+      setBackgroundColor(designSettings.background_color);
+      setFont(designSettings.font_family.split(',')[0].toLowerCase());
+      // Map rounded/square based on design
+      setButtonStyle(designSettings.button_border_style === 'all' ? 'rounded' : 'square');
+    }
+  }, [designSettings]);
+
+  const handleSaveAppearance = async () => {
     setSaving(true);
     
-    // Save theme settings to localStorage for demo purposes
-    localStorage.setItem('pocketcv-theme', JSON.stringify({
-      theme,
-      primaryColor,
-      backgroundColor,
-      buttonStyle,
-      font
-    }));
-    
-    // Simulate API call
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      // Convert basic settings to design settings format
+      const updatedSettings: Partial<ProfileDesignSettings> = {
+        background_color: backgroundColor,
+        button_background_color: primaryColor,
+        font_family: `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`,
+        button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
+      };
+      
+      // Save to database
+      const success = await saveDesignSettings(updatedSettings);
+      
+      if (success) {
+        toast({
+          title: "Theme saved",
+          description: "Your profile appearance has been updated"
+        });
+      }
+    } catch (error) {
+      console.error('Error saving appearance:', error);
       toast({
-        title: "Theme saved",
-        description: "Your profile appearance has been updated"
+        title: "Error saving theme",
+        description: "There was a problem saving your profile appearance",
+        variant: "destructive"
       });
-    }, 1000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePreview = () => {
-    // Save current settings before preview
-    localStorage.setItem('pocketcv-theme', JSON.stringify({
-      theme,
-      primaryColor,
-      backgroundColor,
-      buttonStyle,
-      font
-    }));
-    
     // Navigate to preview page
     navigate('/preview');
   };
@@ -92,10 +108,11 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
               backgroundColor={backgroundColor}
               buttonStyle={buttonStyle}
               font={font}
+              primaryColor={primaryColor}
               onPreview={handlePreview}
             />
             
-            <div className="space-y-6">
+            <div className="md:col-span-2 space-y-6">
               <ThemeSelector 
                 theme={theme}
                 setTheme={setTheme}
@@ -113,9 +130,24 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
                 setFont={setFont}
                 buttonStyle={buttonStyle}
                 setButtonStyle={setButtonStyle}
-                saving={saving}
-                onSave={handleSaveAppearance}
               />
+              
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleSaveAppearance}
+                  disabled={saving}
+                  className="w-full md:w-auto"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Appearance"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </TabsContent>

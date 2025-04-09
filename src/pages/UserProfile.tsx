@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -109,12 +110,10 @@ const UserProfile = () => {
   }, [profile]);
   
   useEffect(() => {
-    if (profile && !user) {
-      setRequiresLogin(true);
-    } else {
-      setRequiresLogin(false);
+    if (profile) {
+      setRequiresLogin(profile.allow_network_saves || false);
     }
-  }, [profile, user]);
+  }, [profile]);
   
   if (loading || sectionsLoading) {
     return (
@@ -172,7 +171,7 @@ const UserProfile = () => {
             avatarUrl={profile.photo_url || profile.avatar_url || ''} 
           />
           
-          {profile.id && profile.id !== user?.id && (
+          {profile.id && (
             <div className="flex justify-center mb-6">
               <SaveProfileButton 
                 profileId={profile.id} 

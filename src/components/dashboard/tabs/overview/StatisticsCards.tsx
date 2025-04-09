@@ -6,10 +6,6 @@ import { getProfileViewStats } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
-type CountLinkClicksParams = {
-  user_id_param: string;
-};
-
 interface StatisticsCardsProps {
   profileViews: number;
   totalClicks: number;
@@ -40,11 +36,10 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
         }
 
         try {
-          const params: CountLinkClicksParams = {
-            user_id_param: user.id
-          };
-          
-          const { data, error } = await supabase.rpc('count_link_clicks', params);
+          const { data, error } = await supabase.rpc(
+            'count_link_clicks', 
+            { user_id_param: user.id }
+          );
             
           if (!error && data !== null) {
             setTotalClicks(Number(data));
