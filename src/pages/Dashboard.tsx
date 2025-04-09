@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { User } from "lucide-react";
+import { LinkedIn, Globe, Mail, User } from "lucide-react";
 import LinkEditor from "@/components/LinkEditor";
 import Footer from "@/components/Footer";
 import { LinkType } from "@/components/LinkCard";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 // Import refactored components
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -18,15 +19,12 @@ import NetworkTab from "@/components/dashboard/tabs/NetworkTab";
 import AppearanceTab from "@/components/dashboard/tabs/AppearanceTab";
 import AnalyticsTab from "@/components/dashboard/tabs/AnalyticsTab";
 import SettingsTab from "@/components/dashboard/tabs/SettingsTab";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   const { user } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, loading: profileLoading, refreshProfile } = useProfile();
   
   // User data from profile
   const [userData, setUserData] = useState({
@@ -56,53 +54,47 @@ const Dashboard = () => {
     }
   }, [profile, user]);
   
-  // Mock links data
+  // Store links
   const [links, setLinks] = useState<LinkType[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [isLinkEditorOpen, setIsLinkEditorOpen] = useState(false);
   const [currentEditingLink, setCurrentEditingLink] = useState<LinkType | undefined>(undefined);
   
-  // Mock analytics data
-  const mockAnalyticsData = {
-    weeklyViews: [24, 32, 45, 12, 67, 45, 32],
-    topLinks: [
-      { name: "LinkedIn", clicks: 68 },
-      { name: "Resume", clicks: 42 },
-      { name: "Portfolio", clicks: 14 }
-    ],
-    referrers: [
-      { name: "Direct", count: 142 },
-      { name: "LinkedIn", count: 67 },
-      { name: "Instagram", count: 37 }
-    ]
-  };
-
-  // Load links on mount (mock data)
+  // Fetch links from profile data
   useEffect(() => {
-    // Simulating API call
-    setTimeout(() => {
-      setLinks([
-        {
-          id: "1",
+    if (profile) {
+      const profileLinks: LinkType[] = [];
+      
+      if (profile.linkedin) {
+        profileLinks.push({
+          id: "linkedin-link",
           title: "LinkedIn Profile",
-          url: "https://linkedin.com/in/profile",
-          icon: <User className="h-4 w-4" />,
-        },
-        {
-          id: "2",
-          title: "Portfolio Website",
-          url: "https://example.com",
-          icon: <User className="h-4 w-4" />,
-        },
-        {
-          id: "3",
-          title: "Resume/CV",
-          url: "https://example.com/resume.pdf",
-          icon: <User className="h-4 w-4" />,
-        },
-      ]);
-    }, 500);
-  }, []);
+          url: profile.linkedin.startsWith('http') ? profile.linkedin : `https://linkedin.com/in/${profile.linkedin}`,
+          icon: <LinkedIn className="h-4 w-4" />,
+        });
+      }
+      
+      if (profile.website) {
+        profileLinks.push({
+          id: "website-link",
+          title: "Website",
+          url: profile.website.startsWith('http') ? profile.website : `https://${profile.website}`,
+          icon: <Globe className="h-4 w-4" />,
+        });
+      }
+      
+      if (profile.email) {
+        profileLinks.push({
+          id: "email-link",
+          title: "Email",
+          url: `mailto:${profile.email}`,
+          icon: <Mail className="h-4 w-4" />,
+        });
+      }
+      
+      setLinks(profileLinks);
+    }
+  }, [profile]);
 
   const handleNavigateToTab = (tab: string) => {
     setActiveTab(tab);
@@ -123,39 +115,140 @@ const Dashboard = () => {
     setCurrentEditingLink(undefined);
   };
 
-  const handleSaveLink = (linkData: Omit<LinkType, "id"> & { id?: string }) => {
-    if (linkData.id) {
-      // Updating existing link
-      setLinks(prevLinks => 
-        prevLinks.map(link => 
-          link.id === linkData.id ? { ...linkData, id: link.id } as LinkType : link
-        )
-      );
+  const handleSaveLink = async (linkData: Omit<LinkType, "id"> & { id?: string }) => {
+    if (!user) {
       toast({
-        title: "Link updated",
-        description: "Your link has been updated successfully",
+        title: "Not logged in",
+        description: "You must be logged in to save links",
+        variant: "destructive",
       });
-    } else {
-      // Adding new link
-      const newLink = {
-        ...linkData,
-        id: `link-${Date.now()}`,
-      } as LinkType;
+      return;
+    }
+    
+    try {
+      // Determine field to update based on link title
+      let fieldToUpdate: string | null = null;
+      const title = linkData.title.toLowerCase();
       
-      setLinks(prevLinks => [...prevLinks, newLink]);
+      if (title.includes('linkedin')) fieldToUpdate = 'linkedin';
+      else if (title.includes('website') || title.includes('portfolio')) fieldToUpdate = 'website';
+      else if (title.includes('email')) fieldToUpdate = 'email';
+      
+      if (fieldToUpdate) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ [fieldToUpdate]: linkData.url })
+          .eq('id', user.id);
+          
+        if (error) throw error;
+        
+        if (linkData.id) {
+          // Update existing link
+          setLinks(prevLinks => 
+            prevLinks.map(link => 
+              link.id === linkData.id ? { 
+                ...linkData, 
+                id: link.id,
+                icon: getIconForLinkType(linkData.title)
+              } as LinkType : link
+            )
+          );
+          
+          toast({
+            title: "Link updated",
+            description: "Your link has been updated successfully",
+          });
+        } else {
+          // Add new link
+          const newLink = {
+            ...linkData,
+            id: `${fieldToUpdate}-link`,
+            icon: getIconForLinkType(linkData.title)
+          } as LinkType;
+          
+          setLinks(prevLinks => {
+            // Replace if exists, add if not
+            const exists = prevLinks.some(link => link.id === newLink.id);
+            return exists 
+              ? prevLinks.map(link => link.id === newLink.id ? newLink : link)
+              : [...prevLinks, newLink];
+          });
+          
+          toast({
+            title: "Link added",
+            description: "Your new link has been added successfully",
+          });
+        }
+        
+        // Refresh profile data to get the updated links
+        refreshProfile();
+      } else {
+        toast({
+          title: "Link not saved",
+          description: "Could not determine link type. Please use LinkedIn, Website, or Email in the title.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving link:', error);
       toast({
-        title: "Link added",
-        description: "Your new link has been added successfully",
+        title: "Error saving link",
+        description: "There was a problem saving your link",
+        variant: "destructive",
       });
     }
   };
 
-  const handleDeleteLink = (linkId: string) => {
-    setLinks(prevLinks => prevLinks.filter(link => link.id !== linkId));
-    toast({
-      title: "Link deleted",
-      description: "Your link has been removed",
-    });
+  const getIconForLinkType = (title: string) => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('linkedin')) return <LinkedIn className="h-4 w-4" />;
+    if (lowerTitle.includes('website') || lowerTitle.includes('portfolio')) return <Globe className="h-4 w-4" />;
+    if (lowerTitle.includes('email')) return <Mail className="h-4 w-4" />;
+    return <User className="h-4 w-4" />;
+  };
+
+  const handleDeleteLink = async (linkId: string) => {
+    if (!user) return;
+    
+    try {
+      const linkToDelete = links.find(link => link.id === linkId);
+      if (!linkToDelete) return;
+      
+      // Determine field to update based on link id
+      let fieldToUpdate: string | null = null;
+      
+      if (linkId === 'linkedin-link') fieldToUpdate = 'linkedin';
+      else if (linkId === 'website-link') fieldToUpdate = 'website';
+      else if (linkId === 'email-link') fieldToUpdate = 'email';
+      
+      if (fieldToUpdate) {
+        // Set field to null in Supabase
+        const { error } = await supabase
+          .from('profiles')
+          .update({ [fieldToUpdate]: null })
+          .eq('id', user.id);
+          
+        if (error) throw error;
+        
+        // Remove link from state
+        setLinks(prevLinks => prevLinks.filter(link => link.id !== linkId));
+        
+        toast({
+          title: "Link deleted",
+          description: "Your link has been removed",
+        });
+        
+        // Refresh profile data
+        refreshProfile();
+      }
+    } catch (error) {
+      console.error('Error deleting link:', error);
+      toast({
+        title: "Error deleting link",
+        description: "There was a problem removing your link",
+        variant: "destructive",
+      });
+    }
   };
 
   if (profileLoading) {
@@ -208,9 +301,7 @@ const Dashboard = () => {
             )}
             
             {activeTab === "analytics" && (
-              <AnalyticsTab 
-                mockAnalyticsData={mockAnalyticsData}
-              />
+              <AnalyticsTab />
             )}
             
             {activeTab === "settings" && (

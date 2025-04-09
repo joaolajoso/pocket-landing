@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -418,71 +419,6 @@ const DesignTab = () => {
               </div>
               
               <Separator />
-              
-              <div className="space-y-4">
-                <Label>Button Size</Label>
-                <RadioGroup 
-                  value={tempSettings.button_size} 
-                  onValueChange={(value) => updateSetting('button_size', value as 'S' | 'M' | 'L' | 'XL' | '2XL')}
-                  className="grid grid-cols-5 gap-2"
-                >
-                  <div>
-                    <RadioGroupItem value="S" id="size-s" className="sr-only" />
-                    <Label
-                      htmlFor="size-s"
-                      className={`flex items-center justify-center h-8 rounded-md border border-muted hover:bg-accent hover:text-accent-foreground ${
-                        tempSettings.button_size === "S" ? "border-primary bg-primary/10" : ""
-                      }`}
-                    >
-                      S
-                    </Label>
-                  </div>
-                  <div>
-                    <RadioGroupItem value="M" id="size-m" className="sr-only" />
-                    <Label
-                      htmlFor="size-m"
-                      className={`flex items-center justify-center h-10 rounded-md border border-muted hover:bg-accent hover:text-accent-foreground ${
-                        tempSettings.button_size === "M" ? "border-primary bg-primary/10" : ""
-                      }`}
-                    >
-                      M
-                    </Label>
-                  </div>
-                  <div>
-                    <RadioGroupItem value="L" id="size-l" className="sr-only" />
-                    <Label
-                      htmlFor="size-l"
-                      className={`flex items-center justify-center h-12 rounded-md border border-muted hover:bg-accent hover:text-accent-foreground ${
-                        tempSettings.button_size === "L" ? "border-primary bg-primary/10" : ""
-                      }`}
-                    >
-                      L
-                    </Label>
-                  </div>
-                  <div>
-                    <RadioGroupItem value="XL" id="size-xl" className="sr-only" />
-                    <Label
-                      htmlFor="size-xl"
-                      className={`flex items-center justify-center h-14 rounded-md border border-muted hover:bg-accent hover:text-accent-foreground ${
-                        tempSettings.button_size === "XL" ? "border-primary bg-primary/10" : ""
-                      }`}
-                    >
-                      XL
-                    </Label>
-                  </div>
-                  <div>
-                    <RadioGroupItem value="2XL" id="size-2xl" className="sr-only" />
-                    <Label
-                      htmlFor="size-2xl"
-                      className={`flex items-center justify-center h-16 rounded-md border border-muted hover:bg-accent hover:text-accent-foreground ${
-                        tempSettings.button_size === "2XL" ? "border-primary bg-primary/10" : ""
-                      }`}
-                    >
-                      2XL
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
               
               <div className="space-y-4">
                 <Label>Icon Position</Label>
