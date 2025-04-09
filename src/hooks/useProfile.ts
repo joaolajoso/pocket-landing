@@ -94,10 +94,83 @@ export const useProfile = (username?: string) => {
     };
   }, [user, username]);
 
+  // Add the update profile function
+  const updateProfile = async (updateData: Partial<Profile>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setProfile(prev => prev ? { ...prev, ...updateData } : null);
+      return true;
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError(err as Error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Add the upload photo function
+  const uploadProfilePhoto = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    
+    try {
+      setLoading(true);
+      
+      // Upload to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile_photos')
+        .upload(fileName, file);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('profile_photos')
+        .getPublicUrl(fileName);
+        
+      if (!urlData.publicUrl) throw new Error('Failed to get public URL');
+      
+      // Update profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ photo_url: urlData.publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setProfile(prev => prev ? { ...prev, photo_url: urlData.publicUrl } : null);
+      
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error('Error uploading profile photo:', err);
+      setError(err as Error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     profile,
     loading,
     error,
-    refreshProfile: fetchProfile
+    refreshProfile: fetchProfile,
+    updateProfile,
+    uploadProfilePhoto
   };
 };

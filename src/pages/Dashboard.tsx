@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { LinkedIn, Globe, Mail, User } from "lucide-react";
+import { Linkedin, Globe, Mail, User } from "lucide-react";
 import LinkEditor from "@/components/LinkEditor";
 import Footer from "@/components/Footer";
 import { LinkType } from "@/components/LinkCard";
@@ -20,6 +19,22 @@ import AppearanceTab from "@/components/dashboard/tabs/AppearanceTab";
 import AnalyticsTab from "@/components/dashboard/tabs/AnalyticsTab";
 import SettingsTab from "@/components/dashboard/tabs/SettingsTab";
 import { Loader2 } from "lucide-react";
+
+// Mock analytics data for AnalyticsTab
+const mockAnalyticsData = {
+  weeklyViews: [12, 15, 18, 24, 30, 28, 32],
+  topLinks: [
+    { name: "LinkedIn", clicks: 24 },
+    { name: "Website", clicks: 18 },
+    { name: "Email", clicks: 12 }
+  ],
+  referrers: [
+    { name: "Direct", count: 45 },
+    { name: "LinkedIn", count: 32 },
+    { name: "Twitter", count: 18 },
+    { name: "Google", count: 12 }
+  ]
+};
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -70,7 +85,7 @@ const Dashboard = () => {
           id: "linkedin-link",
           title: "LinkedIn Profile",
           url: profile.linkedin.startsWith('http') ? profile.linkedin : `https://linkedin.com/in/${profile.linkedin}`,
-          icon: <LinkedIn className="h-4 w-4" />,
+          icon: <Linkedin className="h-4 w-4" />,
         });
       }
       
@@ -201,7 +216,7 @@ const Dashboard = () => {
 
   const getIconForLinkType = (title: string) => {
     const lowerTitle = title.toLowerCase();
-    if (lowerTitle.includes('linkedin')) return <LinkedIn className="h-4 w-4" />;
+    if (lowerTitle.includes('linkedin')) return <Linkedin className="h-4 w-4" />;
     if (lowerTitle.includes('website') || lowerTitle.includes('portfolio')) return <Globe className="h-4 w-4" />;
     if (lowerTitle.includes('email')) return <Mail className="h-4 w-4" />;
     return <User className="h-4 w-4" />;
@@ -301,7 +316,7 @@ const Dashboard = () => {
             )}
             
             {activeTab === "analytics" && (
-              <AnalyticsTab />
+              <AnalyticsTab mockAnalyticsData={mockAnalyticsData} />
             )}
             
             {activeTab === "settings" && (
