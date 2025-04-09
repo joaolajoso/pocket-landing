@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,10 +45,10 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
 
         // Fetch link clicks from database using RPC
         try {
-          // Using type assertion for RPC
-          const { data, error } = await supabase.rpc<number>('count_link_clicks', {
+          // Providing both type parameters: return type and params type
+          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>('count_link_clicks', {
             user_id_param: user.id
-          } as CountLinkClicksParams);
+          });
             
           if (!error && data !== null) {
             // Cast data to number before setting state
