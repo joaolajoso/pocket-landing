@@ -73,7 +73,10 @@ function App() {
                     <BusinessPreview />
                   </ProtectedRoute>
                 } />
+                {/* Standardized URL format for user profiles */}
                 <Route path="/u/:username" element={<UserProfile />} />
+                {/* Legacy format for backward compatibility, but will redirect to /u/:username */}
+                <Route path="/:username" element={<UserProfile />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Use import.meta.env for Vite instead of process.env
@@ -92,16 +91,16 @@ export const getProfileViewStats = async (profileId: string) => {
   }
 };
 
+/**
+ * Generate standardized profile URL
+ * @param slug Username/slug of the profile
+ * @returns Fully qualified URL to the user's profile
+ */
 export const getProfileUrl = (slug: string) => {
-  // Use window.location instead of process.env for client-side URL generation
-  const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
-  return `${baseUrl}/${slug}`;
+  // Always use pocketcv.pt domain for production URLs
+  return `https://pocketcv.pt/u/${slug}`;
 };
 
-/**
- * Increment the link click counter for a given link
- * @param linkId The ID of the link to increment
- */
 export const incrementLinkClick = async (linkId: string): Promise<void> => {
   try {
     // Use RPC to insert link click
@@ -117,11 +116,6 @@ export const incrementLinkClick = async (linkId: string): Promise<void> => {
   }
 };
 
-/**
- * Track a profile view
- * @param profileId The ID of the profile that was viewed
- * @param source The source of the view (e.g., 'direct', 'linkedin')
- */
 export const trackProfileView = async (profileId: string, source: string = 'direct'): Promise<void> => {
   try {
     const { error } = await supabase

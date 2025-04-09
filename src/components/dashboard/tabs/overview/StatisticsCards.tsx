@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,11 +10,6 @@ import { useProfile } from "@/hooks/useProfile";
 interface StatisticsCardsProps {
   profileViews: number;
   totalClicks: number;
-}
-
-// Create a type for the RPC parameters
-interface CountLinkClicksParams {
-  user_id_param: string;
 }
 
 const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClicks }: StatisticsCardsProps) => {
@@ -45,8 +41,8 @@ const StatisticsCards = ({ profileViews: initialViews, totalClicks: initialClick
 
         // Fetch link clicks from database using RPC
         try {
-          // Providing both type parameters: return type and params type
-          const { data, error } = await supabase.rpc<number, CountLinkClicksParams>('count_link_clicks', {
+          // Using type assertion with any to avoid type constraints
+          const { data, error } = await supabase.rpc('count_link_clicks', {
             user_id_param: user.id
           });
             

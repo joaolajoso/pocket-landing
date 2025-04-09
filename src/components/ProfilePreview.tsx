@@ -6,9 +6,9 @@ import LinkCard, { LinkType } from "./LinkCard";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getProfileUrl } from "@/integrations/supabase/client";
+import { getProfileUrl } from "@/lib/supabase";
 import { useProfile } from "@/hooks/useProfile";
-import { ProfileDesignSettings, defaultDesignSettings } from "@/hooks/profile/useProfileDesign";
+import { ProfileDesignSettings } from "@/hooks/profile/useProfileDesign";
 
 interface UserProfile {
   name: string;
@@ -157,7 +157,7 @@ const ProfilePreview = ({
     <div className="flex flex-col items-center max-w-md mx-auto w-full">
       {isPreview && (
         <div className="w-full bg-primary/10 text-primary px-4 py-2 text-center text-sm rounded-lg mb-8">
-          Preview Mode - This is how your profile will look to others
+          Preview Mode - This is how your profile will look at {profile.username ? getProfileUrl(profile.username) : 'your PocketCV page'}
         </div>
       )}
       

@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Laptop, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
-import { getProfileUrl } from "@/integrations/supabase/client";
+import { getProfileUrl } from "@/lib/supabase";
 
 interface PreviewHeaderProps {
   viewMode: string;
@@ -45,13 +45,13 @@ const PreviewHeader = ({
       return;
     }
     
-    // Open the actual profile in a new tab
+    // Open the actual profile in a new tab using standardized URL
     const profileUrl = getProfileUrl(profile.slug);
     window.open(profileUrl, '_blank');
     
     toast({
       title: "Opening profile",
-      description: "Your public profile is opening in a new tab",
+      description: `Your public profile is opening at ${profileUrl}`,
     });
   };
 

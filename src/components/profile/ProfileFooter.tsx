@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getProfileUrl } from '@/integrations/supabase/client';
+import { getProfileUrl } from '@/lib/supabase';
 import ProfileQRCode from './ProfileQRCode';
 
 interface ProfileFooterProps {
@@ -31,15 +31,23 @@ const ProfileFooter = ({ username }: ProfileFooterProps) => {
           title: 'Check out my PocketCV profile',
           url: profileUrl
         });
+        toast({
+          title: 'Profile shared successfully',
+        });
       } else {
         await navigator.clipboard.writeText(profileUrl);
         toast({
           title: 'Link copied',
-          description: 'Profile link copied to clipboard'
+          description: `Profile link copied: ${profileUrl}`
         });
       }
     } catch (error) {
       console.error('Error sharing:', error);
+      toast({
+        title: 'Error sharing profile',
+        description: 'An error occurred while trying to share',
+        variant: 'destructive'
+      });
     }
   };
   

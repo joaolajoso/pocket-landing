@@ -6,7 +6,7 @@ import { Edit3, Eye, PlusCircle, Share2, QrCode } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { UserProfileForm } from "./UserProfileForm";
 import { useToast } from "@/hooks/use-toast";
-import { getProfileUrl } from "@/integrations/supabase/client";
+import { getProfileUrl } from "@/lib/supabase";
 import { useState } from "react";
 import ProfileQRCode from "@/components/profile/ProfileQRCode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,11 +26,20 @@ const QuickActions = ({ userData, onOpenLinkEditor }: QuickActionsProps) => {
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
   const handleCopyProfileLink = () => {
+    if (!userData.username) {
+      toast({
+        title: "Username not set",
+        description: "Please set a username in your profile settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const profileUrl = getProfileUrl(userData.username);
     navigator.clipboard.writeText(profileUrl);
     toast({
       title: "Link copied",
-      description: "Your profile link has been copied to clipboard",
+      description: `Your profile link has been copied to clipboard: ${profileUrl}`,
     });
   };
 

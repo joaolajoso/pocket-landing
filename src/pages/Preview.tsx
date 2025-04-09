@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfileDesign } from "@/hooks/profile/useProfileDesign";
+import { getProfileUrl } from "@/lib/supabase";
 
 const Preview = () => {
   const [viewMode, setViewMode] = useState("desktop");
@@ -37,28 +38,45 @@ const Preview = () => {
     );
   }
 
-  // Default profile data, will be overridden by real data from useProfile()
+  // Construct links from profile data to match the actual published page
+  const constructLinksFromProfile = () => {
+    const links = [];
+    
+    // Add LinkedIn link if available
+    if (profile?.linkedin) {
+      links.push({
+        id: "linkedin-link",
+        title: "LinkedIn",
+        url: profile.linkedin.startsWith('http') 
+          ? profile.linkedin 
+          : `https://linkedin.com/in/${profile.linkedin}`,
+        icon: "Linkedin",
+      });
+    }
+    
+    // Add Website link if available
+    if (profile?.website) {
+      links.push({
+        id: "website-link",
+        title: "Website",
+        url: profile.website.startsWith('http') 
+          ? profile.website 
+          : `https://${profile.website}`,
+        icon: "Globe",
+      });
+    }
+    
+    return links;
+  };
+
+  // Preview data that exactly matches the published page
   const previewData = {
     name: profile?.name || "Your Name",
     bio: profile?.bio || "Your professional headline here",
     avatarUrl: profile?.photo_url || "/placeholder.svg",
     username: profile?.slug || "username",
-    links: [
-      // Sample links - in a real app, these would come from the user's data
-      {
-        id: "1",
-        title: "LinkedIn",
-        url: profile?.linkedin || "https://linkedin.com",
-        icon: "Linkedin",
-      },
-      {
-        id: "2",
-        title: "Website",
-        url: profile?.website || "https://example.com",
-        icon: "Globe",
-      },
-    ],
-    designSettings: designSettings,
+    links: constructLinksFromProfile(),
+    profileUrl: profile?.slug ? getProfileUrl(profile.slug) : ""
   };
 
   return (
