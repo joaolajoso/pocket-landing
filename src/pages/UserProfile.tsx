@@ -10,6 +10,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { trackProfileView } from '@/lib/supabase';
 import { Helmet } from 'react-helmet';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileSection {
   id: string;
@@ -33,9 +34,11 @@ interface ProfileTheme {
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
   const location = useLocation();
+  const { user } = useAuth();
   const { profile, loading, error } = useProfile(username);
   const [sections, setSections] = useState<ProfileSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
+  const [requiresLogin, setRequiresLogin] = useState(false);
   
   // Track profile view
   useEffect(() => {
@@ -112,6 +115,15 @@ const UserProfile = () => {
     }
   }, [profile]);
   
+  // Determine if login is required to save the profile
+  useEffect(() => {
+    if (profile && !user) {
+      setRequiresLogin(true);
+    } else {
+      setRequiresLogin(false);
+    }
+  }, [profile, user]);
+  
   if (loading || sectionsLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -153,10 +165,15 @@ const UserProfile = () => {
         className="min-h-screen py-6 px-4 md:py-12 profile-page" 
         style={{ 
           backgroundColor: theme.backgroundColor,
-          fontFamily: theme.fontFamily
+          fontFamily: theme.fontFamily,
+          background: "var(--profile-bg, var(--profile-bg-color))",
+          backgroundPosition: "var(--profile-bg-position, center)",
+          backgroundSize: "var(--profile-bg-size, cover)",
+          fontFamily: "var(--profile-font-family, Inter, sans-serif)",
+          textAlign: "var(--profile-text-align, center)" as any
         }}
       >
-        <ProfileThemeManager theme={theme} />
+        <ProfileThemeManager theme={theme} profileId={profile.id} />
         
         <div className="max-w-md mx-auto">
           {/* Profile Header */}
@@ -168,9 +185,12 @@ const UserProfile = () => {
           />
           
           {/* Save Profile Button */}
-          {profile.id && (
+          {profile.id && profile.id !== user?.id && (
             <div className="flex justify-center mb-6">
-              <SaveProfileButton profileId={profile.id} />
+              <SaveProfileButton 
+                profileId={profile.id} 
+                requiresLogin={requiresLogin}
+              />
             </div>
           )}
           

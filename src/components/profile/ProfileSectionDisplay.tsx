@@ -23,7 +23,12 @@ const ProfileSectionDisplay = ({ section }: ProfileSectionDisplayProps) => {
   return (
     <div className="profile-section">
       <div className="flex items-center mb-4">
-        <h2 className="text-xl font-medium border-b pb-2 text-primary">{section.title}</h2>
+        <h2 
+          className="text-xl font-medium border-b pb-2 text-primary"
+          style={{ color: "var(--profile-section-title-color, var(--primary))" }}
+        >
+          {section.title}
+        </h2>
         <Badge variant="outline" className="ml-2 text-xs">
           {section.links.length} {section.links.length === 1 ? 'link' : 'links'}
         </Badge>

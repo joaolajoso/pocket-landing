@@ -32,16 +32,21 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
 
   return (
     <Card
-      className="w-full hover:shadow-md transition-shadow cursor-pointer"
+      className="w-full hover:shadow-md transition-shadow cursor-pointer link-card-container"
       onClick={handleClick}
+      style={{
+        backgroundColor: "var(--profile-button-bg, var(--primary))",
+        color: "var(--profile-button-text, white)",
+        border: "var(--profile-button-border, none)"
+      }}
     >
       <CardContent className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {link.icon && <div className="text-primary">{link.icon}</div>}
-          <span className="font-medium">{link.title}</span>
+        <div className="flex items-center gap-3 link-title">
+          {link.icon && <div style={{ color: "var(--profile-button-icon, white)" }} className="link-icon">{link.icon}</div>}
+          <span style={{ color: "var(--profile-button-text, white)" }}>{link.title}</span>
         </div>
         <Button variant="ghost" size="icon" className="h-8 w-8">
-          <ExternalLink className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" style={{ color: "var(--profile-button-icon, white)" }} />
         </Button>
       </CardContent>
     </Card>

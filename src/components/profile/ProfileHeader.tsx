@@ -18,14 +18,29 @@ const ProfileHeader = ({ name, bio, headline, avatarUrl }: ProfileHeaderProps) =
         </AvatarFallback>
       </Avatar>
       
-      <h1 className="text-3xl font-bold text-center">{name}</h1>
+      <h1 
+        className="text-3xl font-bold text-center" 
+        style={{ color: "var(--profile-name-color, inherit)" }}
+      >
+        {name}
+      </h1>
       
       {headline && (
-        <p className="text-center text-lg mt-1 font-medium text-primary">{headline}</p>
+        <p 
+          className="text-center text-lg mt-1 font-medium text-primary"
+          style={{ color: "var(--profile-description-color, var(--primary))" }}
+        >
+          {headline}
+        </p>
       )}
       
       {bio && (
-        <p className="text-center text-base mt-2 text-muted-foreground">{bio}</p>
+        <p 
+          className="text-center text-base mt-2 text-muted-foreground"
+          style={{ color: "var(--profile-description-color, var(--muted-foreground))" }}
+        >
+          {bio}
+        </p>
       )}
     </div>
   );

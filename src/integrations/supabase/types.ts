@@ -36,6 +36,81 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_design_settings: {
+        Row: {
+          background_color: string
+          background_gradient_end: string | null
+          background_gradient_start: string | null
+          background_image_url: string | null
+          background_type: string
+          button_background_color: string
+          button_border_color: string | null
+          button_border_style: string | null
+          button_icon_color: string
+          button_icon_position: string
+          button_size: string
+          button_text_color: string
+          created_at: string
+          description_color: string
+          font_family: string
+          id: string
+          link_text_color: string
+          name_color: string
+          section_title_color: string
+          text_alignment: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background_color?: string
+          background_gradient_end?: string | null
+          background_gradient_start?: string | null
+          background_image_url?: string | null
+          background_type?: string
+          button_background_color?: string
+          button_border_color?: string | null
+          button_border_style?: string | null
+          button_icon_color?: string
+          button_icon_position?: string
+          button_size?: string
+          button_text_color?: string
+          created_at?: string
+          description_color?: string
+          font_family?: string
+          id?: string
+          link_text_color?: string
+          name_color?: string
+          section_title_color?: string
+          text_alignment?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background_color?: string
+          background_gradient_end?: string | null
+          background_gradient_start?: string | null
+          background_image_url?: string | null
+          background_type?: string
+          button_background_color?: string
+          button_border_color?: string | null
+          button_border_style?: string | null
+          button_icon_color?: string
+          button_icon_position?: string
+          button_size?: string
+          button_text_color?: string
+          created_at?: string
+          description_color?: string
+          font_family?: string
+          id?: string
+          link_text_color?: string
+          name_color?: string
+          section_title_color?: string
+          text_alignment?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_views: {
         Row: {
           id: string

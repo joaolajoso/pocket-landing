@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkConnections } from '@/hooks/network/useNetworkConnections';
-import { UserPlus, CheckCircle2, Loader2 } from 'lucide-react';
+import { UserPlus, CheckCircle2, Loader2, LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface SaveProfileButtonProps {
   profileId: string;
+  requiresLogin?: boolean;
 }
 
-const SaveProfileButton = ({ profileId }: SaveProfileButtonProps) => {
+const SaveProfileButton = ({ profileId, requiresLogin = false }: SaveProfileButtonProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { addConnection, isConnected } = useNetworkConnections();
@@ -19,17 +21,30 @@ const SaveProfileButton = ({ profileId }: SaveProfileButtonProps) => {
   
   // Check if this profile is already saved
   useEffect(() => {
-    setSaved(isConnected(profileId));
-  }, [profileId, isConnected]);
-  
+    if (user) {
+      setSaved(isConnected(profileId));
+    }
+  }, [profileId, isConnected, user]);
+
   // Don't show button if viewing own profile
   if (user?.id === profileId) {
     return null;
   }
 
-  // Don't show if not logged in
-  if (!user) {
-    return null;
+  // Show login button if not logged in
+  if (requiresLogin && !user) {
+    return (
+      <Button
+        variant="outline"
+        className="gap-2"
+        asChild
+      >
+        <Link to="/login?redirect=back">
+          <LogIn className="h-4 w-4" />
+          Login to Save Profile
+        </Link>
+      </Button>
+    );
   }
 
   const handleSaveProfile = async () => {
