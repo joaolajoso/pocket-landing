@@ -1,9 +1,7 @@
 
-import { Button } from "@/components/ui/button";
-import { BarChart, LayoutDashboard, Link as LinkIcon, Palette, QrCode, Settings } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useProfile } from "@/hooks/useProfile";
-import { getProfileUrl } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { NavLink } from "react-router-dom";
+import { LayoutDashboard, Link2, Palette, BarChart2, Settings, UserPlus, MenuIcon } from "lucide-react";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -11,89 +9,41 @@ interface DashboardSidebarProps {
 }
 
 const DashboardSidebar = ({ activeTab, setActiveTab }: DashboardSidebarProps) => {
-  const { toast } = useToast();
-  const { profile } = useProfile();
-
-  const handleCopyProfileLink = () => {
-    if (!profile?.slug) {
-      toast({
-        title: "Username not set",
-        description: "Please set a username in your profile settings first",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const profileUrl = getProfileUrl(profile.slug);
-    navigator.clipboard.writeText(profileUrl);
-    toast({
-      title: "Link copied",
-      description: "Your profile link has been copied to clipboard",
-    });
-  };
+  // Navigation items including the new network tab
+  const navItems = [
+    { id: "overview", label: "Overview", icon: <LayoutDashboard className="h-5 w-5" /> },
+    { id: "links", label: "Links", icon: <Link2 className="h-5 w-5" /> },
+    { id: "network", label: "My Network", icon: <UserPlus className="h-5 w-5" /> },
+    { id: "appearance", label: "Appearance", icon: <Palette className="h-5 w-5" /> },
+    { id: "analytics", label: "Analytics", icon: <BarChart2 className="h-5 w-5" /> },
+    { id: "settings", label: "Settings", icon: <Settings className="h-5 w-5" /> },
+  ];
 
   return (
-    <aside className="hidden md:flex w-64 shrink-0 border-r flex-col">
-      <div className="py-6 px-4 flex-1">
-        <nav className="space-y-1">
-          <Button 
-            variant={activeTab === "overview" ? "secondary" : "ghost"} 
-            className="w-full justify-start mb-1"
-            onClick={() => setActiveTab("overview")}
-          >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Overview
-          </Button>
-          
-          <Button 
-            variant={activeTab === "links" ? "secondary" : "ghost"} 
-            className="w-full justify-start mb-1"
-            onClick={() => setActiveTab("links")}
-          >
-            <LinkIcon className="mr-2 h-4 w-4" />
-            Links
-          </Button>
-          
-          <Button 
-            variant={activeTab === "appearance" ? "secondary" : "ghost"} 
-            className="w-full justify-start mb-1"
-            onClick={() => setActiveTab("appearance")}
-          >
-            <Palette className="mr-2 h-4 w-4" />
-            Appearance
-          </Button>
-          
-          <Button 
-            variant={activeTab === "analytics" ? "secondary" : "ghost"} 
-            className="w-full justify-start mb-1"
-            onClick={() => setActiveTab("analytics")}
-          >
-            <BarChart className="mr-2 h-4 w-4" />
-            Analytics
-          </Button>
-          
-          <Button 
-            variant={activeTab === "settings" ? "secondary" : "ghost"} 
-            className="w-full justify-start"
-            onClick={() => setActiveTab("settings")}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-        </nav>
+    <div className="hidden md:block w-64 border-r bg-background p-6 pt-0 shrink-0">
+      <div className="flex h-16 items-center border-b">
+        <MenuIcon className="h-6 w-6" />
+        <span className="font-medium ml-2">Dashboard</span>
       </div>
       
-      <div className="p-4 border-t">
-        <div className="bg-secondary/80 rounded-md p-4 text-center">
-          <QrCode className="h-6 w-6 mx-auto mb-2 text-primary" />
-          <h4 className="text-sm font-medium">Share your profile</h4>
-          <p className="text-xs text-muted-foreground mb-3">Scan or share your PocketCV</p>
-          <Button size="sm" className="w-full" onClick={handleCopyProfileLink}>
-            Copy Link
-          </Button>
-        </div>
-      </div>
-    </aside>
+      <nav className="flex flex-col gap-1 mt-6">
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
+              activeTab === item.id
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+            )}
+            onClick={() => setActiveTab(item.id)}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    </div>
   );
 };
 

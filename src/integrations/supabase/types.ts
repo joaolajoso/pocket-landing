@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      connections: {
+        Row: {
+          connected_user_id: string
+          created_at: string
+          id: string
+          note: string | null
+          tag: string | null
+          user_id: string
+        }
+        Insert: {
+          connected_user_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          tag?: string | null
+          user_id: string
+        }
+        Update: {
+          connected_user_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          tag?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_views: {
         Row: {
           id: string
@@ -46,6 +73,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allow_network_saves: boolean
           avatar_url: string | null
           bio: string | null
           created_at: string | null
@@ -62,6 +90,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          allow_network_saves?: boolean
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
@@ -78,6 +107,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          allow_network_saves?: boolean
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null

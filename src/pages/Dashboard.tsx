@@ -12,6 +12,7 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import MobileNavigation from "@/components/dashboard/MobileNavigation";
 import OverviewTab from "@/components/dashboard/tabs/OverviewTab";
 import LinksTab from "@/components/dashboard/tabs/LinksTab";
+import NetworkTab from "@/components/dashboard/tabs/NetworkTab";
 import AppearanceTab from "@/components/dashboard/tabs/AppearanceTab";
 import AnalyticsTab from "@/components/dashboard/tabs/AnalyticsTab";
 import SettingsTab from "@/components/dashboard/tabs/SettingsTab";
@@ -158,6 +159,10 @@ const Dashboard = () => {
                 onOpenLinkEditor={handleOpenLinkEditor}
                 onDeleteLink={handleDeleteLink}
               />
+            )}
+            
+            {activeTab === "network" && (
+              <NetworkTab />
             )}
             
             {activeTab === "appearance" && (

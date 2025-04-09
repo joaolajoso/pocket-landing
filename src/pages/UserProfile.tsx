@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileContent from '@/components/profile/ProfileContent';
 import ProfileThemeManager from '@/components/profile/ProfileThemeManager';
+import SaveProfileButton from '@/components/profile/SaveProfileButton';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { trackProfileView } from '@/lib/supabase';
@@ -165,6 +166,13 @@ const UserProfile = () => {
             headline={profile.headline || profile.job_title || ''}
             avatarUrl={profile.photo_url || profile.avatar_url || ''} 
           />
+          
+          {/* Save Profile Button */}
+          {profile.id && (
+            <div className="flex justify-center mb-6">
+              <SaveProfileButton profileId={profile.id} />
+            </div>
+          )}
           
           {/* Profile Content */}
           <ProfileContent 
