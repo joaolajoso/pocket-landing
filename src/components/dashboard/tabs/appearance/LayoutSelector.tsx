@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 interface LayoutSelectorProps {
   font: string;
@@ -14,12 +15,12 @@ interface LayoutSelectorProps {
   onSave: (() => void) | null; // Make the onSave prop optional
 }
 
-// Array of font options
+// Array of font options with proper CSS font families
 const fontOptions = [
-  { name: "Inter", value: "inter" },
-  { name: "Roboto", value: "roboto" },
-  { name: "Poppins", value: "poppins" },
-  { name: "Open Sans", value: "opensans" },
+  { name: "Inter", value: "inter", fontFamily: "'Inter', sans-serif" },
+  { name: "Roboto", value: "roboto", fontFamily: "'Roboto', sans-serif" },
+  { name: "Poppins", value: "poppins", fontFamily: "'Poppins', sans-serif" },
+  { name: "Open Sans", value: "opensans", fontFamily: "'Open Sans', sans-serif" },
 ];
 
 const LayoutSelector = ({ 
@@ -30,6 +31,42 @@ const LayoutSelector = ({
   saving,
   onSave
 }: LayoutSelectorProps) => {
+  // Function to load font stylesheets
+  const loadFont = (fontValue: string) => {
+    // Remove existing fonts first
+    document.querySelectorAll('link[data-pocketcv-font]').forEach(link => {
+      link.remove();
+    });
+    
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.setAttribute('data-pocketcv-font', 'true');
+    
+    if (fontValue === 'roboto') {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
+    } else if (fontValue === 'poppins') {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
+    } else if (fontValue === 'opensans') {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
+    } else if (fontValue === 'inter') {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap';
+    }
+    
+    if (fontLink.href) {
+      document.head.appendChild(fontLink);
+    }
+  };
+
+  // Load the current font on component mount
+  useEffect(() => {
+    loadFont(font);
+  }, [font]);
+
+  const handleFontChange = (newFont: string) => {
+    setFont(newFont);
+    loadFont(newFont);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -41,7 +78,7 @@ const LayoutSelector = ({
             <Label>Font</Label>
             <RadioGroup
               value={font}
-              onValueChange={setFont}
+              onValueChange={handleFontChange}
               className="grid grid-cols-2 gap-2 mt-2"
             >
               {fontOptions.map((fontOption) => (
@@ -52,6 +89,7 @@ const LayoutSelector = ({
                     className={`flex-1 cursor-pointer rounded-md border p-2 text-center ${
                       font === fontOption.value ? "border-primary bg-primary/10" : "hover:bg-accent"
                     }`}
+                    style={{ fontFamily: fontOption.fontFamily }}
                   >
                     {fontOption.name}
                   </Label>

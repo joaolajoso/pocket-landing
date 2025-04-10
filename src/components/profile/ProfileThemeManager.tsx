@@ -37,6 +37,33 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
     return colorMap[hex] || "262.1 83.3% 57.8%"; // Default to purple if not found
   };
   
+  // Helper function to load fonts
+  const loadFont = (fontFamily: string) => {
+    // Remove existing fonts first
+    document.querySelectorAll('link[data-pocketcv-font]').forEach(link => {
+      link.remove();
+    });
+    
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.setAttribute('data-pocketcv-font', 'true');
+    
+    if (fontFamily.includes('Roboto')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
+    } else if (fontFamily.includes('Poppins')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
+    } else if (fontFamily.includes('Open Sans')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
+    } else if (fontFamily.includes('Inter')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap';
+    }
+    
+    if (fontLink.href) {
+      document.head.appendChild(fontLink);
+      console.log('Loaded font:', fontFamily);
+    }
+  };
+  
   useEffect(() => {
     console.log('ProfileThemeManager: Applying settings', settings);
     
@@ -112,7 +139,7 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
       styleEl.textContent = css;
       
       // Add font if needed
-      if (settings.font_family && settings.font_family !== "Inter, sans-serif") {
+      if (settings.font_family) {
         loadFont(settings.font_family);
       }
     } else {
@@ -132,7 +159,7 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
       styleEl.textContent = css;
       
       // Add custom font if needed
-      if (theme.fontFamily && theme.fontFamily !== "Inter, sans-serif") {
+      if (theme.fontFamily) {
         loadFont(theme.fontFamily);
       }
     }
@@ -149,30 +176,6 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
       });
     };
   }, [settings, theme]);
-  
-  // Helper function to load fonts
-  const loadFont = (fontFamily: string) => {
-    // Remove existing fonts first
-    document.querySelectorAll('link[data-pocketcv-font]').forEach(link => {
-      link.remove();
-    });
-    
-    const fontLink = document.createElement('link');
-    fontLink.rel = 'stylesheet';
-    fontLink.setAttribute('data-pocketcv-font', 'true');
-    
-    if (fontFamily.includes('Roboto')) {
-      fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
-    } else if (fontFamily.includes('Poppins')) {
-      fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
-    } else if (fontFamily.includes('Open Sans')) {
-      fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
-    }
-    
-    if (fontLink.href) {
-      document.head.appendChild(fontLink);
-    }
-  };
   
   return null; // This component doesn't render anything, it just manages the theme
 };

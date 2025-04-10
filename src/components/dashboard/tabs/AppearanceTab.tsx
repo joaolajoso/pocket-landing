@@ -45,9 +45,19 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
       // Attempt to extract primary color from button settings
       setPrimaryColor(designSettings.button_background_color);
       setBackgroundColor(designSettings.background_color);
+      
       // Extract font name from font-family string
-      const fontName = designSettings.font_family.split(',')[0].toLowerCase().replace(/['"]/g, '');
-      setFont(fontName);
+      const fontFamily = designSettings.font_family.toLowerCase();
+      if (fontFamily.includes('roboto')) {
+        setFont('roboto');
+      } else if (fontFamily.includes('poppins')) {
+        setFont('poppins');
+      } else if (fontFamily.includes('open sans')) {
+        setFont('opensans');
+      } else {
+        setFont('inter'); // Default to Inter
+      }
+      
       // Map rounded/square based on design
       setButtonStyle(designSettings.button_border_style === 'all' ? 'rounded' : 'square');
     }
@@ -60,11 +70,27 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
       // Get current design settings to preserve gradient settings
       const currentSettings = designSettings || defaultDesignSettings;
       
+      // Convert font name to proper font family string
+      let fontFamily = 'Inter, sans-serif';
+      switch(font) {
+        case 'roboto':
+          fontFamily = 'Roboto, sans-serif';
+          break;
+        case 'poppins':
+          fontFamily = 'Poppins, sans-serif';
+          break;
+        case 'opensans':
+          fontFamily = 'Open Sans, sans-serif';
+          break;
+        default:
+          fontFamily = 'Inter, sans-serif';
+      }
+      
       // Convert basic settings to design settings format
       const updatedSettings: Partial<ProfileDesignSettings> = {
         background_color: backgroundColor,
         button_background_color: primaryColor,
-        font_family: `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`,
+        font_family: fontFamily,
         button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
       };
       
@@ -130,8 +156,23 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   const handleFontChange = (newFont: string) => {
     setFont(newFont);
     
+    // Convert font name to proper font family string
+    let fontFamily = 'Inter, sans-serif';
+    switch(newFont) {
+      case 'roboto':
+        fontFamily = 'Roboto, sans-serif';
+        break;
+      case 'poppins':
+        fontFamily = 'Poppins, sans-serif';
+        break;
+      case 'opensans':
+        fontFamily = 'Open Sans, sans-serif';
+        break;
+      default:
+        fontFamily = 'Inter, sans-serif';
+    }
+    
     // Apply font change immediately
-    const fontFamily = `${newFont.charAt(0).toUpperCase() + newFont.slice(1)}, sans-serif`;
     saveDesignSettings({ font_family: fontFamily });
   };
 
@@ -148,7 +189,14 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
     ...(designSettings || defaultDesignSettings),
     background_color: backgroundColor,
     button_background_color: primaryColor,
-    font_family: `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`,
+    font_family: (() => {
+      switch(font) {
+        case 'roboto': return 'Roboto, sans-serif';
+        case 'poppins': return 'Poppins, sans-serif';
+        case 'opensans': return 'Open Sans, sans-serif';
+        default: return 'Inter, sans-serif';
+      }
+    })(),
     button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
   };
 
