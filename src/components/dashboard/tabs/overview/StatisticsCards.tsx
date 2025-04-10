@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, ArrowUpRight, Click } from "lucide-react";
+import { Eye, ArrowUpRight, MousePointer } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -113,7 +113,7 @@ const StatisticsCards = () => {
         title="Link Clicks"
         value={linkClicks}
         description="Total link clicks"
-        icon={<Click className="h-4 w-4 text-muted-foreground" />}
+        icon={<MousePointer className="h-4 w-4 text-muted-foreground" />}
         trend="up"
         trendValue="+7.2% from last week"
       />

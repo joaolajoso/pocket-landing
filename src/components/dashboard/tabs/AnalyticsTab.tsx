@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, PieChart } from "@/components/ui/chart";
-import { CalendarDateRangePicker } from "@/components/ui/date-range-picker";
+import { BarChart, PieChart } from "@/components/ui/charts";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "@/types/date-range";
 import { addDays, format, subDays } from "date-fns";
 import { useEffect } from "react";
@@ -117,9 +117,10 @@ const AnalyticsTab = () => {
           <h2 className="text-2xl font-bold">Analytics</h2>
           <p className="text-muted-foreground">Track your profile engagement</p>
         </div>
-        <CalendarDateRangePicker
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+        <DateRangePicker
+          date={dateRange}
+          onDateChange={setDateRange}
+          className="w-auto"
         />
       </div>
 
