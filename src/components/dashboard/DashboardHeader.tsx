@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +30,6 @@ const DashboardHeader = ({ userData }: DashboardHeaderProps) => {
   const { signOut, user } = useAuth();
   const { profile } = useProfile();
 
-  // Use userData if provided, otherwise use profile data
   const displayName = userData?.name || profile?.name;
   const displayEmail = userData?.email || profile?.email || user?.email;
   const displayAvatar = userData?.avatarUrl || profile?.photo_url;
