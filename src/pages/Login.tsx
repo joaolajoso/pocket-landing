@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -25,7 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, loading, isAuthenticated } = useAuth();
+  const { signIn, signUp, signInWithOAuth, loading, isAuthenticated } = useAuth();
   
   // Get signup parameter from URL
   const searchParams = new URLSearchParams(location.search);
@@ -214,12 +215,17 @@ const Login = () => {
     await signUp(signupData.email, signupData.password, metadata);
   };
 
+  const handleOAuthLogin = async (provider: 'github' | 'linkedin_oidc') => {
+    await signInWithOAuth(provider);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-secondary/30">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500" 
+         style={{ backgroundImage: `url('/lovable-uploads/ae3a6973-dc3c-446c-b21f-bb02e2ed20e8.png')`, backgroundSize: 'cover' }}>
       <Button 
         variant="ghost" 
         size="sm" 
-        className="absolute top-4 left-4 gap-2"
+        className="absolute top-4 left-4 gap-2 text-white hover:bg-white/20"
         asChild
       >
         <Link to="/">
@@ -230,7 +236,7 @@ const Login = () => {
 
       <div className="mb-8 text-center">
         <Link to="/" className="text-2xl font-bold tracking-tight">
-          <span className="text-primary">Pocket</span>CV
+          <span className="text-white">PocketCV</span>
         </Link>
       </div>
       
@@ -259,7 +265,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant={accountType === 'personal' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
+                    className={`flex-1 gap-2 ${accountType === 'personal' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                     onClick={() => setAccountType('personal')}
                   >
                     <User className="h-4 w-4" />
@@ -269,7 +275,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant={accountType === 'business' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
+                    className={`flex-1 gap-2 ${accountType === 'business' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                     onClick={() => setAccountType('business')}
                   >
                     <Building2 className="h-4 w-4" />
@@ -333,11 +339,23 @@ const Login = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    disabled={loading} 
+                    className="gap-2"
+                    onClick={() => handleOAuthLogin('github')}
+                  >
                     <Github className="h-4 w-4" />
                     GitHub
                   </Button>
-                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    disabled={loading} 
+                    className="gap-2"
+                    onClick={() => handleOAuthLogin('linkedin_oidc')}
+                  >
                     <Linkedin className="h-4 w-4" />
                     LinkedIn
                   </Button>
@@ -353,7 +371,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant={accountType === 'personal' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
+                    className={`flex-1 gap-2 ${accountType === 'personal' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                     onClick={() => setAccountType('personal')}
                   >
                     <User className="h-4 w-4" />
@@ -363,7 +381,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant={accountType === 'business' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
+                    className={`flex-1 gap-2 ${accountType === 'business' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                     onClick={() => setAccountType('business')}
                   >
                     <Building2 className="h-4 w-4" />
@@ -494,11 +512,23 @@ const Login = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    disabled={loading} 
+                    className="gap-2"
+                    onClick={() => handleOAuthLogin('github')}
+                  >
                     <Github className="h-4 w-4" />
                     GitHub
                   </Button>
-                  <Button variant="outline" type="button" disabled={loading} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    disabled={loading} 
+                    className="gap-2"
+                    onClick={() => handleOAuthLogin('linkedin_oidc')}
+                  >
                     <Linkedin className="h-4 w-4" />
                     LinkedIn
                   </Button>

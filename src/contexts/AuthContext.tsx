@@ -11,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, metadata?: { name?: string }) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithOAuth: (provider: 'github' | 'linkedin_oidc') => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -143,6 +144,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithOAuth = async (provider: 'github' | 'linkedin_oidc') => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + '/dashboard'
+        }
+      });
+
+      if (error) throw error;
+      
+      // No toast here since we're being redirected to the OAuth provider
+    } catch (error: any) {
+      console.error(`Error signing in with ${provider}:`, error);
+      
+      toast({
+        title: `Error signing in with ${provider === 'linkedin_oidc' ? 'LinkedIn' : 'GitHub'}`,
+        description: error.message || "An error occurred during authentication",
+        variant: "destructive"
+      });
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -168,6 +194,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signUp,
     signIn,
+    signInWithOAuth,
     signOut,
     isAuthenticated: !!user
   };

@@ -8,35 +8,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-// Define types for analytics data
-interface AnalyticsData {
-  viewsByDay: {
-    date: string;
-    count: number;
-  }[];
-  topLinks: {
-    name: string;
-    clicks: number;
-  }[];
-  referrers: {
-    name: string;
-    count: number;
-  }[];
-  totalViews: number;
-  totalClicks: number;
-}
-
 const AnalyticsTab = () => {
   const { user } = useAuth();
-  const [dateRange, setDateRange] = useState<{from: Date; to: Date}>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+  const [dateRange, setDateRange] = useState({
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 
     to: new Date()
   });
   const [loading, setLoading] = useState(true);
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
-    viewsByDay: [],
-    topLinks: [],
-    referrers: [],
+  const [analyticsData, setAnalyticsData] = useState({
+    viewsByDay: [] as Array<{date: string, count: number}>,
+    topLinks: [] as Array<{name: string, clicks: number}>,
+    referrers: [] as Array<{name: string, count: number}>,
     totalViews: 0,
     totalClicks: 0
   });
@@ -73,8 +55,8 @@ const AnalyticsTab = () => {
           .limit(5);
           
         if (referrersError) throw referrersError;
-          
-        // Process data
+        
+        // Process data with null checks
         const formattedViewData = Array.isArray(viewData) ? viewData.map(d => ({
           date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           count: Number(d.count || 0)
@@ -85,10 +67,17 @@ const AnalyticsTab = () => {
           clicks: Number(d.count || 0)
         })) : [];
         
-        const formattedRefData = Array.isArray(referrersData) ? referrersData.map(d => ({
-          name: d.source || 'Direct',
-          count: Number(d.count || 0)
-        })) : [];
+        // Safely process referrers data with type checking
+        const formattedRefData = Array.isArray(referrersData) ? referrersData.map(d => {
+          // Ensure this is not a ParserError object
+          if (d && typeof d === 'object' && 'source' in d) {
+            return {
+              name: d.source || 'Direct',
+              count: Number(d.count || 0)
+            };
+          }
+          return { name: 'Unknown', count: 0 };
+        }) : [];
         
         // Calculate totals
         const totalViews = formattedViewData.reduce((acc, item) => acc + item.count, 0);
@@ -136,7 +125,6 @@ const AnalyticsTab = () => {
         />
       </div>
       
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -164,10 +152,9 @@ const AnalyticsTab = () => {
           <Card>
             <CardHeader>
               <CardTitle>Profile Views Over Time</CardTitle>
-              <CardDescription>
-                Daily profile views for the selected period
-              </CardDescription>
+              <CardDescription>Daily profile views for the selected period</CardDescription>
             </CardHeader>
+            
             <CardContent>
               <div className="h-[300px]">
                 {analyticsData.viewsByDay.length > 0 ? (
@@ -177,13 +164,7 @@ const AnalyticsTab = () => {
                       <XAxis dataKey="date" />
                       <YAxis />
                       <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="count"
-                        name="Views"
-                        stroke="#8884d8"
-                        activeDot={{ r: 8 }}
-                      />
+                      <Line type="monotone" dataKey="count" name="Views" stroke="#8884d8" activeDot={{ r: 8 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
@@ -200,10 +181,9 @@ const AnalyticsTab = () => {
           <Card>
             <CardHeader>
               <CardTitle>Link Clicks by Type</CardTitle>
-              <CardDescription>
-                Which links get the most engagement
-              </CardDescription>
+              <CardDescription>Which links get the most engagement</CardDescription>
             </CardHeader>
+            
             <CardContent>
               <div className="h-[300px]">
                 {analyticsData.topLinks.length > 0 ? (
@@ -230,10 +210,9 @@ const AnalyticsTab = () => {
           <Card>
             <CardHeader>
               <CardTitle>Traffic Sources</CardTitle>
-              <CardDescription>
-                Where your profile visitors are coming from
-              </CardDescription>
+              <CardDescription>Where your profile visitors are coming from</CardDescription>
             </CardHeader>
+            
             <CardContent>
               <div className="h-[300px]">
                 {analyticsData.referrers.length > 0 ? (

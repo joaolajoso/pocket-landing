@@ -1,137 +1,137 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Link } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2, Eye, MousePointerClick } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
-interface StatisticsCardsProps {
-  userData: {
-    id: string;
-    name: string;
-    bio: string;
-    email: string;
-    avatarUrl: string;
-    username: string;
-    profileViews: number;
-    totalClicks: number;
-  };
-  onNavigateToTab: (tab: string) => void;
-}
-
-const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) => {
-  const [profileViews, setProfileViews] = useState<number>(0);
-  const [linkClicks, setLinkClicks] = useState<number>(0);
+export function StatisticsCards() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    views: 0,
+    clicks: 0
+  });
 
   useEffect(() => {
-    const fetchStatistics = async () => {
-      if (!userData.id) return;
+    const fetchStats = async () => {
+      if (!user) return;
       
       try {
         // Get profile view count
         const { data: viewData, error: viewError } = await supabase.rpc(
           'get_profile_view_count',
-          { user_id_param: userData.id }
+          { user_id_param: user.id }
         );
         
-        if (viewError) throw viewError;
-        if (viewData !== null) {
-          setProfileViews(Number(viewData));
+        if (viewError) {
+          console.error('Error fetching profile views:', viewError);
+          return;
         }
         
         // Get link click count
-        const { data: linkData, error: linkError } = await supabase.rpc(
+        const { data: clickData, error: clickError } = await supabase.rpc(
           'get_total_link_clicks',
-          { user_id_param: userData.id }
+          { user_id_param: user.id }
         );
         
-        if (linkError) throw linkError;
-        if (linkData !== null) {
-          setLinkClicks(Number(linkData));
+        if (clickError) {
+          console.error('Error fetching link clicks:', clickError);
+          return;
         }
+        
+        setStats({
+          views: viewData || 0,
+          clicks: clickData || 0
+        });
       } catch (error) {
-        console.error('Error fetching statistics:', error);
+        console.error('Error fetching analytics data:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchStatistics();
-    
-    // Listen for real-time updates to statistics
-    const channel = supabase
-      .channel('statistics-updates')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'profile_views',
-        filter: `profile_id=eq.${userData.id}`
-      }, payload => {
-        console.log('New profile view:', payload);
-        setProfileViews(prevViews => prevViews + 1);
-      })
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'link_clicks',
-        filter: `user_id=eq.${userData.id}`
-      }, payload => {
-        console.log('New link click:', payload);
-        setLinkClicks(prevClicks => prevClicks + 1);
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userData.id]);
+    fetchStats();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Link Clicks</CardTitle>
+            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Card className="col-span-4 md:col-span-2">
-        <CardHeader>
-          <CardTitle>Profile Views</CardTitle>
-          <CardDescription>
-            Total number of profile views
-          </CardDescription>
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
+          <Eye className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="text-2xl font-bold">
-            {loading ? <Skeleton className="h-6 w-16" /> : profileViews}
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold">{stats.views}</div>
+              <p className="text-xs text-muted-foreground">
+                Total profile views
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/dashboard?tab=analytics')}
+            >
+              View analytics
+            </Button>
           </div>
         </CardContent>
       </Card>
       
-      <Card className="col-span-4 md:col-span-2">
-        <CardHeader>
-          <CardTitle>Link Clicks</CardTitle>
-          <CardDescription>
-            Total number of clicks on your links
-          </CardDescription>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Link Clicks</CardTitle>
+          <MousePointerClick className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="text-2xl font-bold">
-            {loading ? <Skeleton className="h-6 w-16" /> : linkClicks}
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold">{stats.clicks}</div>
+              <p className="text-xs text-muted-foreground">
+                Total link clicks
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/dashboard?tab=analytics')}
+            >
+              View analytics
+            </Button>
           </div>
         </CardContent>
       </Card>
-      
-      <Card className="col-span-4">
-        <CardContent className="pt-6">
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={() => onNavigateToTab("analytics")}
-          >
-            View Detailed Analytics
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </CardContent>
-      </Card>
-    </>
+    </div>
   );
-};
-
-export default StatisticsCards;
+}
