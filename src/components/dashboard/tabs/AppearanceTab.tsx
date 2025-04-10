@@ -37,7 +37,7 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile } = useProfile();
-  const { settings: designSettings, saveDesignSettings, loading: designLoading } = useProfileDesign();
+  const { settings: designSettings, saveDesignSettings, loading: designLoading, refreshSettings } = useProfileDesign();
 
   // Set initial values from design settings
   useEffect(() => {
@@ -79,6 +79,9 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
       const success = await saveDesignSettings(updatedSettings);
       
       if (success) {
+        // Refresh settings to ensure everything is in sync
+        await refreshSettings();
+        
         toast({
           title: "Theme saved",
           description: "Your profile appearance has been updated"
@@ -126,15 +129,23 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   // Handle font and button style changes from LayoutSelector
   const handleFontChange = (newFont: string) => {
     setFont(newFont);
+    
+    // Apply font change immediately
+    const fontFamily = `${newFont.charAt(0).toUpperCase() + newFont.slice(1)}, sans-serif`;
+    saveDesignSettings({ font_family: fontFamily });
   };
 
   const handleButtonStyleChange = (newStyle: "rounded" | "square") => {
     setButtonStyle(newStyle);
+    
+    // Apply button style change immediately
+    const buttonBorderStyle = newStyle === 'rounded' ? 'all' : 'none';
+    saveDesignSettings({ button_border_style: buttonBorderStyle });
   };
 
   // Create a preview design settings object that updates in real-time
   const livePreviewSettings: ProfileDesignSettings = {
-    ...designSettings || defaultDesignSettings,
+    ...(designSettings || defaultDesignSettings),
     background_color: backgroundColor,
     button_background_color: primaryColor,
     font_family: `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`,
@@ -182,9 +193,15 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ColorSelector 
                   primaryColor={primaryColor}
-                  setPrimaryColor={setPrimaryColor}
+                  setPrimaryColor={(color) => {
+                    setPrimaryColor(color);
+                    saveDesignSettings({ button_background_color: color });
+                  }}
                   backgroundColor={backgroundColor}
-                  setBackgroundColor={setBackgroundColor}
+                  setBackgroundColor={(color) => {
+                    setBackgroundColor(color);
+                    saveDesignSettings({ background_color: color });
+                  }}
                 />
                 
                 <LayoutSelector 

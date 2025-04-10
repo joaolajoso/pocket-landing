@@ -1,5 +1,5 @@
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LinkCard, { LinkType } from "./LinkCard";
@@ -31,13 +31,12 @@ const ProfilePreview = ({
 }: ProfilePreviewProps) => {
   const { toast } = useToast();
   const { profile: supabaseProfile } = useProfile();
+  const [styleId] = useState(`profile-preview-styles-${Math.random().toString(36).substring(2, 9)}`);
   
   // Apply design settings
   useEffect(() => {
     if (!designSettings) return;
     
-    // Create a unique style ID for this component instance
-    const styleId = 'profile-preview-realtime-styles';
     let styleEl = document.getElementById(styleId) as HTMLStyleElement;
     
     if (!styleEl) {
@@ -65,25 +64,33 @@ const ProfilePreview = ({
       borderStyle = `1px solid ${designSettings.button_border_color}`;
     }
     
+    // Create CSS for this specific profile preview
+    const profileClass = `profile-preview-${styleId}`;
+    
     // Create CSS
     const css = `
-      .profile-preview-${isPreview ? 'preview' : 'public'} {
+      .${profileClass} {
         background: ${backgroundStyle};
         background-position: center;
         background-size: cover;
         font-family: ${designSettings.font_family || 'Inter, sans-serif'};
       }
       
-      .profile-preview-${isPreview ? 'preview' : 'public'} .name {
+      .${profileClass} .name {
         color: ${designSettings.name_color};
       }
       
-      .profile-preview-${isPreview ? 'preview' : 'public'} .bio {
+      .${profileClass} .bio {
         color: ${designSettings.description_color};
       }
       
-      .profile-preview-${isPreview ? 'preview' : 'public'} .section-title {
+      .${profileClass} .section-title {
         color: ${designSettings.section_title_color};
+      }
+      
+      .${profileClass} .link-card {
+        background-color: ${designSettings.button_background_color};
+        color: ${designSettings.button_text_color};
       }
     `;
     
@@ -95,7 +102,7 @@ const ProfilePreview = ({
         styleEl.remove();
       }
     };
-  }, [designSettings, isPreview]);
+  }, [designSettings, styleId, isPreview]);
   
   // Merge initial profile with Supabase profile data if available
   const profile = useMemo(() => {
@@ -154,9 +161,13 @@ const ProfilePreview = ({
   };
 
   // Get the text alignment style
-  const getAlignmentStyle = () => {
+  const getTextAlignClass = () => {
     const alignment = designSettings?.text_alignment || 'center';
-    return { textAlign: alignment as 'left' | 'center' | 'right' };
+    return {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right'
+    }[alignment];
   };
 
   // Determine background style for the outer container
@@ -180,9 +191,33 @@ const ProfilePreview = ({
     return backgroundStyle;
   };
 
+  // Get button style
+  const getButtonStyle = (link: LinkType) => {
+    if (!designSettings) return {};
+    
+    let style: React.CSSProperties = {
+      backgroundColor: designSettings.button_background_color || '#0ea5e9',
+      color: designSettings.button_text_color || 'white',
+    };
+    
+    // Add border if needed
+    if (designSettings.button_border_color) {
+      style.border = `1px solid ${designSettings.button_border_color}`;
+    }
+    
+    // Add border radius if needed
+    if (designSettings.button_border_style === 'all') {
+      style.borderRadius = '0.375rem';
+    }
+    
+    return style;
+  };
+
+  const profileClass = `profile-preview-${styleId}`;
+  
   return (
     <div 
-      className={`flex flex-col items-center max-w-md mx-auto w-full profile-preview-${isPreview ? 'preview' : 'public'}`}
+      className={`flex flex-col items-center max-w-md mx-auto w-full ${profileClass}`}
       style={getContainerStyle()}
     >
       {isPreview && (
@@ -191,7 +226,7 @@ const ProfilePreview = ({
         </div>
       )}
       
-      <div className="text-center mb-8" style={getAlignmentStyle()}>
+      <div className={`mb-8 w-full ${getTextAlignClass()}`} style={{ textAlign: designSettings?.text_alignment || 'center' as any }}>
         <Avatar className="w-24 h-24 mb-4 mx-auto">
           <AvatarImage src={profile.avatarUrl} alt={profile.name} />
           <AvatarFallback>{initials}</AvatarFallback>
@@ -213,18 +248,14 @@ const ProfilePreview = ({
         )}
       </div>
       
-      <div className="w-full space-y-3 mb-8">
+      <div className="w-full space-y-3 mb-8 px-4">
         {profile.links.length > 0 ? (
           profile.links.map(link => (
             <LinkCard 
               key={link.id} 
               link={link} 
               isEditable={false} 
-              style={{
-                backgroundColor: designSettings?.button_background_color || 'var(--primary)',
-                color: designSettings?.button_text_color || 'white',
-                border: designSettings?.button_border_color ? `1px solid ${designSettings.button_border_color}` : 'none'
-              }}
+              style={getButtonStyle(link)}
             />
           ))
         ) : (

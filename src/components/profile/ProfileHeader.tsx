@@ -1,34 +1,51 @@
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useMemo } from "react";
 
 interface ProfileHeaderProps {
   name: string;
   bio: string;
   headline?: string;
   avatarUrl: string;
+  nameColor?: string;
+  bioColor?: string;
 }
 
-const ProfileHeader = ({ name, bio, headline, avatarUrl }: ProfileHeaderProps) => {
+const ProfileHeader = ({ 
+  name, 
+  bio, 
+  headline, 
+  avatarUrl,
+  nameColor,
+  bioColor 
+}: ProfileHeaderProps) => {
+  const initials = useMemo(() => {
+    return name
+      .split(" ")
+      .map(name => name[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  }, [name]);
+
   return (
     <div className="flex flex-col items-center mb-8">
-      <Avatar className="w-32 h-32 border-4 border-white shadow-lg mb-4">
+      <Avatar className="w-24 h-24 mb-4">
         <AvatarImage src={avatarUrl} alt={name} />
-        <AvatarFallback className="text-2xl">
-          {name.split(' ').map(n => n[0]).join('').toUpperCase()}
-        </AvatarFallback>
+        <AvatarFallback className="text-xl">{initials}</AvatarFallback>
       </Avatar>
       
       <h1 
-        className="text-3xl font-bold text-center" 
-        style={{ color: "var(--profile-name-color, inherit)" }}
+        className="text-2xl font-bold text-center"
+        style={{ color: nameColor || 'var(--profile-name-color, inherit)' }}
       >
         {name}
       </h1>
       
       {headline && (
         <p 
-          className="text-center text-lg mt-1 font-medium text-primary"
-          style={{ color: "var(--profile-description-color, var(--primary))" }}
+          className="mt-1 text-muted-foreground font-medium text-center"
+          style={{ color: bioColor || 'var(--profile-description-color, var(--muted-foreground))' }}
         >
           {headline}
         </p>
@@ -36,8 +53,8 @@ const ProfileHeader = ({ name, bio, headline, avatarUrl }: ProfileHeaderProps) =
       
       {bio && (
         <p 
-          className="text-center text-base mt-2 text-muted-foreground max-w-md"
-          style={{ color: "var(--profile-description-color, var(--muted-foreground))" }}
+          className="mt-2 text-muted-foreground text-center max-w-sm"
+          style={{ color: bioColor || 'var(--profile-description-color, var(--muted-foreground))' }}
         >
           {bio}
         </p>

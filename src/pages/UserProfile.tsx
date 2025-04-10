@@ -198,6 +198,9 @@ const UserProfile = () => {
     fontFamily: "Inter, sans-serif",
   };
   
+  const headerTextColor = designSettings?.name_color || 'inherit';
+  const bioTextColor = designSettings?.description_color || '';
+  
   return (
     <>
       <Helmet>
@@ -222,6 +225,8 @@ const UserProfile = () => {
             bio={profile.bio || ''} 
             headline={profile.headline || profile.job_title || ''}
             avatarUrl={profile.photo_url || profile.avatar_url || ''} 
+            nameColor={headerTextColor}
+            bioColor={bioTextColor}
           />
           
           {profile.id && (
@@ -237,6 +242,7 @@ const UserProfile = () => {
             sections={sections} 
             username={profile.slug || ''} 
             profileId={profile.id}
+            designSettings={designSettings}
           />
         </div>
       </div>

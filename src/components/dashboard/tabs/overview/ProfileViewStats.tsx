@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { BarChart2 } from 'lucide-react';
@@ -31,29 +31,52 @@ const ProfileViewStats = ({ onNavigateToAnalytics }: ProfileViewStatsProps) => {
       try {
         setLoading(true);
         
-        // Get daily view counts for the past 7 days
-        const { data: dailyData, error: dailyError } = await supabase
-          .from('profile_views')
-          .select('date, views')
-          .eq('profile_id', user.id)
-          .order('date', { ascending: true })
-          .limit(7);
+        // Get the past 7 days for display
+        const last7Days = Array.from({ length: 7 }).map((_, i) => {
+          const date = subDays(new Date(), i);
+          return format(date, 'yyyy-MM-dd');
+        }).reverse();
         
-        if (dailyError) {
-          console.error('Error getting daily view data:', dailyError);
+        // Count views by date for the current user's profile
+        const { data: viewsData, error: viewsError } = await supabase
+          .from('profile_views')
+          .select('timestamp')
+          .eq('profile_id', user.id);
+        
+        if (viewsError) {
+          console.error('Error getting view data:', viewsError);
           setError('Failed to load view statistics');
           return;
         }
+
+        // Process the view data to count by day
+        const viewsByDay: Record<string, number> = {};
+        
+        // Initialize all days with 0 views
+        last7Days.forEach(day => {
+          viewsByDay[day] = 0;
+        });
+        
+        // Count views per day
+        if (viewsData) {
+          viewsData.forEach(view => {
+            const viewDate = format(new Date(view.timestamp), 'yyyy-MM-dd');
+            if (last7Days.includes(viewDate)) {
+              viewsByDay[viewDate] = (viewsByDay[viewDate] || 0) + 1;
+            }
+          });
+        }
         
         // Format the data for the chart
-        setViewData(
-          Array.isArray(dailyData) 
-            ? dailyData.map((item) => ({
-                date: item.date,
-                views: item.views || 0
-              }))
-            : []
-        );
+        const formattedData: ViewData[] = Object.entries(viewsByDay).map(([date, views]) => ({
+          date,
+          views
+        }));
+        
+        // Sort by date
+        formattedData.sort((a, b) => a.date.localeCompare(b.date));
+        
+        setViewData(formattedData);
       } catch (err) {
         console.error('Error fetching profile views:', err);
         setError('An unexpected error occurred');

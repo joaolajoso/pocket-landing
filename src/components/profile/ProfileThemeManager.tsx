@@ -40,61 +40,80 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
   useEffect(() => {
     console.log('ProfileThemeManager: Applying settings', settings);
     
+    // Create a unique style ID for the applied styles
+    const styleId = 'profile-theme-manager-styles';
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+    
     // Set design settings from the database if available
     if (settings) {
+      // Prepare CSS rules
+      let css = '';
+      
       // Apply background
       let backgroundStyle = '';
       if (settings.background_type === 'solid') {
         backgroundStyle = settings.background_color;
-        document.documentElement.style.setProperty('--profile-bg', settings.background_color);
+        css += `
+          :root {
+            --profile-bg: ${settings.background_color};
+          }
+        `;
       } else if (settings.background_type === 'gradient' && settings.background_gradient_start && settings.background_gradient_end) {
         backgroundStyle = `linear-gradient(135deg, ${settings.background_gradient_start}, ${settings.background_gradient_end})`;
-        document.documentElement.style.setProperty('--profile-bg', backgroundStyle);
+        css += `
+          :root {
+            --profile-bg: ${backgroundStyle};
+          }
+        `;
         console.log('Setting gradient for public profile:', backgroundStyle);
       } else if (settings.background_type === 'image' && settings.background_image_url) {
         backgroundStyle = `url(${settings.background_image_url})`;
-        document.documentElement.style.setProperty('--profile-bg', backgroundStyle);
-        document.documentElement.style.setProperty('--profile-bg-position', 'center');
-        document.documentElement.style.setProperty('--profile-bg-size', 'cover');
+        css += `
+          :root {
+            --profile-bg: ${backgroundStyle};
+            --profile-bg-position: center;
+            --profile-bg-size: cover;
+          }
+        `;
       }
       
       // Set text colors
-      document.documentElement.style.setProperty('--profile-name-color', settings.name_color);
-      document.documentElement.style.setProperty('--profile-description-color', settings.description_color);
-      document.documentElement.style.setProperty('--profile-section-title-color', settings.section_title_color);
-      document.documentElement.style.setProperty('--profile-link-text-color', settings.link_text_color);
-      
-      // Set button styles
-      document.documentElement.style.setProperty('--profile-button-bg', settings.button_background_color);
-      document.documentElement.style.setProperty('--profile-button-text', settings.button_text_color);
-      document.documentElement.style.setProperty('--profile-button-icon', settings.button_icon_color);
+      css += `
+        :root {
+          --profile-name-color: ${settings.name_color};
+          --profile-description-color: ${settings.description_color};
+          --profile-section-title-color: ${settings.section_title_color};
+          --profile-link-text-color: ${settings.link_text_color};
+          
+          --profile-button-bg: ${settings.button_background_color};
+          --profile-button-text: ${settings.button_text_color};
+          --profile-button-icon: ${settings.button_icon_color};
+          
+          --profile-text-align: ${settings.text_alignment};
+          --profile-font-family: ${settings.font_family};
+        }
+      `;
       
       if (settings.button_border_color) {
-        document.documentElement.style.setProperty('--profile-button-border', settings.button_border_color);
+        css += `
+          :root {
+            --profile-button-border: ${settings.button_border_color};
+          }
+        `;
       }
       
-      // Set layout
-      document.documentElement.style.setProperty('--profile-text-align', settings.text_alignment);
+      // Set the CSS in the style element
+      styleEl.textContent = css;
       
       // Add font if needed
       if (settings.font_family && settings.font_family !== "Inter, sans-serif") {
-        const fontLink = document.createElement('link');
-        fontLink.rel = 'stylesheet';
-        fontLink.setAttribute('data-pocketcv-font', 'true');
-        
-        if (settings.font_family.includes('Roboto')) {
-          fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
-        } else if (settings.font_family.includes('Poppins')) {
-          fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
-        } else if (settings.font_family.includes('Open Sans')) {
-          fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
-        }
-        
-        if (fontLink.href) {
-          document.head.appendChild(fontLink);
-        }
-        
-        document.documentElement.style.setProperty('--profile-font-family', settings.font_family);
+        loadFont(settings.font_family);
       }
     } else {
       // Fall back to the original theme implementation if no database settings
@@ -103,55 +122,57 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
       const backgroundColorHsl = getHslFromHex(theme.backgroundColor);
       
       // Set theme based on user preferences
-      document.documentElement.style.setProperty('--profile-primary-color', primaryColorHsl);
-      document.documentElement.style.setProperty('--profile-bg-color', backgroundColorHsl);
+      const css = `
+        :root {
+          --profile-primary-color: ${primaryColorHsl};
+          --profile-bg-color: ${backgroundColorHsl};
+        }
+      `;
+      
+      styleEl.textContent = css;
       
       // Add custom font if needed
       if (theme.fontFamily && theme.fontFamily !== "Inter, sans-serif") {
-        const fontLink = document.createElement('link');
-        fontLink.rel = 'stylesheet';
-        fontLink.setAttribute('data-pocketcv-font', 'true');
-        
-        if (theme.fontFamily.includes('Roboto')) {
-          fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
-        } else if (theme.fontFamily.includes('Poppins')) {
-          fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
-        } else if (theme.fontFamily.includes('Open Sans')) {
-          fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
-        }
-        
-        if (fontLink.href) {
-          document.head.appendChild(fontLink);
-        }
+        loadFont(theme.fontFamily);
       }
     }
     
     // Clean up custom CSS variables when component unmounts
     return () => {
-      document.documentElement.style.removeProperty('--profile-primary-color');
-      document.documentElement.style.removeProperty('--profile-bg-color');
-      document.documentElement.style.removeProperty('--profile-bg');
-      document.documentElement.style.removeProperty('--profile-bg-position');
-      document.documentElement.style.removeProperty('--profile-bg-size');
-      document.documentElement.style.removeProperty('--profile-name-color');
-      document.documentElement.style.removeProperty('--profile-description-color');
-      document.documentElement.style.removeProperty('--profile-section-title-color');
-      document.documentElement.style.removeProperty('--profile-link-text-color');
-      document.documentElement.style.removeProperty('--profile-button-bg');
-      document.documentElement.style.removeProperty('--profile-button-text');
-      document.documentElement.style.removeProperty('--profile-button-icon');
-      document.documentElement.style.removeProperty('--profile-button-border');
-      document.documentElement.style.removeProperty('--profile-text-align');
-      document.documentElement.style.removeProperty('--profile-font-family');
+      if (styleEl) {
+        styleEl.remove();
+      }
       
       // Remove any added font links
-      document.querySelectorAll('link[href*="fonts.googleapis.com"]').forEach(link => {
-        if (link.getAttribute('data-pocketcv-font')) {
-          link.remove();
-        }
+      document.querySelectorAll('link[data-pocketcv-font]').forEach(link => {
+        link.remove();
       });
     };
   }, [settings, theme]);
+  
+  // Helper function to load fonts
+  const loadFont = (fontFamily: string) => {
+    // Remove existing fonts first
+    document.querySelectorAll('link[data-pocketcv-font]').forEach(link => {
+      link.remove();
+    });
+    
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.setAttribute('data-pocketcv-font', 'true');
+    
+    if (fontFamily.includes('Roboto')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap';
+    } else if (fontFamily.includes('Poppins')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap';
+    } else if (fontFamily.includes('Open Sans')) {
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap';
+    }
+    
+    if (fontLink.href) {
+      document.head.appendChild(fontLink);
+    }
+  };
   
   return null; // This component doesn't render anything, it just manages the theme
 };

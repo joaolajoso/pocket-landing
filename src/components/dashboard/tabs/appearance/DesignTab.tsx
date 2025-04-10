@@ -13,11 +13,13 @@ import { useProfileDesign, ProfileDesignSettings } from "@/hooks/profile/useProf
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UploadButton } from "@/components/UploadButton";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ColorPickerProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  applyImmediately?: boolean;
 }
 
 interface DesignTabProps {
@@ -26,7 +28,11 @@ interface DesignTabProps {
   externalButtonColor?: string;
 }
 
-const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => {
+const ColorPicker = ({ label, value, onChange, applyImmediately = false }: ColorPickerProps) => {
+  const handleChange = (newValue: string) => {
+    onChange(newValue);
+  };
+
   return (
     <div className="grid gap-2">
       <Label htmlFor={`color-${label}`}>{label}</Label>
@@ -35,7 +41,7 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => {
           id={`color-${label}`}
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           className="flex-1"
           placeholder="#000000"
         />
@@ -43,7 +49,7 @@ const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => {
           <Input
             type="color"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => handleChange(e.target.value)}
             className="block h-9 w-9 cursor-pointer overflow-hidden rounded-md p-0 opacity-0 absolute inset-0"
           />
           <div
@@ -62,28 +68,33 @@ const DesignTab = ({
   externalButtonColor 
 }: DesignTabProps = {}) => {
   const { settings, saving, saveDesignSettings, resetDesignSettings } = useProfileDesign();
+  const { toast } = useToast();
   const [currentTab, setCurrentTab] = useState("background");
-  const [tempSettings, setTempSettings] = useState<ProfileDesignSettings>(settings);
+  const [tempSettings, setTempSettings] = useState<ProfileDesignSettings | null>(null);
   
+  // Initialize tempSettings from settings
   useEffect(() => {
     if (settings) {
       setTempSettings(settings);
     }
   }, [settings]);
-
+  
+  // Update tempSettings when external values change
   useEffect(() => {
+    if (!tempSettings) return;
+    
     if (externalBackgroundColor) {
-      setTempSettings(prev => ({
+      setTempSettings(prev => prev ? {
         ...prev,
         background_color: externalBackgroundColor
-      }));
+      } : null);
     }
     
     if (externalButtonColor) {
-      setTempSettings(prev => ({
+      setTempSettings(prev => prev ? {
         ...prev,
         button_background_color: externalButtonColor
-      }));
+      } : null);
     }
   }, [externalBackgroundColor, externalButtonColor]);
   
@@ -91,35 +102,43 @@ const DesignTab = ({
     key: K,
     value: ProfileDesignSettings[K]
   ) => {
+    if (!tempSettings) return;
+    
     // Update local state immediately
-    setTempSettings(prev => ({
+    setTempSettings(prev => prev ? {
       ...prev,
       [key]: value
-    }));
+    } : null);
     
-    // Immediate update for background type
-    if (key === 'background_type') {
-      void saveDesignSettings({ [key]: value });
-    }
+    // Apply changes immediately
+    const updateObj = { [key]: value } as Partial<ProfileDesignSettings>;
     
-    // Immediate update for gradient settings
-    if (['background_gradient_start', 'background_gradient_end'].includes(key as string) && 
-        tempSettings.background_type === 'gradient') {
-      void saveDesignSettings({ [key]: value });
-    }
-    
-    // Update external state for coordinating with parent components
-    if (onExternalColorChange) {
-      if (key === 'background_color' || key === 'button_background_color') {
-        onExternalColorChange(key, value as string);
-      }
-    }
+    // Save to database immediately for real-time updates
+    saveDesignSettings(updateObj)
+      .then(() => {
+        // Update external state for coordinating with parent components
+        if (onExternalColorChange) {
+          if (key === 'background_color' || key === 'button_background_color') {
+            onExternalColorChange(key, value as string);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error saving design setting:', error);
+        toast({
+          title: "Error saving design",
+          description: "Your changes couldn't be saved automatically.",
+          variant: "destructive"
+        });
+      });
   };
   
   const handleResetDesign = async () => {
     if (confirm("Are you sure you want to reset your design to defaults?")) {
       await resetDesignSettings();
-      setTempSettings(settings);
+      if (tempSettings) {
+        setTempSettings(settings);
+      }
     }
   };
   
@@ -146,13 +165,27 @@ const DesignTab = ({
         background_type: 'image'
       });
       
-      updateSetting('background_image_url', data.publicUrl);
-      updateSetting('background_type', 'image');
+      if (tempSettings) {
+        setTempSettings(prev => prev ? {
+          ...prev,
+          background_image_url: data.publicUrl,
+          background_type: 'image'
+        } : null);
+      }
       
     } catch (error) {
       console.error('Error uploading image:', error);
+      toast({
+        title: "Error uploading image",
+        description: "There was a problem uploading your background image.",
+        variant: "destructive"
+      });
     }
   };
+
+  if (!tempSettings) {
+    return <div>Loading design settings...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -259,6 +292,7 @@ const DesignTab = ({
                     label="Background Color" 
                     value={tempSettings.background_color} 
                     onChange={(value) => updateSetting('background_color', value)} 
+                    applyImmediately
                   />
                 </div>
               )}
@@ -269,11 +303,13 @@ const DesignTab = ({
                     label="Gradient Start" 
                     value={tempSettings.background_gradient_start || '#ffffff'} 
                     onChange={(value) => updateSetting('background_gradient_start', value)} 
+                    applyImmediately
                   />
                   <ColorPicker 
                     label="Gradient End" 
                     value={tempSettings.background_gradient_end || '#f0f9ff'} 
                     onChange={(value) => updateSetting('background_gradient_end', value)} 
+                    applyImmediately
                   />
                 </div>
               )}
@@ -322,21 +358,25 @@ const DesignTab = ({
                   label="Name Color" 
                   value={tempSettings.name_color} 
                   onChange={(value) => updateSetting('name_color', value)} 
+                  applyImmediately
                 />
                 <ColorPicker 
                   label="Description Color" 
                   value={tempSettings.description_color} 
                   onChange={(value) => updateSetting('description_color', value)} 
+                  applyImmediately
                 />
                 <ColorPicker 
                   label="Section Title Color" 
                   value={tempSettings.section_title_color} 
                   onChange={(value) => updateSetting('section_title_color', value)} 
+                  applyImmediately
                 />
                 <ColorPicker 
                   label="Link Text Color" 
                   value={tempSettings.link_text_color} 
                   onChange={(value) => updateSetting('link_text_color', value)} 
+                  applyImmediately
                 />
               </div>
               
@@ -435,21 +475,25 @@ const DesignTab = ({
                   label="Button Background" 
                   value={tempSettings.button_background_color} 
                   onChange={(value) => updateSetting('button_background_color', value)} 
+                  applyImmediately
                 />
                 <ColorPicker 
                   label="Button Text" 
                   value={tempSettings.button_text_color} 
                   onChange={(value) => updateSetting('button_text_color', value)} 
+                  applyImmediately
                 />
                 <ColorPicker 
                   label="Button Icon" 
                   value={tempSettings.button_icon_color} 
                   onChange={(value) => updateSetting('button_icon_color', value)} 
+                  applyImmediately
                 />
                 <ColorPicker 
                   label="Button Border" 
                   value={tempSettings.button_border_color || '#e5e7eb'} 
                   onChange={(value) => updateSetting('button_border_color', value)} 
+                  applyImmediately
                 />
               </div>
               
