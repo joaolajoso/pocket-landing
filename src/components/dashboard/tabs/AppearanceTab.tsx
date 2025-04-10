@@ -14,7 +14,8 @@ import LayoutSelector from "./appearance/LayoutSelector";
 import ProfilePreviewCard from "./appearance/ProfilePreviewCard";
 import DesignTab from "./appearance/DesignTab";
 import ProfileDesignPreview from "./appearance/ProfileDesignPreview";
-import { useProfileDesign, ProfileDesignSettings } from "@/hooks/profile/useProfileDesign";
+import { useProfileDesign, ProfileDesignSettings, defaultDesignSettings } from "@/hooks/profile/useProfileDesign";
+import { useProfile } from "@/hooks/useProfile";
 
 interface AppearanceTabProps {
   userData: {
@@ -35,6 +36,7 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useProfile();
   const { settings: designSettings, saveDesignSettings, loading: designLoading } = useProfileDesign();
 
   // Set initial values from design settings
@@ -56,7 +58,7 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
     
     try {
       // Get current design settings to preserve gradient settings
-      const currentSettings = designSettings || {};
+      const currentSettings = designSettings || defaultDesignSettings;
       
       // Convert basic settings to design settings format
       const updatedSettings: Partial<ProfileDesignSettings> = {
@@ -95,10 +97,14 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   };
 
   const handlePreview = () => {
-    // Navigate to the public profile instead of preview
-    if (userData && userData.name) {
+    // Navigate to the public profile with pocketcv.pt domain
+    if (profile?.slug) {
+      // Open in a new tab to external URL
+      window.open(`https://pocketcv.pt/u/${profile.slug}`, '_blank');
+    } else if (userData && userData.name) {
+      // Fallback to slug derived from name if profile.slug is not available
       const slug = userData.name.toLowerCase().replace(/\s+/g, '-');
-      navigate(`/u/${slug}`);
+      window.open(`https://pocketcv.pt/u/${slug}`, '_blank');
     } else {
       toast({
         title: "Cannot preview profile",
@@ -128,22 +134,11 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
 
   // Create a preview design settings object that updates in real-time
   const livePreviewSettings: ProfileDesignSettings = {
-    ...designSettings || {},
+    ...designSettings || defaultDesignSettings,
     background_color: backgroundColor,
     button_background_color: primaryColor,
     font_family: `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`,
     button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
-    background_type: designSettings?.background_type || 'solid',
-    background_gradient_start: designSettings?.background_gradient_start,
-    background_gradient_end: designSettings?.background_gradient_end,
-    name_color: designSettings?.name_color || '#000000',
-    description_color: designSettings?.description_color || '#555555',
-    section_title_color: designSettings?.section_title_color || '#333333',
-    link_text_color: designSettings?.link_text_color || '#ffffff',
-    button_text_color: designSettings?.button_text_color || '#ffffff',
-    button_icon_color: designSettings?.button_icon_color || '#ffffff',
-    button_icon_position: designSettings?.button_icon_position || 'left',
-    text_alignment: designSettings?.text_alignment || 'center'
   };
 
   return (

@@ -31,7 +31,6 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
                designSettings.background_gradient_start && 
                designSettings.background_gradient_end) {
       backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
-      console.log('Setting gradient in preview:', backgroundStyle);
     } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
       backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
     }

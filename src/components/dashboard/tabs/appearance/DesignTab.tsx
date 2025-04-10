@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,7 +66,9 @@ const DesignTab = ({
   const [tempSettings, setTempSettings] = useState<ProfileDesignSettings>(settings);
   
   useEffect(() => {
-    setTempSettings(settings);
+    if (settings) {
+      setTempSettings(settings);
+    }
   }, [settings]);
 
   useEffect(() => {
@@ -88,22 +91,28 @@ const DesignTab = ({
     key: K,
     value: ProfileDesignSettings[K]
   ) => {
+    // Update local state immediately
     setTempSettings(prev => ({
       ...prev,
       [key]: value
     }));
     
+    // Immediate update for background type
     if (key === 'background_type') {
       void saveDesignSettings({ [key]: value });
     }
     
+    // Immediate update for gradient settings
     if (['background_gradient_start', 'background_gradient_end'].includes(key as string) && 
         tempSettings.background_type === 'gradient') {
       void saveDesignSettings({ [key]: value });
     }
     
-    if (onExternalColorChange && (key === 'background_color' || key === 'button_background_color')) {
-      onExternalColorChange(key, value as string);
+    // Update external state for coordinating with parent components
+    if (onExternalColorChange) {
+      if (key === 'background_color' || key === 'button_background_color') {
+        onExternalColorChange(key, value as string);
+      }
     }
   };
   

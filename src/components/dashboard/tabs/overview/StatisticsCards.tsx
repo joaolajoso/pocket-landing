@@ -1,148 +1,81 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Globe, Link } from "lucide-react";
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Eye, MousePointerClick } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-
-interface StatisticsCardsProps {
-  onNavigateToAnalytics?: () => void;
+interface StatisticCardProps {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  className?: string;
 }
 
-export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    views: 0,
-    clicks: 0
-  });
+const StatisticCard = ({ title, value, icon, className }: StatisticCardProps) => (
+  <Card className={className}>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      {icon}
+    </CardHeader>
+    <CardContent>
+      <div className="text-2xl font-bold">{value}</div>
+    </CardContent>
+  </Card>
+);
+
+const StatisticsCards = () => {
+  const [totalProfileViews, setTotalProfileViews] = useState<number>(0);
+  const [totalLinkClicks, setTotalLinkClicks] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Update the queries with proper type arguments
+  const fetchTotalProfileViews = async () => {
+    return await supabase.rpc('get_total_profile_views');
+  };
+
+  const fetchTotalLinkClicks = async () => {
+    return await supabase.rpc('get_total_link_clicks');
+  };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!user) return;
-      
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        // Get profile view count
-        const { data: viewData, error: viewError } = await supabase.rpc(
-          'get_profile_view_count',
-          { user_id_param: user.id as string }
-        );
-        
-        if (viewError) {
-          console.error('Error fetching profile views:', viewError);
-          return;
+        const profileViewsResult = await fetchTotalProfileViews();
+        const linkClicksResult = await fetchTotalLinkClicks();
+
+        if (profileViewsResult.data) {
+          setTotalProfileViews(profileViewsResult.data as number);
         }
-        
-        // Get link click count
-        const { data: clickData, error: clickError } = await supabase.rpc(
-          'get_total_link_clicks',
-          { user_id_param: user.id as string }
-        );
-        
-        if (clickError) {
-          console.error('Error fetching link clicks:', clickError);
-          return;
+
+        if (linkClicksResult.data) {
+          setTotalLinkClicks(linkClicksResult.data as number);
         }
-        
-        setStats({
-          views: viewData !== null ? Number(viewData) : 0,
-          clicks: clickData !== null ? Number(clickData) : 0
-        });
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
+        console.error("Error fetching statistics:", error);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchStats();
-  }, [user]);
 
-  const handleNavigateToAnalytics = () => {
-    if (onNavigateToAnalytics) {
-      onNavigateToAnalytics();
-    } else {
-      navigate('/dashboard?tab=analytics');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex items-center justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Link Clicks</CardTitle>
-            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex items-center justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    fetchData();
+  }, []);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
-          <Eye className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-bold">{stats.views}</div>
-              <p className="text-xs text-muted-foreground">
-                Total profile views
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Link Clicks</CardTitle>
-          <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-bold">{stats.clicks}</div>
-              <p className="text-xs text-muted-foreground">
-                Total link clicks
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="md:col-span-2 flex justify-center">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleNavigateToAnalytics}
-        >
-          View analytics
-        </Button>
-      </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <StatisticCard
+        title="Profile Views"
+        value={totalProfileViews}
+        icon={<Globe className="h-4 w-4 text-gray-500" />}
+        className="bg-white shadow-md"
+      />
+      <StatisticCard
+        title="Link Clicks"
+        value={totalLinkClicks}
+        icon={<Link className="h-4 w-4 text-gray-500" />}
+        className="bg-white shadow-md"
+      />
     </div>
   );
-}
+};
 
-// Add a default export that forwards to the named export
 export default StatisticsCards;

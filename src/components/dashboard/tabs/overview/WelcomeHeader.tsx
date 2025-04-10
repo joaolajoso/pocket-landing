@@ -4,7 +4,6 @@ import { Eye, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
-import { getProfileUrl } from "@/integrations/supabase/client";
 
 interface WelcomeHeaderProps {
   firstName: string;
@@ -13,6 +12,10 @@ interface WelcomeHeaderProps {
 const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
   const { toast } = useToast();
   const { profile } = useProfile();
+  
+  const getProfileUrl = (slug: string) => {
+    return `https://pocketcv.pt/u/${slug}`;
+  };
   
   const handleShareProfile = () => {
     if (!profile?.slug) {
@@ -59,7 +62,7 @@ const WelcomeHeader = ({ firstName }: WelcomeHeaderProps) => {
           View public page
         </Button>
         
-        <Button className="bg-[#8c52ff] hover:bg-[#8c52ff]/90">
+        <Button className="bg-[#8c52ff] hover:bg-[#8c52ff]/90" onClick={handleShareProfile}>
           <Share2 className="mr-2 h-4 w-4" />
           Share Profile
         </Button>

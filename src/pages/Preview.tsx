@@ -8,7 +8,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfileDesign } from "@/hooks/profile/useProfileDesign";
-import { getProfileUrl } from "@/lib/supabase";
 
 const Preview = () => {
   const [viewMode, setViewMode] = useState("desktop");
@@ -37,6 +36,11 @@ const Preview = () => {
       </div>
     );
   }
+
+  // Get profile URL helper function
+  const getProfileUrl = (slug: string) => {
+    return `https://pocketcv.pt/u/${slug}`;
+  };
 
   // Construct links from profile data to match the actual published page
   const constructLinksFromProfile = () => {
