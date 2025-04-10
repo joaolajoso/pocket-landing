@@ -1,16 +1,23 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { BarChart2 } from 'lucide-react';
 
 interface ViewData {
   date: string;
   views: number;
 }
 
-const ProfileViewStats = () => {
+interface ProfileViewStatsProps {
+  onNavigateToAnalytics?: () => void;
+}
+
+const ProfileViewStats = ({ onNavigateToAnalytics }: ProfileViewStatsProps) => {
   const { user } = useAuth();
   const [viewData, setViewData] = useState<ViewData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +32,12 @@ const ProfileViewStats = () => {
         setLoading(true);
         
         // Get daily view counts for the past 7 days
-        const { data: dailyData, error: dailyError } = await supabase.rpc(
-          'get_daily_profile_views',
-          { user_id_param: user.id }
-        );
+        const { data: dailyData, error: dailyError } = await supabase
+          .from('profile_views')
+          .select('date, views')
+          .eq('profile_id', user.id)
+          .order('date', { ascending: true })
+          .limit(7);
         
         if (dailyError) {
           console.error('Error getting daily view data:', dailyError);
@@ -39,7 +48,7 @@ const ProfileViewStats = () => {
         // Format the data for the chart
         setViewData(
           Array.isArray(dailyData) 
-            ? dailyData.map((item: any) => ({
+            ? dailyData.map((item) => ({
                 date: item.date,
                 views: item.views || 0
               }))
@@ -77,9 +86,17 @@ const ProfileViewStats = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">Profile Views</CardTitle>
-        <CardDescription>Views over the last 7 days</CardDescription>
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-base font-medium">Profile Views</CardTitle>
+          <CardDescription>Views over the last 7 days</CardDescription>
+        </div>
+        {onNavigateToAnalytics && (
+          <Button variant="outline" size="sm" onClick={onNavigateToAnalytics}>
+            <BarChart2 className="h-4 w-4 mr-2" />
+            Full Analytics
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {loading ? (

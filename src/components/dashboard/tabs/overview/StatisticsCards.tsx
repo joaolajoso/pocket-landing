@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Clock, MousePointer, Users } from 'lucide-react';
@@ -23,22 +24,24 @@ const StatisticsCards = ({ onStatsLoaded }: StatisticsCardsProps) => {
       try {
         setLoading(true);
         
-        // Fetch profile view statistics
-        const { data: viewStats, error: viewsError } = await supabase.rpc(
-          'get_profile_view_stats',
-          { user_id_param: user.id }
-        );
+        // Fetch profile view statistics from the profile_views table
+        const { data: viewStats, error: viewsError } = await supabase
+          .from('profile_views')
+          .select('views')
+          .eq('profile_id', user.id)
+          .order('date', { ascending: false });
         
         if (viewsError) {
           console.error('Error fetching view stats:', viewsError);
           return;
         }
         
-        // Fetch link click statistics
-        const { data: clickStats, error: clicksError } = await supabase.rpc(
-          'get_link_click_stats',
-          { user_id_param: user.id }
-        );
+        // Fetch link click statistics from the link_clicks table
+        const { data: clickStats, error: clicksError } = await supabase
+          .from('link_clicks')
+          .select('clicks')
+          .eq('profile_id', user.id)
+          .order('date', { ascending: false });
         
         if (clicksError) {
           console.error('Error fetching click stats:', clicksError);
@@ -56,14 +59,18 @@ const StatisticsCards = ({ onStatsLoaded }: StatisticsCardsProps) => {
           return;
         }
         
-        // Update state with fetched data
-        const totalViews = viewStats?.total || 0;
-        const weeklyViewsCount = viewStats?.lastWeek || 0;
-        const clicksCount = clickStats?.total || 0;
+        // Calculate total views and weekly views
+        const totalViews = viewStats ? viewStats.reduce((sum, item) => sum + (item.views || 0), 0) : 0;
+        const lastWeekViewsCount = viewStats ? viewStats.slice(0, 7).reduce((sum, item) => sum + (item.views || 0), 0) : 0;
+        
+        // Calculate total clicks
+        const clicksCount = clickStats ? clickStats.reduce((sum, item) => sum + (item.clicks || 0), 0) : 0;
+        
+        // Get connections count
         const connectionsTotal = connections?.length || 0;
         
         setProfileViews(totalViews);
-        setWeeklyViews(weeklyViewsCount);
+        setWeeklyViews(lastWeekViewsCount);
         setTotalClicks(clicksCount);
         setConnectionsCount(connectionsTotal);
         

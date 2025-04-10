@@ -1,254 +1,239 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from 'date-fns';
 import { DateRange } from "@/types/date-range";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { format, subDays } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 
-const COLORS = [
-  '#0088FE',
-  '#00C49F',
-  '#FFBB28',
-  '#FF8042',
-  '#8884d8',
-  '#a45de2'
-];
-
-interface ViewData {
-  date: string;
-  views: number;
-  source?: string;
-  count?: number;
-}
-
-interface ClickData {
-  source?: string;
-  count?: number;
-}
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 const AnalyticsTab = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(new Date().setDate(new Date().getDate() - 7)),
-    to: new Date()
+    from: subDays(new Date(), 30),
+    to: new Date(),
   });
-  
-  const [analyticsData, setAnalyticsData] = useState<ViewData[]>([]);
-  const [viewData, setViewData] = useState<ViewData[] | null>(null);
-  const [linkData, setLinkData] = useState<ClickData[] | null>(null);
+  const [viewData, setViewData] = useState<any[]>([]);
+  const [clickData, setClickData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Function to fetch analytics data from Supabase
-  const fetchData = async () => {
-    setLoading(true);
-    
-    const fromDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd');
-    const toDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-    
-    try {
-      const [profileViews, linkClicks] = await Promise.all([
-        fetchProfileViews(fromDate, toDate),
-        fetchLinkClicks(fromDate, toDate)
-      ]);
-      
-      if (profileViews.error || linkClicks.error) {
-        console.error("Error fetching data:", profileViews.error, linkClicks.error);
-        return;
-      }
-      
-      // Process profile views data
-      const profileViewsData = profileViews.data ? profileViews.data.map((item: any) => ({
-        date: item.date,
-        views: item.views,
-        source: item.source,
-        count: item.count
-      })) : [];
-      
-      setAnalyticsData(profileViewsData);
-      
-      // Process source data for profile views
-      setViewData(profileViews.data || []);
-      
-      // Process source data for link clicks
-      setLinkData(linkClicks.data || []);
-    } catch (error) {
-      console.error("Error during data fetching:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update the query calls with proper type arguments and null checks
-  const fetchProfileViews = async (dateFrom: string, dateTo: string) => {
-    return await supabase.rpc('get_profile_views_by_date_range', {
-      date_from: dateFrom,
-      date_to: dateTo
-    });
-  };
-  
-  const fetchLinkClicks = async (dateFrom: string, dateTo: string) => {
-    return await supabase.rpc('get_link_clicks_by_date_range', {
-      date_from: dateFrom,
-      date_to: dateTo
-    });
-  };
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, [dateRange]);
+    const fetchAnalytics = async () => {
+      if (!user || !dateRange.from || !dateRange.to) return;
 
-  // Format date for display
-  const formatDate = (date: string) => {
-    return format(new Date(date), 'MMM dd');
-  };
+      try {
+        setLoading(true);
+        setError(null);
 
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border rounded shadow p-2">
-          <p className="text-sm font-medium">{formatDate(label)}</p>
-          <p className="text-sm">{`Views: ${payload[0].value}`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
+        // Format dates for query
+        const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+        const toDate = format(dateRange.to, 'yyyy-MM-dd');
 
-  // Fix the referrer chart data
-  const referrerData = viewData 
-    ? viewData
-        .filter((item) => item.source !== null)
-        .map((item) => ({
-          source: item.source || 'Unknown',
-          count: item.count || 0
-        })) 
-    : [];
+        // Fetch profile views
+        const { data: viewsData, error: viewsError } = await supabase
+          .from('profile_views')
+          .select('date, views')
+          .eq('profile_id', user.id)
+          .gte('date', fromDate)
+          .lte('date', toDate)
+          .order('date', { ascending: true });
 
-  // Fix the link clicks chart data
-  const linkClicksData = linkData 
-    ? linkData
-        .filter((item) => item.source !== null)
-        .map((item) => ({
-          source: item.source || 'Unknown',
-          count: item.count || 0
-        })) 
-    : [];
+        if (viewsError) {
+          console.error('Error fetching view data:', viewsError);
+          setError('Failed to load view statistics');
+          return;
+        }
+
+        // Fetch link clicks
+        const { data: clicksData, error: clicksError } = await supabase
+          .from('link_clicks')
+          .select('date, link_id, clicks')
+          .eq('profile_id', user.id)
+          .gte('date', fromDate)
+          .lte('date', toDate)
+          .order('date', { ascending: true });
+
+        if (clicksError) {
+          console.error('Error fetching click data:', clicksError);
+          setError('Failed to load click statistics');
+          return;
+        }
+
+        // Process and set data
+        setViewData(viewsData || []);
+        setClickData(clicksData || []);
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
+        setError('An unexpected error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [user, dateRange]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading analytics data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <p>Please try again later or contact support if the problem persists.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Analytics</h1>
-        <p className="text-muted-foreground">Track your profile performance over time</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-muted-foreground">
+            View detailed statistics about your profile's performance
+          </p>
+        </div>
+        <DateRangePicker
+          date={dateRange}
+          onDateChange={setDateRange}
+        />
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Views</CardTitle>
-          <CardDescription>Number of views to your profile over a period</CardDescription>
-        </CardHeader>
-        <CardContent className="pl-2">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <Label>Date Range</Label>
-              <DateRangePicker 
-                date={dateRange} 
-                onDateChange={setDateRange}
-              />
-            </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="views">Profile Views</TabsTrigger>
+          <TabsTrigger value="links">Link Performance</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Views Over Time</CardTitle>
+                <CardDescription>
+                  Daily view count for the selected period
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={viewData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="date" 
+                      tickFormatter={(date) => format(new Date(date), 'MMM d')} 
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [`${value} Views`, '']}
+                      labelFormatter={(date) => format(new Date(date), 'MMM d, yyyy')}
+                    />
+                    <Line type="monotone" dataKey="views" stroke="#8884d8" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Link Clicks</CardTitle>
+                <CardDescription>
+                  Distribution of clicks across your links
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={clickData}
+                      dataKey="clicks"
+                      nameKey="link_id"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {clickData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
-          
-          {loading ? (
-            <div className="text-center">Loading...</div>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={analyticsData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={formatDate} />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="views"
-                  stroke="#8884d8"
-                  fill="#8884d8"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Referrers for Profile Views</CardTitle>
-            <CardDescription>Where your profile views are coming from</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center">Loading...</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={referrerData}
-                    dataKey="count"
-                    nameKey="source"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    label
-                  >
-                    {referrerData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+        </TabsContent>
+
+        <TabsContent value="views" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Detailed View Statistics</CardTitle>
+              <CardDescription>
+                Daily profile views for the selected time period
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={viewData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(date) => format(new Date(date), 'MMM d')} 
+                  />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`${value} Views`, '']}
+                    labelFormatter={(date) => format(new Date(date), 'MMM d, yyyy')}
+                  />
+                  <Bar dataKey="views" fill="#8884d8" />
+                </BarChart>
               </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Referrers for Link Clicks</CardTitle>
-            <CardDescription>Where your link clicks are coming from</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center">Loading...</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={linkClicksData}
-                    dataKey="count"
-                    nameKey="source"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#82ca9d"
-                    label
-                  >
-                    {linkClicksData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="links" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Link Performance</CardTitle>
+              <CardDescription>
+                Click statistics for your profile links
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={clickData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="link_id" 
+                  />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`${value} Clicks`, '']}
+                  />
+                  <Bar dataKey="clicks" fill="#82ca9d" />
+                </BarChart>
               </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
