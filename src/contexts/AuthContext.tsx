@@ -147,10 +147,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithOAuth = async (provider: 'github' | 'linkedin_oidc') => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      
+      // Ensure we're using the correct provider ID for LinkedIn
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin + '/dashboard'
+          redirectTo: `${window.location.origin}/dashboard`,
+          // Don't use query params for LinkedIn OIDC
+          queryParams: provider === 'linkedin_oidc' ? {
+            response_type: 'code',
+            scope: 'openid profile email'
+          } : undefined
         }
       });
 

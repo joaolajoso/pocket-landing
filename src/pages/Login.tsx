@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -28,7 +27,6 @@ const Login = () => {
   const location = useLocation();
   const { signIn, signUp, signInWithOAuth, loading, isAuthenticated } = useAuth();
   
-  // Get signup parameter from URL
   const searchParams = new URLSearchParams(location.search);
   const defaultTab = searchParams.get('signup') === 'true' ? 'signup' : 'login';
   
@@ -64,14 +62,12 @@ const Login = () => {
     }
   });
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
-  // Update the URL when tab changes without full page reload
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (activeTab === 'signup') {
@@ -91,7 +87,6 @@ const Login = () => {
       [name]: value
     }));
     
-    // Clear error when typing
     if (errors.login[name as keyof typeof errors.login]) {
       setErrors(prev => ({
         ...prev,
@@ -110,7 +105,6 @@ const Login = () => {
       [name]: value
     }));
     
-    // Clear error when typing
     if (errors.signup[name as keyof typeof errors.signup]) {
       setErrors(prev => ({
         ...prev,
@@ -209,13 +203,13 @@ const Login = () => {
     
     if (!validateSignupForm()) return;
     
-    // Pass name as metadata for the trigger to use
     const metadata = { name: signupData.name };
     
     await signUp(signupData.email, signupData.password, metadata);
   };
 
   const handleOAuthLogin = async (provider: 'github' | 'linkedin_oidc') => {
+    console.log(`Attempting to sign in with ${provider}`);
     await signInWithOAuth(provider);
   };
 
