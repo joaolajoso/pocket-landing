@@ -101,10 +101,6 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
           <div className="text-2xl font-bold">
             {loading ? <Skeleton className="h-6 w-16" /> : profileViews}
           </div>
-          <Button variant="outline" onClick={() => onNavigateToTab("analytics")}>
-            View Analytics
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
         </CardContent>
       </Card>
       
@@ -119,8 +115,17 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
           <div className="text-2xl font-bold">
             {loading ? <Skeleton className="h-6 w-16" /> : linkClicks}
           </div>
-          <Button variant="outline" onClick={() => onNavigateToTab("analytics")}>
-            View Analytics
+        </CardContent>
+      </Card>
+      
+      <Card className="col-span-4">
+        <CardContent className="pt-6">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => onNavigateToTab("analytics")}
+          >
+            View Detailed Analytics
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </CardContent>

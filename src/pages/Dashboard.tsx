@@ -332,7 +332,7 @@ const Dashboard = () => {
             )}
             
             {activeTab === "analytics" && (
-              <AnalyticsTab mockAnalyticsData={mockAnalyticsData} />
+              <AnalyticsTab />
             )}
             
             {activeTab === "settings" && (

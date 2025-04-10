@@ -43,7 +43,9 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
       // Attempt to extract primary color from button settings
       setPrimaryColor(designSettings.button_background_color);
       setBackgroundColor(designSettings.background_color);
-      setFont(designSettings.font_family.split(',')[0].toLowerCase());
+      // Extract font name from font-family string
+      const fontName = designSettings.font_family.split(',')[0].toLowerCase().replace(/['"]/g, '');
+      setFont(fontName);
       // Map rounded/square based on design
       setButtonStyle(designSettings.button_border_style === 'all' ? 'rounded' : 'square');
     }
@@ -83,8 +85,17 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
   };
 
   const handlePreview = () => {
-    // Navigate to preview page
-    navigate('/preview');
+    // Navigate to the public profile instead of preview
+    if (userData && userData.name) {
+      const slug = userData.name.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/u/${slug}`);
+    } else {
+      toast({
+        title: "Cannot preview profile",
+        description: "Please set your name or username first",
+        variant: "destructive"
+      });
+    }
   };
 
   // Handle color communication with DesignTab
@@ -94,6 +105,15 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
     } else if (property === 'button_background_color') {
       setPrimaryColor(value);
     }
+  };
+
+  // Handle font and button style changes from LayoutSelector
+  const handleFontChange = (newFont: string) => {
+    setFont(newFont);
+  };
+
+  const handleButtonStyleChange = (newStyle: "rounded" | "square") => {
+    setButtonStyle(newStyle);
   };
 
   // Create a preview design settings object that updates in real-time
@@ -123,7 +143,7 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
       
       <div className="flex justify-end mb-4">
         <Button onClick={handlePreview} variant="outline" className="mr-2">
-          Preview Full Page
+          View Public Profile
         </Button>
         <Button
           onClick={handleSaveAppearance}
@@ -162,9 +182,9 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
                 
                 <LayoutSelector 
                   font={font}
-                  setFont={setFont}
+                  setFont={handleFontChange}
                   buttonStyle={buttonStyle}
-                  setButtonStyle={setButtonStyle}
+                  setButtonStyle={handleButtonStyleChange}
                   saving={saving}
                   onSave={null} // Remove save button from LayoutSelector
                 />
