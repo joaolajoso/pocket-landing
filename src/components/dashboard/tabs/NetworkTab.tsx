@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNetworkConnections, Connection } from '@/hooks/network/useNetworkConnections';
 import { useNetworkPrivacy } from '@/hooks/network/useNetworkPrivacy';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,14 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, UserPlus, X, UserX, Edit, Save, Tag, Calendar, ExternalLink } from 'lucide-react';
+import { Loader2, UserPlus, X, UserX, Edit, Save, Tag, Calendar, ExternalLink, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { getProfileUrl } from '@/integrations/supabase/client';
+import { getProfileUrl } from '@/lib/supabase';
 import { format } from 'date-fns';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const NetworkTab = () => {
   const { connections, loading, error, updateConnection, removeConnection, refreshConnections } = useNetworkConnections();
@@ -24,6 +25,9 @@ const NetworkTab = () => {
   const [editNote, setEditNote] = useState('');
   const [editTag, setEditTag] = useState('');
   const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [connectionToDelete, setConnectionToDelete] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filter connections based on search term
   const filteredConnections = connections.filter(connection => {
@@ -62,10 +66,22 @@ const NetworkTab = () => {
     setShowNotesDialog(false);
   };
 
-  const handleRemoveConnection = async (connectionId: string) => {
-    if (confirm("Are you sure you want to remove this connection from your network?")) {
-      await removeConnection(connectionId);
+  const handleDeleteConnection = () => {
+    if (connectionToDelete) {
+      setShowDeleteDialog(false);
+      removeConnection(connectionToDelete);
     }
+  };
+
+  const handleRemoveConnection = (connectionId: string) => {
+    setConnectionToDelete(connectionId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleRefreshConnections = async () => {
+    setRefreshing(true);
+    await refreshConnections();
+    setRefreshing(false);
   };
 
   // Empty state
@@ -125,19 +141,32 @@ const NetworkTab = () => {
         </div>
       </div>
 
-      {/* Search Input */}
-      <div className="flex items-center space-x-2">
-        <Input
-          placeholder="Search connections..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-        {searchTerm && (
-          <Button variant="ghost" size="icon" onClick={() => setSearchTerm('')}>
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+      {/* Search and Refresh */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Input
+            placeholder="Search connections..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-md"
+          />
+          {searchTerm && (
+            <Button variant="ghost" size="icon" onClick={() => setSearchTerm('')}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-1"
+          onClick={handleRefreshConnections}
+          disabled={refreshing}
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {loading ? (
@@ -303,6 +332,25 @@ const NetworkTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Connection</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this connection from your network?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConnection}>
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

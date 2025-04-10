@@ -1,57 +1,107 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LinkIcon, Eye } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, Clock, MousePointer, Users } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-const StatisticsCards = () => {
-  const [profileViews, setProfileViews] = useState<number>(0);
-  const [linkClicks, setLinkClicks] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+interface StatisticsCardsProps {
+  onStatsLoaded?: (data: { profileViews: number, totalClicks: number }) => void;
+}
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-    
-    // Get dates for the last 30 days
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    const formattedFromDate = format(thirtyDaysAgo, 'yyyy-MM-dd');
-    const formattedToDate = format(today, 'yyyy-MM-dd');
-    
-    try {
-      // Fetch profile views for the last 30 days
-      const profileViewsResponse = await supabase.rpc('get_profile_views_count_by_date_range', {
-        date_from: formattedFromDate,
-        date_to: formattedToDate
-      });
-      
-      // Fetch link clicks for the last 30 days
-      const linkClicksResponse = await supabase.rpc('get_link_clicks_count_by_date_range', {
-        date_from: formattedFromDate,
-        date_to: formattedToDate
-      });
-      
-      if (profileViewsResponse.error) throw profileViewsResponse.error;
-      if (linkClicksResponse.error) throw linkClicksResponse.error;
-      
-      // Update state with fetched data, using null checks
-      setProfileViews(profileViewsResponse.data && profileViewsResponse.data.count ? profileViewsResponse.data.count : 0);
-      setLinkClicks(linkClicksResponse.data && linkClicksResponse.data.count ? linkClicksResponse.data.count : 0);
-    } catch (err) {
-      console.error("Error fetching statistics:", err);
-      setError("Failed to load statistics data");
-    } finally {
-      setLoading(false);
-    }
-  };
+const StatisticsCards = ({ onStatsLoaded }: StatisticsCardsProps) => {
+  const { user } = useAuth();
+  const [profileViews, setProfileViews] = useState(0);
+  const [weeklyViews, setWeeklyViews] = useState(0);
+  const [totalClicks, setTotalClicks] = useState(0);
+  const [connectionsCount, setConnectionsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const fetchStatistics = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        
+        // Fetch profile view statistics
+        const { data: viewStats, error: viewsError } = await supabase.rpc(
+          'get_profile_view_stats',
+          { user_id_param: user.id }
+        );
+        
+        if (viewsError) {
+          console.error('Error fetching view stats:', viewsError);
+          return;
+        }
+        
+        // Fetch link click statistics
+        const { data: clickStats, error: clicksError } = await supabase.rpc(
+          'get_link_click_stats',
+          { user_id_param: user.id }
+        );
+        
+        if (clicksError) {
+          console.error('Error fetching click stats:', clicksError);
+          return;
+        }
+        
+        // Fetch network connections count
+        const { data: connections, error: connectionsError } = await supabase
+          .from('connections')
+          .select('id', { count: 'exact' })
+          .eq('user_id', user.id);
+        
+        if (connectionsError) {
+          console.error('Error fetching connections:', connectionsError);
+          return;
+        }
+        
+        // Update state with fetched data
+        const totalViews = viewStats?.total || 0;
+        const weeklyViewsCount = viewStats?.lastWeek || 0;
+        const clicksCount = clickStats?.total || 0;
+        const connectionsTotal = connections?.length || 0;
+        
+        setProfileViews(totalViews);
+        setWeeklyViews(weeklyViewsCount);
+        setTotalClicks(clicksCount);
+        setConnectionsCount(connectionsTotal);
+        
+        // Notify parent component about loaded stats
+        if (onStatsLoaded) {
+          onStatsLoaded({
+            profileViews: totalViews,
+            totalClicks: clicksCount
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatistics();
+    
+    // Set up a realtime subscription for profile views
+    if (user) {
+      const channel = supabase
+        .channel('stats-changes')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'profile_views',
+          filter: `profile_id=eq.${user.id}`
+        }, () => {
+          fetchStatistics();
+        })
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user, onStatsLoaded]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -62,8 +112,6 @@ const StatisticsCards = () => {
         <CardContent>
           {loading ? (
             <div>Loading...</div>
-          ) : error ? (
-            <div>Error: {error}</div>
           ) : (
             <div className="flex items-center space-x-2">
               <Eye className="h-4 w-4 text-gray-500" />
@@ -80,12 +128,42 @@ const StatisticsCards = () => {
         <CardContent>
           {loading ? (
             <div>Loading...</div>
-          ) : error ? (
-            <div>Error: {error}</div>
           ) : (
             <div className="flex items-center space-x-2">
-              <LinkIcon className="h-4 w-4 text-gray-500" />
-              <span>{linkClicks}</span>
+              <MousePointer className="h-4 w-4 text-gray-500" />
+              <span>{totalClicks}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Weekly Views</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-gray-500" />
+              <span>{weeklyViews}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Connections</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4 text-gray-500" />
+              <span>{connectionsCount}</span>
             </div>
           )}
         </CardContent>

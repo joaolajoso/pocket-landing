@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,12 +29,39 @@ const ProfilePreviewCard = ({
   primaryColor,
   onPreview 
 }: ProfilePreviewCardProps) => {
+  const [fontFamily, setFontFamily] = useState(font);
+  
   // Apply preview styles
   useEffect(() => {
     const previewCard = document.getElementById('profile-preview-card');
     if (previewCard) {
       previewCard.style.backgroundColor = backgroundColor;
-      previewCard.style.fontFamily = `${font.charAt(0).toUpperCase() + font.slice(1)}, sans-serif`;
+      
+      // Convert font name to proper CSS font family
+      let fontFamilyValue;
+      switch(font.toLowerCase()) {
+        case 'inter':
+          fontFamilyValue = 'Inter, sans-serif';
+          break;
+        case 'roboto':
+          fontFamilyValue = 'Roboto, sans-serif';
+          break;
+        case 'poppins':
+          fontFamilyValue = 'Poppins, sans-serif';
+          break;
+        case 'montserrat':
+          fontFamilyValue = 'Montserrat, sans-serif';
+          break;
+        case 'opensans':
+        case 'open sans':
+          fontFamilyValue = 'Open Sans, sans-serif';
+          break;
+        default:
+          fontFamilyValue = `${font}, sans-serif`;
+      }
+      
+      setFontFamily(fontFamilyValue);
+      previewCard.style.fontFamily = fontFamilyValue;
     }
     
     // Clean up
@@ -47,10 +74,17 @@ const ProfilePreviewCard = ({
     };
   }, [backgroundColor, font]);
   
+  // Generate button style classes based on buttonStyle
+  const getButtonClasses = () => {
+    const baseClasses = "w-full p-3 flex items-center justify-between transition-colors";
+    const roundedClasses = buttonStyle === 'rounded' ? 'rounded-lg' : '';
+    return `${baseClasses} ${roundedClasses}`;
+  };
+  
   return (
     <Card className="overflow-hidden h-[520px] shadow-lg">
       <CardContent className="p-0 h-full overflow-auto relative" id="profile-preview-card">
-        <div className="pt-8 px-4 flex flex-col items-center">
+        <div className="pt-8 px-4 flex flex-col items-center" style={{ fontFamily }}>
           <div className="relative">
             <Avatar className="w-20 h-20">
               <AvatarImage src={userData.avatarUrl} />
@@ -69,8 +103,12 @@ const ProfilePreviewCard = ({
             {links.map((link, index) => (
               <div 
                 key={index}
-                className={`w-full ${buttonStyle === 'rounded' ? 'rounded-lg' : 'rounded-none'} p-3 flex items-center justify-between transition-colors`}
-                style={{ backgroundColor: primaryColor, color: 'white' }}
+                className={getButtonClasses()}
+                style={{ 
+                  backgroundColor: primaryColor, 
+                  color: 'white',
+                  borderRadius: buttonStyle === 'rounded' ? '0.5rem' : '0'
+                }}
               >
                 <span>{link.title}</span>
                 <span>→</span>

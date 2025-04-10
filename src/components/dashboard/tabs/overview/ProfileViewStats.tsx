@@ -1,143 +1,108 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { BarChart, Bar } from 'recharts';
-import { ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
-interface ProfileViewStatsProps {
-  onNavigateToAnalytics: () => void;
+interface ViewData {
+  date: string;
+  views: number;
 }
 
-const ProfileViewStats = ({ onNavigateToAnalytics }: ProfileViewStatsProps) => {
+const ProfileViewStats = () => {
   const { user } = useAuth();
-  const [viewStats, setViewStats] = useState({
-    total: 0,
-    lastWeek: 0,
-    lastMonth: 0,
-    daily: [] as ViewData[]
-  });
+  const [viewData, setViewData] = useState<ViewData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch profile view statistics
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!user?.id) return;
+    const fetchViewStats = async () => {
+      if (!user) return;
       
       try {
         setLoading(true);
-        const stats = await getProfileViewStats(user.id);
-        const safeStats = {
-          ...stats,
-          daily: Array.isArray(stats.daily) ? stats.daily : []
-        };
-        setViewStats(safeStats);
-      } catch (error) {
-        console.error('Error fetching profile view stats:', error);
-        setViewStats({
-          total: 0,
-          lastWeek: 0,
-          lastMonth: 0,
-          daily: []
-        });
+        
+        // Get daily view counts for the past 7 days
+        const { data: dailyData, error: dailyError } = await supabase.rpc(
+          'get_daily_profile_views',
+          { user_id_param: user.id }
+        );
+        
+        if (dailyError) {
+          console.error('Error getting daily view data:', dailyError);
+          setError('Failed to load view statistics');
+          return;
+        }
+        
+        // Format the data for the chart
+        setViewData(
+          Array.isArray(dailyData) 
+            ? dailyData.map((item: any) => ({
+                date: item.date,
+                views: item.views || 0
+              }))
+            : []
+        );
+      } catch (err) {
+        console.error('Error fetching profile views:', err);
+        setError('An unexpected error occurred');
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchStats();
-  }, [user?.id]);
-  
-  useEffect(() => {
-    if (!user?.id) return;
-    
-    const channel = supabase
-      .channel('profile-view-changes')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'profile_views',
-        filter: `profile_id=eq.${user.id}`
-      }, payload => {
-        console.log('New profile view:', payload);
-        getProfileViewStats(user.id).then(stats => {
-          const safeStats = {
-            ...stats,
-            daily: Array.isArray(stats.daily) ? stats.daily : []
-          };
-          setViewStats(safeStats);
-        });
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  const chartData = viewStats.daily && viewStats.daily.length > 0 
-    ? viewStats.daily.map(item => ({
-        name: formatDate(item.date),
-        views: item.count
-      }))
-    : [];
+    fetchViewStats();
+    
+    // Set up realtime subscription for profile views
+    if (user) {
+      const channel = supabase
+        .channel('profile-views-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'profile_views',
+          filter: `profile_id=eq.${user.id}`
+        }, () => {
+          fetchViewStats();
+        })
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Profile Views</CardTitle>
-        <CardDescription>See how many people viewed your profile</CardDescription>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-medium">Profile Views</CardTitle>
+        <CardDescription>Views over the last 7 days</CardDescription>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent>
         {loading ? (
-          <div className="flex justify-center py-8">
-            <p className="text-muted-foreground">Loading stats...</p>
-          </div>
+          <p>Loading...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
         ) : (
-          <>
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{viewStats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Views</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">{viewStats.lastWeek}</p>
-                <p className="text-xs text-muted-foreground">Last 7 Days</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">{viewStats.lastMonth}</p>
-                <p className="text-xs text-muted-foreground">Last 30 Days</p>
-              </div>
-            </div>
-            
-            <div className="h-[200px] w-full">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" fontSize={12} />
-                    <YAxis allowDecimals={false} fontSize={12} />
-                    <Tooltip />
-                    <Bar dataKey="views" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">No view data available yet</p>
-                </div>
-              )}
-            </div>
-          </>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={viewData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(date) => format(new Date(date), 'MMM d')} 
+              />
+              <YAxis />
+              <Tooltip 
+                formatter={(value) => [`${value} Views`, '']}
+                labelFormatter={(date) => format(new Date(date), 'MMM d, yyyy')}
+              />
+              <Bar dataKey="views" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
         )}
-        <div className="flex justify-end mt-4">
-          <Button variant="ghost" size="sm" onClick={onNavigateToAnalytics}>
-            View detailed analytics
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

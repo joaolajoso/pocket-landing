@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -5,6 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from 'date-fns';
+import { DateRange } from "@/types/date-range";
 
 const COLORS = [
   '#0088FE',
@@ -15,33 +17,33 @@ const COLORS = [
   '#a45de2'
 ];
 
-interface ProfileView {
+interface ViewData {
   date: string;
   views: number;
   source?: string;
   count?: number;
 }
 
-interface LinkClick {
-  date: string;
-  clicks: number;
+interface ClickData {
   source?: string;
   count?: number;
 }
 
 const AnalyticsTab = () => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().setDate(new Date().getDate() - 7)),
     to: new Date()
   });
   
-  const [analyticsData, setAnalyticsData] = useState<Array<{ date: string, views: number }>>([]);
-  const [viewData, setViewData] = useState<ProfileView[] | null>(null);
-  const [linkData, setLinkData] = useState<LinkClick[] | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<ViewData[]>([]);
+  const [viewData, setViewData] = useState<ViewData[] | null>(null);
+  const [linkData, setLinkData] = useState<ClickData[] | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Function to fetch analytics data from Supabase
   const fetchData = async () => {
     setLoading(true);
+    
     const fromDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd');
     const toDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
     
@@ -56,15 +58,20 @@ const AnalyticsTab = () => {
         return;
       }
       
-      const profileViewsData = profileViews.data ? profileViews.data.map((item) => ({
+      // Process profile views data
+      const profileViewsData = profileViews.data ? profileViews.data.map((item: any) => ({
         date: item.date,
-        views: item.views
+        views: item.views,
+        source: item.source,
+        count: item.count
       })) : [];
       
       setAnalyticsData(profileViewsData);
       
+      // Process source data for profile views
       setViewData(profileViews.data || []);
       
+      // Process source data for link clicks
       setLinkData(linkClicks.data || []);
     } catch (error) {
       console.error("Error during data fetching:", error);
@@ -73,13 +80,14 @@ const AnalyticsTab = () => {
     }
   };
 
+  // Update the query calls with proper type arguments and null checks
   const fetchProfileViews = async (dateFrom: string, dateTo: string) => {
     return await supabase.rpc('get_profile_views_by_date_range', {
       date_from: dateFrom,
       date_to: dateTo
     });
   };
-
+  
   const fetchLinkClicks = async (dateFrom: string, dateTo: string) => {
     return await supabase.rpc('get_link_clicks_by_date_range', {
       date_from: dateFrom,
@@ -91,10 +99,12 @@ const AnalyticsTab = () => {
     fetchData();
   }, [dateRange]);
 
-  const formatDate = (date: string | number | Date) => {
+  // Format date for display
+  const formatDate = (date: string) => {
     return format(new Date(date), 'MMM dd');
   };
 
+  // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -107,6 +117,7 @@ const AnalyticsTab = () => {
     return null;
   };
 
+  // Fix the referrer chart data
   const referrerData = viewData 
     ? viewData
         .filter((item) => item.source !== null)
@@ -116,6 +127,7 @@ const AnalyticsTab = () => {
         })) 
     : [];
 
+  // Fix the link clicks chart data
   const linkClicksData = linkData 
     ? linkData
         .filter((item) => item.source !== null)
