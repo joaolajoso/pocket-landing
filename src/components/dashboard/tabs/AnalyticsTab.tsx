@@ -64,12 +64,11 @@ const AnalyticsTab = () => {
         
         if (linkError) throw linkError;
         
-        // Get referrers data
+        // Get referrers data using count method - fixed to avoid using .group()
         const { data: referrersData, error: referrersError } = await supabase
           .from('profile_views')
-          .select('source, count')
+          .select('source, count(*)')
           .eq('profile_id', user.id)
-          .group('source')
           .order('count', { ascending: false })
           .limit(5);
           
@@ -78,17 +77,17 @@ const AnalyticsTab = () => {
         // Process data
         const formattedViewData = Array.isArray(viewData) ? viewData.map(d => ({
           date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          count: Number(d.count)
+          count: Number(d.count || 0)
         })) : [];
         
         const formattedLinkData = Array.isArray(linkData) ? linkData.map(d => ({
           name: d.link_type || 'Unknown',
-          clicks: Number(d.count)
+          clicks: Number(d.count || 0)
         })) : [];
         
         const formattedRefData = Array.isArray(referrersData) ? referrersData.map(d => ({
           name: d.source || 'Direct',
-          count: Number(d.count)
+          count: Number(d.count || 0)
         })) : [];
         
         // Calculate totals
