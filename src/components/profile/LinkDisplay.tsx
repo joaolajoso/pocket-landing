@@ -6,16 +6,21 @@ import { ExternalLink } from 'lucide-react';
 import { incrementLinkClick } from '@/lib/supabase';
 import { useProfileDesign } from '@/hooks/profile/useProfileDesign';
 import { useAuth } from '@/contexts/AuthContext';
+import { ProfileDesignSettings } from '@/hooks/profile/useProfileDesign';
 
 interface LinkDisplayProps {
   link: LinkType;
   onClick?: () => void;
   profileId?: string;
+  designSettings?: ProfileDesignSettings;
 }
 
-const LinkDisplay = ({ link, onClick, profileId }: LinkDisplayProps) => {
-  const { settings } = useProfileDesign();
+const LinkDisplay = ({ link, onClick, profileId, designSettings }: LinkDisplayProps) => {
+  const { settings: fallbackSettings } = useProfileDesign();
   const { user } = useAuth();
+  
+  // Use provided designSettings or fallback to the ones from the hook
+  const settings = designSettings || fallbackSettings;
   
   const handleClick = async () => {
     // Call the onClick handler if provided
@@ -40,13 +45,13 @@ const LinkDisplay = ({ link, onClick, profileId }: LinkDisplayProps) => {
 
   // Determine border style based on settings
   const getBorderStyle = () => {
-    if (!settings.button_border_color || settings.button_border_style === 'none') {
+    if (!settings?.button_border_color || settings?.button_border_style === 'none') {
       return 'none';
     }
     
     const borderValue = `1px solid ${settings.button_border_color}`;
     
-    switch (settings.button_border_style) {
+    switch (settings?.button_border_style) {
       case 'all': return borderValue;
       case 'x': return `0 ${borderValue}`;
       case 'y': return `${borderValue} 0`;
@@ -69,7 +74,7 @@ const LinkDisplay = ({ link, onClick, profileId }: LinkDisplayProps) => {
       }}
     >
       <CardContent className="p-0 flex items-center justify-between">
-        <div className={`flex items-center gap-3 link-title ${settings.button_icon_position === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`flex items-center gap-3 link-title ${settings?.button_icon_position === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
           {link.icon && <div style={{ color: "var(--profile-button-icon, white)" }} className="link-icon">{link.icon}</div>}
           <span style={{ color: "var(--profile-button-text, white)" }}>{link.title}</span>
         </div>

@@ -3,6 +3,7 @@ import React from 'react';
 import LinkDisplay from '@/components/profile/LinkDisplay';
 import ProfileSectionDisplay from '@/components/profile/ProfileSectionDisplay';
 import ProfileFooter from '@/components/profile/ProfileFooter';
+import { ProfileDesignSettings } from '@/hooks/profile/useProfileDesign';
 
 interface LinkType {
   id: string;
@@ -21,12 +22,14 @@ interface ProfileContentProps {
   sections: ProfileSection[];
   username: string;
   profileId?: string;
+  designSettings?: ProfileDesignSettings;
 }
 
 const ProfileContent: React.FC<ProfileContentProps> = ({ 
   sections, 
   username,
-  profileId
+  profileId,
+  designSettings
 }) => {
   return (
     <div className="space-y-8">
@@ -39,6 +42,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                   key={link.id} 
                   link={link} 
                   profileId={profileId}
+                  designSettings={designSettings}
                 />
               ))}
             </div>

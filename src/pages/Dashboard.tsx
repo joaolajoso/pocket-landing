@@ -141,84 +141,97 @@ const Dashboard = () => {
     }
     
     try {
-      // Determine field to update based on link type, not title
+      // Determine field to update based on link type
       let fieldToUpdate: string | null = null;
-      const type = linkData.id?.split('-')[0] || linkData.title.toLowerCase();
+      let linkType = "";
       
       // If it's an existing link, use its ID to determine the type
       if (linkData.id) {
-        if (linkData.id.startsWith('linkedin')) fieldToUpdate = 'linkedin';
-        else if (linkData.id.startsWith('website')) fieldToUpdate = 'website';
-        else if (linkData.id.startsWith('email')) fieldToUpdate = 'email';
+        linkType = linkData.id.split('-')[0];
+        if (linkType === 'linkedin') fieldToUpdate = 'linkedin';
+        else if (linkType === 'website') fieldToUpdate = 'website';
+        else if (linkType === 'email') fieldToUpdate = 'email';
       } else {
-        // For new links, use the selected link type
-        if (type.includes('linkedin')) fieldToUpdate = 'linkedin';
-        else if (type.includes('website') || type.includes('portfolio')) fieldToUpdate = 'website';
-        else if (type.includes('email')) fieldToUpdate = 'email';
-      }
-      
-      if (fieldToUpdate) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ [fieldToUpdate]: linkData.url })
-          .eq('id', user.id);
-          
-        if (error) throw error;
+        // For new links, use the title to determine the type
+        const title = linkData.title.toLowerCase();
         
-        if (linkData.id) {
-          // Update existing link
-          setLinks(prevLinks => 
-            prevLinks.map(link => 
-              link.id === linkData.id ? { 
-                ...linkData, 
-                id: link.id,
-                icon: getIconForLinkType(fieldToUpdate)
-              } as LinkType : link
-            )
-          );
-          
-          toast({
-            title: "Link updated",
-            description: "Your link has been updated successfully",
-          });
-        } else {
-          // Add new link
-          const newLink = {
-            ...linkData,
-            id: `${fieldToUpdate}-link`,
-            icon: getIconForLinkType(fieldToUpdate)
-          } as LinkType;
-          
-          setLinks(prevLinks => {
-            // Replace if exists, add if not
-            const exists = prevLinks.some(link => link.id === newLink.id);
-            return exists 
-              ? prevLinks.map(link => link.id === newLink.id ? newLink : link)
-              : [...prevLinks, newLink];
-          });
-          
-          toast({
-            title: "Link added",
-            description: "Your new link has been added successfully",
-          });
+        if (title.includes('linkedin')) {
+          fieldToUpdate = 'linkedin';
+          linkType = 'linkedin';
+        } else if (title.includes('website') || title.includes('portfolio')) {
+          fieldToUpdate = 'website';
+          linkType = 'website';
+        } else if (title.includes('email')) {
+          fieldToUpdate = 'email';
+          linkType = 'email';
         }
         
-        // Refresh profile data to get the updated links
-        refreshProfile();
-      } else {
-        // The link type wasn't recognized, but we'll save it anyway
-        const unknownType = type || 'custom';
+        // If no specific type is detected, default to website
+        if (!fieldToUpdate) {
+          fieldToUpdate = 'website';
+          linkType = 'website';
+        }
+      }
+      
+      // Process URL for LinkedIn and website links
+      let url = linkData.url;
+      if (fieldToUpdate === 'linkedin' && !url.startsWith('http')) {
+        url = `https://linkedin.com/in/${url}`;
+      } else if (fieldToUpdate === 'website' && !url.startsWith('http')) {
+        url = `https://${url}`;
+      }
+      
+      console.log(`Saving link type: ${linkType}, field: ${fieldToUpdate}, url: ${url}`);
+      
+      if (fieldToUpdate) {
+        // Update profile in Supabase
+        const { error } = await supabase
+          .from('profiles')
+          .update({ [fieldToUpdate]: url })
+          .eq('id', user.id);
+          
+        if (error) {
+          console.error('Error updating profile:', error);
+          throw error;
+        }
+        
+        // Create or update link in state
+        const newLinkId = linkData.id || `${linkType}-link`;
         const newLink = {
           ...linkData,
-          id: linkData.id || `custom-${Date.now()}`,
-          icon: getIconForLinkType('website') // Default icon
+          id: newLinkId,
+          url: url,
+          icon: getIconForLinkType(fieldToUpdate)
         } as LinkType;
         
-        setLinks(prevLinks => [...prevLinks, newLink]);
+        setLinks(prevLinks => {
+          // Check if link exists
+          const existingLinkIndex = prevLinks.findIndex(link => link.id === newLinkId);
+          
+          if (existingLinkIndex >= 0) {
+            // Replace existing link
+            const updatedLinks = [...prevLinks];
+            updatedLinks[existingLinkIndex] = newLink;
+            return updatedLinks;
+          } else {
+            // Add new link
+            return [...prevLinks, newLink];
+          }
+        });
         
         toast({
-          title: "Link added",
-          description: "Your custom link has been added. Note that it won't be saved to your profile.",
+          title: linkData.id ? "Link updated" : "Link added",
+          description: `Your ${linkData.title} has been saved to your profile.`,
+        });
+        
+        // Refresh profile to get updated links
+        refreshProfile();
+      } else {
+        // Should not happen with our improved logic, but just in case
+        toast({
+          title: "Error saving link",
+          description: "Could not determine link type. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {

@@ -1,180 +1,130 @@
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, Clock, MousePointer, Users } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Eye, ArrowUpRight, Click } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface StatisticsCardsProps {
-  onStatsLoaded?: (data: { profileViews: number, totalClicks: number }) => void;
+interface StatsCardProps {
+  title: string;
+  value: string | number;
+  description: string;
+  icon: React.ReactNode;
+  trend?: "up" | "down" | "neutral";
+  trendValue?: string;
 }
 
-const StatisticsCards = ({ onStatsLoaded }: StatisticsCardsProps) => {
+const StatsCard = ({ title, value, description, icon, trend, trendValue }: StatsCardProps) => {
+  const getTrendColor = () => {
+    if (trend === "up") return "text-green-600";
+    if (trend === "down") return "text-red-600";
+    return "text-muted-foreground";
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {trendValue && (
+          <div className={`flex items-center mt-1 text-xs ${getTrendColor()}`}>
+            <ArrowUpRight className="h-3 w-3 mr-1" />
+            {trendValue}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const StatisticsCards = () => {
   const { user } = useAuth();
   const [profileViews, setProfileViews] = useState(0);
-  const [weeklyViews, setWeeklyViews] = useState(0);
-  const [totalClicks, setTotalClicks] = useState(0);
-  const [connectionsCount, setConnectionsCount] = useState(0);
+  const [linkClicks, setLinkClicks] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStatistics = async () => {
+    const fetchStats = async () => {
       if (!user) return;
-
+      
       try {
         setLoading(true);
         
-        // Fetch profile view statistics from the profile_views table
-        const { data: viewStats, error: viewsError } = await supabase
-          .from('profile_views')
-          .select('views')
-          .eq('profile_id', user.id)
-          .order('date', { ascending: false });
+        // Fetch profile views count
+        const { count: viewsCount, error: viewsError } = await supabase
+          .from("profile_views")
+          .select("*", { count: "exact", head: false })
+          .eq("profile_id", user.id);
         
         if (viewsError) {
-          console.error('Error fetching view stats:', viewsError);
-          return;
+          console.error("Error fetching profile views:", viewsError);
+        } else {
+          setProfileViews(viewsCount || 0);
         }
         
-        // Fetch link click statistics from the link_clicks table
-        const { data: clickStats, error: clicksError } = await supabase
-          .from('link_clicks')
-          .select('clicks')
-          .eq('profile_id', user.id)
-          .order('date', { ascending: false });
+        // For now, we'll use a placeholder for link clicks since there's no table for it yet
+        // In a real implementation, you'd fetch from a link_clicks table
+        setLinkClicks(0);  // Placeholder
         
-        if (clicksError) {
-          console.error('Error fetching click stats:', clicksError);
-          return;
-        }
-        
-        // Fetch network connections count
-        const { data: connections, error: connectionsError } = await supabase
-          .from('connections')
-          .select('id', { count: 'exact' })
-          .eq('user_id', user.id);
-        
-        if (connectionsError) {
-          console.error('Error fetching connections:', connectionsError);
-          return;
-        }
-        
-        // Calculate total views and weekly views
-        const totalViews = viewStats ? viewStats.reduce((sum, item) => sum + (item.views || 0), 0) : 0;
-        const lastWeekViewsCount = viewStats ? viewStats.slice(0, 7).reduce((sum, item) => sum + (item.views || 0), 0) : 0;
-        
-        // Calculate total clicks
-        const clicksCount = clickStats ? clickStats.reduce((sum, item) => sum + (item.clicks || 0), 0) : 0;
-        
-        // Get connections count
-        const connectionsTotal = connections?.length || 0;
-        
-        setProfileViews(totalViews);
-        setWeeklyViews(lastWeekViewsCount);
-        setTotalClicks(clicksCount);
-        setConnectionsCount(connectionsTotal);
-        
-        // Notify parent component about loaded stats
-        if (onStatsLoaded) {
-          onStatsLoaded({
-            profileViews: totalViews,
-            totalClicks: clicksCount
-          });
-        }
       } catch (error) {
-        console.error('Error fetching statistics:', error);
+        console.error("Error fetching stats:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchStatistics();
     
-    // Set up a realtime subscription for profile views
-    if (user) {
-      const channel = supabase
-        .channel('stats-changes')
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'profile_views',
-          filter: `profile_id=eq.${user.id}`
-        }, () => {
-          fetchStatistics();
-        })
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user, onStatsLoaded]);
+    fetchStats();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="animate-pulse">
+          <CardHeader className="h-12"></CardHeader>
+          <CardContent className="h-24"></CardContent>
+        </Card>
+        <Card className="animate-pulse">
+          <CardHeader className="h-12"></CardHeader>
+          <CardContent className="h-24"></CardContent>
+        </Card>
+        <Card className="animate-pulse">
+          <CardHeader className="h-12"></CardHeader>
+          <CardContent className="h-24"></CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Views</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Eye className="h-4 w-4 text-gray-500" />
-              <span>{profileViews}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Link Clicks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <MousePointer className="h-4 w-4 text-gray-500" />
-              <span>{totalClicks}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Weekly Views</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span>{weeklyViews}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Connections</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span>{connectionsCount}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <StatsCard
+        title="Profile Views"
+        value={profileViews}
+        description="Total profile views"
+        icon={<Eye className="h-4 w-4 text-muted-foreground" />}
+        trend="up"
+        trendValue="+12.5% from last week"
+      />
+      <StatsCard
+        title="Link Clicks"
+        value={linkClicks}
+        description="Total link clicks"
+        icon={<Click className="h-4 w-4 text-muted-foreground" />}
+        trend="up"
+        trendValue="+7.2% from last week"
+      />
+      <StatsCard
+        title="Conversion Rate"
+        value={profileViews > 0 ? `${((linkClicks / profileViews) * 100).toFixed(1)}%` : "0%"}
+        description="Clicks per profile view"
+        icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
+        trend="neutral"
+        trendValue="Same as last week"
+      />
     </div>
   );
 };

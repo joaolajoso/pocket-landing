@@ -18,55 +18,89 @@ export const getProfileViewStats = async (profileId: string) => {
     oneMonthAgo.setDate(now.getDate() - 30);
     
     // Get total count of views
-    const { data: totalData, error: totalError } = await supabase.rpc(
-      'get_profile_view_count',
-      { user_id_param: profileId }
-    );
+    const { count: totalCount, error: totalError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: false })
+      .eq('profile_id', profileId);
     
     if (totalError) {
       console.error('Error counting total profile views:', totalError);
     }
     
     // Get count of views in the past week
-    const { data: weekData, error: weekError } = await supabase.rpc(
-      'get_weekly_profile_views',
-      { user_id_param: profileId }
-    );
+    const { count: weekCount, error: weekError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: false })
+      .eq('profile_id', profileId)
+      .gte('timestamp', oneWeekAgo.toISOString());
     
     if (weekError) {
       console.error('Error counting weekly profile views:', weekError);
     }
     
     // Get count of views in the past month
-    const { data: monthData, error: monthError } = await supabase.rpc(
-      'get_monthly_profile_views',
-      { user_id_param: profileId }
-    );
+    const { count: monthCount, error: monthError } = await supabase
+      .from('profile_views')
+      .select('*', { count: 'exact', head: false })
+      .eq('profile_id', profileId)
+      .gte('timestamp', oneMonthAgo.toISOString());
     
     if (monthError) {
       console.error('Error counting monthly profile views:', monthError);
     }
     
     // Get daily view counts for the past 7 days
-    const { data: dailyData, error: dailyError } = await supabase.rpc(
-      'get_daily_profile_views',
-      { user_id_param: profileId }
-    );
+    const { data: dailyData, error: dailyError } = await supabase
+      .from('profile_views')
+      .select('timestamp')
+      .eq('profile_id', profileId)
+      .gte('timestamp', oneWeekAgo.toISOString())
+      .order('timestamp', { ascending: true });
     
     if (dailyError) {
       console.error('Error getting daily view data:', dailyError);
     }
     
+    // Process daily data into a format suitable for charts
+    const dailyCounts = processDailyViewData(dailyData || []);
+    
     return {
-      total: totalData || 0,
-      lastWeek: weekData || 0,
-      lastMonth: monthData || 0,
-      daily: Array.isArray(dailyData) ? dailyData : []
+      total: totalCount || 0,
+      lastWeek: weekCount || 0,
+      lastMonth: monthCount || 0,
+      daily: dailyCounts
     };
   } catch (error) {
     console.error('Error fetching profile views:', error);
     return { total: 0, lastWeek: 0, lastMonth: 0, daily: [] };
   }
+};
+
+// Helper function to process daily view data
+const processDailyViewData = (viewsData: any[]) => {
+  const dailyCounts: { date: string; count: number }[] = [];
+  const countMap = new Map<string, number>();
+  
+  // Count views by day
+  viewsData.forEach(view => {
+    const date = new Date(view.timestamp).toISOString().split('T')[0];
+    countMap.set(date, (countMap.get(date) || 0) + 1);
+  });
+  
+  // Fill in missing days with zero counts
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    dailyCounts.unshift({
+      date: dateStr,
+      count: countMap.get(dateStr) || 0
+    });
+  }
+  
+  return dailyCounts;
 };
 
 /**
@@ -85,17 +119,20 @@ export const getProfileUrl = (slug: string) => {
 
 export const incrementLinkClick = async (linkId: string, userId: string): Promise<void> => {
   try {
-    // Use RPC to insert link click
-    const { error } = await supabase.rpc('insert_link_click', {
-      link_id_param: linkId,
-      user_id_param: userId
-    });
+    // Instead of calling a DB function that doesn't exist, simply track link clicks
+    // by inserting into profile_views table with a "click" source
+    const { error } = await supabase
+      .from('profile_views')
+      .insert({
+        profile_id: userId,
+        source: `click:${linkId}` // Store the link ID in the source field
+      });
     
     if (error) {
-      console.error('Error incrementing link click:', error);
+      console.error('Error tracking link click:', error);
     }
   } catch (error) {
-    console.error('Error incrementing link click:', error);
+    console.error('Error tracking link click:', error);
   }
 };
 
