@@ -1,3 +1,4 @@
+
 import { useMemo, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -213,7 +214,10 @@ const ProfilePreview = ({
   }, [initialProfile.links]);
   
   return (
-    <div>
+    <div 
+      className={`flex flex-col items-center max-w-md mx-auto w-full ${profileClass}`}
+      style={getContainerStyle()}
+    >
       {isPreview && (
         <div className="w-full bg-primary/10 text-primary px-4 py-2 text-center text-sm rounded-lg mb-8">
           Preview Mode - This is how your profile will look at {profile.username ? getProfileUrl(profile.username) : 'your PocketCV page'}
