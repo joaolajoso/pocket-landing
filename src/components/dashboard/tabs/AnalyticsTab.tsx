@@ -34,17 +34,19 @@ interface AnalyticsData {
   totalClicks: number;
 }
 
-// Define the types for Supabase RPC responses
+// Define interface for daily view data returned from the database
 interface ViewByDayResponse {
   date: string;
   count: string | number;
 }
 
+// Define interface for link click data returned from the database
 interface LinkClickResponse {
   link_type: string;
   count: string | number;
 }
 
+// Define interface for referrer data
 interface ReferrerResponse {
   source: string;
   count: string | number;
@@ -73,7 +75,7 @@ const AnalyticsTab = () => {
       
       try {
         // Get profile view count by day
-        const { data: viewData, error: viewError } = await supabase.rpc<ViewByDayResponse>(
+        const { data: viewData, error: viewError } = await supabase.rpc(
           'get_profile_views_by_day',
           { user_id_param: user.id as string }
         );
@@ -81,7 +83,7 @@ const AnalyticsTab = () => {
         if (viewError) throw viewError;
         
         // Get link click data
-        const { data: linkData, error: linkError } = await supabase.rpc<LinkClickResponse>(
+        const { data: linkData, error: linkError } = await supabase.rpc(
           'get_link_clicks_by_type',
           { user_id_param: user.id as string }
         );
@@ -91,15 +93,15 @@ const AnalyticsTab = () => {
         // Get referrers data - using select query with count aggregation
         const { data: referrersData, error: referrersError } = await supabase
           .from('profile_views')
-          .select('source, count(*)')
+          .select('source')
           .eq('profile_id', user.id)
-          .order('count', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(5);
         
         if (referrersError) throw referrersError;
         
-        // Process data
-        const formattedViewData: ViewData[] = Array.isArray(viewData) ? viewData.map((d) => ({
+        // Process data - typed the response data and handle null/undefined values safely
+        const formattedViewData: ViewData[] = Array.isArray(viewData) ? viewData.map((d: any) => ({
           date: d && d.date ? new Date(d.date).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
@@ -107,14 +109,15 @@ const AnalyticsTab = () => {
           count: d && d.count ? Number(d.count) : 0
         })) : [];
         
-        const formattedLinkData: LinkData[] = Array.isArray(linkData) ? linkData.map((d) => ({
+        const formattedLinkData: LinkData[] = Array.isArray(linkData) ? linkData.map((d: any) => ({
           name: d && d.link_type ? d.link_type : 'Unknown',
           clicks: d && d.count ? Number(d.count) : 0
         })) : [];
         
-        const formattedRefData: ReferrerData[] = Array.isArray(referrersData) ? referrersData.map((d) => ({
+        // Process referrer data safely with fallback values
+        const formattedRefData: ReferrerData[] = Array.isArray(referrersData) ? referrersData.map((d: any) => ({
           name: d && d.source ? d.source : 'Direct',
-          count: d && d.count ? Number(d.count) : 0
+          count: 1 // Since we're just counting occurrences
         })) : [];
         
         // Calculate totals

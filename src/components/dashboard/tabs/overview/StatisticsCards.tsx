@@ -11,10 +11,6 @@ interface StatisticsCardsProps {
   onNavigateToAnalytics?: () => void;
 }
 
-interface StatCount {
-  count: number;
-}
-
 export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -30,7 +26,7 @@ export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps)
       
       try {
         // Get profile view count
-        const { data: viewData, error: viewError } = await supabase.rpc<StatCount>(
+        const { data: viewData, error: viewError } = await supabase.rpc(
           'get_profile_view_count',
           { user_id_param: user.id as string }
         );
@@ -41,7 +37,7 @@ export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps)
         }
         
         // Get link click count
-        const { data: clickData, error: clickError } = await supabase.rpc<StatCount>(
+        const { data: clickData, error: clickError } = await supabase.rpc(
           'get_total_link_clicks',
           { user_id_param: user.id as string }
         );
