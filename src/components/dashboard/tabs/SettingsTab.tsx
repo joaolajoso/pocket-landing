@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfileForm } from "./overview/UserProfileForm";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
@@ -27,9 +27,10 @@ interface SettingsTabProps {
 const SettingsTab = ({ userData }: SettingsTabProps) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const { profile, loading, error } = useProfile();
+  const { profile, loading, error, refreshProfile } = useProfile();
   const isMobile = useIsMobile();
-  
+  const [activeTab, setActiveTab] = useState("profile");
+
   // Check if user is logged in
   if (!user) {
     return (
@@ -43,6 +44,14 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
     );
   }
   
+  const handleFormClose = () => {
+    refreshProfile();
+    toast({
+      title: "Profile updated",
+      description: "Your profile changes have been saved"
+    });
+  };
+  
   return (
     <div className="space-y-4 md:space-y-6">
       <div>
@@ -50,7 +59,7 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
         <p className="text-muted-foreground">Manage your account settings and preferences.</p>
       </div>
       
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
@@ -66,7 +75,10 @@ const SettingsTab = ({ userData }: SettingsTabProps) => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UserProfileForm userData={userData} />
+              <UserProfileForm 
+                userData={userData} 
+                onClose={handleFormClose}
+              />
             </CardContent>
           </Card>
         </TabsContent>

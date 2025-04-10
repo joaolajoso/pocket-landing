@@ -23,6 +23,8 @@ export const ProfilePhotoUploader = ({
   const [isUploading, setIsUploading] = useState(false);
   
   const handleAvatarClick = () => {
+    if (disabled || isUploading) return;
+    
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -56,6 +58,10 @@ export const ProfilePhotoUploader = ({
     
     try {
       await onUpload(file);
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been uploaded successfully"
+      });
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       toast({
@@ -65,6 +71,10 @@ export const ProfilePhotoUploader = ({
       });
     } finally {
       setIsUploading(false);
+      // Reset the input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -76,15 +86,24 @@ export const ProfilePhotoUploader = ({
         onChange={handleFileChange}
         accept="image/*"
         className="hidden"
+        capture="environment"
       />
       
       <div className="relative">
-        <Avatar className="w-24 h-24">
-          <AvatarImage src={photoUrl} alt={displayName} />
-          <AvatarFallback>
-            {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <div 
+          className="cursor-pointer" 
+          onClick={handleAvatarClick}
+          aria-label="Change profile picture"
+          role="button"
+          tabIndex={0}
+        >
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={photoUrl} alt={displayName} />
+            <AvatarFallback>
+              {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
         <Button 
           size="icon"
           className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
@@ -92,6 +111,7 @@ export const ProfilePhotoUploader = ({
           type="button"
           onClick={handleAvatarClick}
           disabled={isUploading || disabled}
+          aria-label="Upload profile picture"
         >
           {isUploading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
