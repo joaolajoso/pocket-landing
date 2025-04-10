@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Github, Mail, Linkedin, Building2, User } from "lucide-react";
+import { ArrowLeft, Github, Mail, Linkedin, Building2, User, Home } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -216,17 +217,31 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500" 
          style={{ backgroundImage: `url('/lovable-uploads/ae3a6973-dc3c-446c-b21f-bb02e2ed20e8.png')`, backgroundSize: 'cover' }}>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="absolute top-4 left-4 gap-2 text-white hover:bg-white/20"
-        asChild
-      >
-        <Link to="/">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Home
-        </Link>
-      </Button>
+      <div className="absolute top-4 left-4 flex gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:bg-white/20 gap-2"
+          asChild
+        >
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Link>
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:bg-white/20 gap-2"
+          asChild
+        >
+          <Link to="/">
+            <Home className="h-4 w-4" />
+            Homepage
+          </Link>
+        </Button>
+      </div>
 
       <div className="mb-8 text-center">
         <Link to="/" className="text-2xl font-bold tracking-tight">
