@@ -1,17 +1,15 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar } from 'recharts';
+import { ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useAuth } from '@/contexts/AuthContext';
-import { getProfileViewStats } from '@/lib/supabase';
-import { supabase } from '@/integrations/supabase/client';
-
-type ViewData = {
-  date: string;
-  count: number;
+interface ProfileViewStatsProps {
+  onNavigateToAnalytics: () => void;
 }
 
-const ProfileViewStats = () => {
+const ProfileViewStats = ({ onNavigateToAnalytics }: ProfileViewStatsProps) => {
   const { user } = useAuth();
   const [viewStats, setViewStats] = useState({
     total: 0,
@@ -21,7 +19,6 @@ const ProfileViewStats = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Load initial stats
   useEffect(() => {
     const fetchStats = async () => {
       if (!user?.id) return;
@@ -29,7 +26,6 @@ const ProfileViewStats = () => {
       try {
         setLoading(true);
         const stats = await getProfileViewStats(user.id);
-        // Ensure we have a daily array even if the API doesn't return one
         const safeStats = {
           ...stats,
           daily: Array.isArray(stats.daily) ? stats.daily : []
@@ -37,7 +33,6 @@ const ProfileViewStats = () => {
         setViewStats(safeStats);
       } catch (error) {
         console.error('Error fetching profile view stats:', error);
-        // Ensure we have a safe default state if there's an error
         setViewStats({
           total: 0,
           lastWeek: 0,
@@ -52,7 +47,6 @@ const ProfileViewStats = () => {
     fetchStats();
   }, [user?.id]);
   
-  // Subscribe to real-time updates
   useEffect(() => {
     if (!user?.id) return;
     
@@ -65,9 +59,7 @@ const ProfileViewStats = () => {
         filter: `profile_id=eq.${user.id}`
       }, payload => {
         console.log('New profile view:', payload);
-        // Refresh stats on new view
         getProfileViewStats(user.id).then(stats => {
-          // Ensure we have a daily array when updating from real-time events
           const safeStats = {
             ...stats,
             daily: Array.isArray(stats.daily) ? stats.daily : []
@@ -82,13 +74,11 @@ const ProfileViewStats = () => {
     };
   }, [user?.id]);
 
-  // Format the date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Prepare chart data with formatted dates - ensure dailyArray exists before mapping
   const chartData = viewStats.daily && viewStats.daily.length > 0 
     ? viewStats.daily.map(item => ({
         name: formatDate(item.date),
@@ -102,7 +92,7 @@ const ProfileViewStats = () => {
         <CardTitle>Profile Views</CardTitle>
         <CardDescription>See how many people viewed your profile</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         {loading ? (
           <div className="flex justify-center py-8">
             <p className="text-muted-foreground">Loading stats...</p>
@@ -142,6 +132,12 @@ const ProfileViewStats = () => {
             </div>
           </>
         )}
+        <div className="flex justify-end mt-4">
+          <Button variant="ghost" size="sm" onClick={onNavigateToAnalytics}>
+            View detailed analytics
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

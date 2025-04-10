@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -6,7 +5,6 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from 'date-fns';
-import { DateRange } from "react-day-picker";
 
 const COLORS = [
   '#0088FE',
@@ -42,41 +40,31 @@ const AnalyticsTab = () => {
   const [linkData, setLinkData] = useState<LinkClick[] | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Function to fetch analytics data from Supabase
   const fetchData = async () => {
     setLoading(true);
+    const fromDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd');
+    const toDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
     
-    const fromDate = dateRange?.from 
-      ? format(dateRange.from, 'yyyy-MM-dd') 
-      : format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd');
-    
-    const toDate = dateRange?.to 
-      ? format(dateRange.to, 'yyyy-MM-dd') 
-      : format(new Date(), 'yyyy-MM-dd');
-
     try {
       const [profileViews, linkClicks] = await Promise.all([
         fetchProfileViews(fromDate, toDate),
         fetchLinkClicks(fromDate, toDate)
       ]);
-
+      
       if (profileViews.error || linkClicks.error) {
         console.error("Error fetching data:", profileViews.error, linkClicks.error);
         return;
       }
-
-      // Process profile views data
-      const profileViewsData = profileViews.data?.map((item: ProfileView) => ({
+      
+      const profileViewsData = profileViews.data ? profileViews.data.map((item) => ({
         date: item.date,
         views: item.views
-      })) || [];
+      })) : [];
       
       setAnalyticsData(profileViewsData);
       
-      // Process source data for profile views
       setViewData(profileViews.data || []);
       
-      // Process source data for link clicks
       setLinkData(linkClicks.data || []);
     } catch (error) {
       console.error("Error during data fetching:", error);
@@ -85,7 +73,6 @@ const AnalyticsTab = () => {
     }
   };
 
-  // Update the query calls with proper type arguments and null checks
   const fetchProfileViews = async (dateFrom: string, dateTo: string) => {
     return await supabase.rpc('get_profile_views_by_date_range', {
       date_from: dateFrom,
@@ -104,12 +91,10 @@ const AnalyticsTab = () => {
     fetchData();
   }, [dateRange]);
 
-  // Format date for display
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | number | Date) => {
     return format(new Date(date), 'MMM dd');
   };
 
-  // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -122,7 +107,6 @@ const AnalyticsTab = () => {
     return null;
   };
 
-  // Fix the referrer chart data
   const referrerData = viewData 
     ? viewData
         .filter((item) => item.source !== null)
@@ -132,7 +116,6 @@ const AnalyticsTab = () => {
         })) 
     : [];
 
-  // Fix the link clicks chart data
   const linkClicksData = linkData 
     ? linkData
         .filter((item) => item.source !== null)

@@ -1,105 +1,93 @@
-
-import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useProfile } from "@/hooks/useProfile";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinkIcon, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
-interface StatsData {
-  profileViews: number;
-  totalClicks: number;
-}
-
 const StatisticsCards = () => {
-  const { profile } = useProfile();
-  const [stats, setStats] = useState<StatsData>({
-    profileViews: 0,
-    totalClicks: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const [profileViews, setProfileViews] = useState<number>(0);
+  const [linkClicks, setLinkClicks] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (profile) {
-      fetchStats();
-    }
-  }, [profile]);
-
-  const fetchStats = async () => {
+  const fetchData = async () => {
     setLoading(true);
+    setError(null);
     
-    const fromDate = format(new Date(new Date().setDate(new Date().getDate() - 30)), 'yyyy-MM-dd');
-    const toDate = format(new Date(), 'yyyy-MM-dd');
-
+    // Get dates for the last 30 days
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    const formattedFromDate = format(thirtyDaysAgo, 'yyyy-MM-dd');
+    const formattedToDate = format(today, 'yyyy-MM-dd');
+    
     try {
-      const [profileViewsResponse, linkClicksResponse] = await Promise.all([
-        fetchProfileViews(fromDate, toDate),
-        fetchLinkClicks(fromDate, toDate)
-      ]);
-
-      const totalProfileViews = profileViewsResponse.data?.reduce((sum: number, item: any) => sum + (item.views || 0), 0) || 0;
-      const totalLinkClicks = linkClicksResponse.data?.reduce((sum: number, item: any) => sum + (item.clicks || 0), 0) || 0;
-
-      setStats({
-        profileViews: totalProfileViews,
-        totalClicks: totalLinkClicks,
+      // Fetch profile views for the last 30 days
+      const profileViewsResponse = await supabase.rpc('get_profile_views_count_by_date_range', {
+        date_from: formattedFromDate,
+        date_to: formattedToDate
       });
-    } catch (error) {
-      console.error("Error fetching stats:", error);
+      
+      // Fetch link clicks for the last 30 days
+      const linkClicksResponse = await supabase.rpc('get_link_clicks_count_by_date_range', {
+        date_from: formattedFromDate,
+        date_to: formattedToDate
+      });
+      
+      if (profileViewsResponse.error) throw profileViewsResponse.error;
+      if (linkClicksResponse.error) throw linkClicksResponse.error;
+      
+      // Update state with fetched data, using null checks
+      setProfileViews(profileViewsResponse.data && profileViewsResponse.data.count ? profileViewsResponse.data.count : 0);
+      setLinkClicks(linkClicksResponse.data && linkClicksResponse.data.count ? linkClicksResponse.data.count : 0);
+    } catch (err) {
+      console.error("Error fetching statistics:", err);
+      setError("Failed to load statistics data");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProfileViews = async (dateFrom: string, dateTo: string) => {
-    return await supabase.rpc('get_profile_views_by_date_range', {
-      date_from: dateFrom,
-      date_to: dateTo
-    });
-  };
-
-  const fetchLinkClicks = async (dateFrom: string, dateTo: string) => {
-    return await supabase.rpc('get_link_clicks_by_date_range', {
-      date_from: dateFrom,
-      date_to: dateTo
-    });
-  };
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="space-y-1">
-            <CardTitle className="text-sm font-medium">
-              Total Profile Views
-            </CardTitle>
-            <CardDescription>Last 30 days</CardDescription>
-          </div>
+        <CardHeader>
+          <CardTitle>Profile Views</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {loading ? "Loading..." : stats.profileViews}
-          </div>
+          {loading ? (
+            <div>Loading...</div>
+          ) : error ? (
+            <div>Error: {error}</div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Eye className="h-4 w-4 text-gray-500" />
+              <span>{profileViews}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="space-y-1">
-            <CardTitle className="text-sm font-medium">
-              Total Link Clicks
-            </CardTitle>
-            <CardDescription>Last 30 days</CardDescription>
-          </div>
+        <CardHeader>
+          <CardTitle>Link Clicks</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {loading ? "Loading..." : stats.totalClicks}
-          </div>
+          {loading ? (
+            <div>Loading...</div>
+          ) : error ? (
+            <div>Error: {error}</div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <LinkIcon className="h-4 w-4 text-gray-500" />
+              <span>{linkClicks}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
