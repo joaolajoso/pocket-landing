@@ -27,8 +27,11 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
     let backgroundStyle = '';
     if (designSettings.background_type === 'solid') {
       backgroundStyle = designSettings.background_color;
-    } else if (designSettings.background_type === 'gradient') {
-      backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start || '#ffffff'}, ${designSettings.background_gradient_end || '#f0f9ff'})`;
+    } else if (designSettings.background_type === 'gradient' && 
+               designSettings.background_gradient_start && 
+               designSettings.background_gradient_end) {
+      backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
+      console.log('Setting gradient in preview:', backgroundStyle);
     } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
       backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
     }
@@ -69,6 +72,7 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
         font-family: ${designSettings.font_family || 'Inter, sans-serif'};
         color: ${designSettings.description_color};
         text-align: ${designSettings.text_alignment};
+        height: 100%;
       }
       
       .profile-preview .profile-name {

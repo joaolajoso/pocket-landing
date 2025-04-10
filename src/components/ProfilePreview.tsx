@@ -54,6 +54,7 @@ const ProfilePreview = ({
                designSettings.background_gradient_start && 
                designSettings.background_gradient_end) {
       backgroundStyle = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
+      console.log('Setting gradient background:', backgroundStyle);
     } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
       backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
     }
@@ -66,20 +67,23 @@ const ProfilePreview = ({
     
     // Create CSS
     const css = `
-      :root {
-        --profile-bg: ${backgroundStyle};
-        --profile-bg-position: center;
-        --profile-bg-size: cover;
-        --profile-name-color: ${designSettings.name_color};
-        --profile-description-color: ${designSettings.description_color};
-        --profile-section-title-color: ${designSettings.section_title_color};
-        --profile-link-text-color: ${designSettings.link_text_color};
-        --profile-button-bg: ${designSettings.button_background_color};
-        --profile-button-text: ${designSettings.button_text_color};
-        --profile-button-icon: ${designSettings.button_icon_color};
-        --profile-button-border: ${borderStyle};
-        --profile-text-align: ${designSettings.text_alignment};
-        --profile-font-family: ${designSettings.font_family};
+      .profile-preview-${isPreview ? 'preview' : 'public'} {
+        background: ${backgroundStyle};
+        background-position: center;
+        background-size: cover;
+        font-family: ${designSettings.font_family || 'Inter, sans-serif'};
+      }
+      
+      .profile-preview-${isPreview ? 'preview' : 'public'} .name {
+        color: ${designSettings.name_color};
+      }
+      
+      .profile-preview-${isPreview ? 'preview' : 'public'} .bio {
+        color: ${designSettings.description_color};
+      }
+      
+      .profile-preview-${isPreview ? 'preview' : 'public'} .section-title {
+        color: ${designSettings.section_title_color};
       }
     `;
     
@@ -87,7 +91,7 @@ const ProfilePreview = ({
     
     // Clean up
     return () => {
-      if (isPreview && styleEl && document.getElementById(styleId)) {
+      if (styleEl && document.getElementById(styleId)) {
         styleEl.remove();
       }
     };
@@ -155,8 +159,32 @@ const ProfilePreview = ({
     return { textAlign: alignment as 'left' | 'center' | 'right' };
   };
 
+  // Determine background style for the outer container
+  const getContainerStyle = () => {
+    if (!designSettings) return {};
+    
+    let backgroundStyle: React.CSSProperties = {};
+    
+    if (designSettings.background_type === 'solid') {
+      backgroundStyle.backgroundColor = designSettings.background_color;
+    } else if (designSettings.background_type === 'gradient' && 
+               designSettings.background_gradient_start && 
+               designSettings.background_gradient_end) {
+      backgroundStyle.background = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
+    } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
+      backgroundStyle.backgroundImage = `url(${designSettings.background_image_url})`;
+      backgroundStyle.backgroundPosition = 'center';
+      backgroundStyle.backgroundSize = 'cover';
+    }
+    
+    return backgroundStyle;
+  };
+
   return (
-    <div className="flex flex-col items-center max-w-md mx-auto w-full">
+    <div 
+      className={`flex flex-col items-center max-w-md mx-auto w-full profile-preview-${isPreview ? 'preview' : 'public'}`}
+      style={getContainerStyle()}
+    >
       {isPreview && (
         <div className="w-full bg-primary/10 text-primary px-4 py-2 text-center text-sm rounded-lg mb-8">
           Preview Mode - This is how your profile will look at {profile.username ? getProfileUrl(profile.username) : 'your PocketCV page'}
@@ -170,14 +198,14 @@ const ProfilePreview = ({
         </Avatar>
         
         <h2 
-          className="text-2xl font-bold"
+          className="text-2xl font-bold name"
           style={{ color: designSettings?.name_color || 'inherit' }}
         >
           {profile.name}
         </h2>
         {profile.bio && (
           <p 
-            className="mt-2 max-w-xs mx-auto"
+            className="mt-2 max-w-xs mx-auto bio"
             style={{ color: designSettings?.description_color || 'var(--muted-foreground)' }}
           >
             {profile.bio}

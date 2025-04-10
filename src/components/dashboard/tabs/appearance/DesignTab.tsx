@@ -93,6 +93,15 @@ const DesignTab = ({
       [key]: value
     }));
     
+    if (key === 'background_type') {
+      void saveDesignSettings({ [key]: value });
+    }
+    
+    if (['background_gradient_start', 'background_gradient_end'].includes(key as string) && 
+        tempSettings.background_type === 'gradient') {
+      void saveDesignSettings({ [key]: value });
+    }
+    
     if (onExternalColorChange && (key === 'background_color' || key === 'button_background_color')) {
       onExternalColorChange(key, value as string);
     }
@@ -122,6 +131,11 @@ const DesignTab = ({
       const { data } = supabase.storage
         .from('profile_photos')
         .getPublicUrl(filePath);
+      
+      await saveDesignSettings({
+        background_image_url: data.publicUrl,
+        background_type: 'image'
+      });
       
       updateSetting('background_image_url', data.publicUrl);
       updateSetting('background_type', 'image');

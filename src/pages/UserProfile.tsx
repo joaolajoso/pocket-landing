@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { trackProfileView } from '@/lib/supabase';
 import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfileDesign } from '@/hooks/profile/useProfileDesign';
 
 interface ProfileSection {
   id: string;
@@ -40,6 +41,7 @@ const UserProfile = () => {
   const [sections, setSections] = useState<ProfileSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
   const [requiresLogin, setRequiresLogin] = useState(false);
+  const { settings: designSettings, loading: designLoading } = useProfileDesign(profile?.id);
   
   // Check if this is a QR code scan or NFC tap
   useEffect(() => {
@@ -137,8 +139,42 @@ const UserProfile = () => {
       setRequiresLogin(profile.allow_network_saves || false);
     }
   }, [profile]);
+
+  // Create a function to generate background style based on design settings
+  const getBackgroundStyle = () => {
+    if (!designSettings) {
+      return {
+        background: "var(--profile-bg, var(--profile-bg-color))",
+        backgroundPosition: "var(--profile-bg-position, center)",
+        backgroundSize: "var(--profile-bg-size, cover)",
+        fontFamily: "var(--profile-font-family, Inter, sans-serif)",
+        textAlign: "var(--profile-text-align, center)" as "left" | "center" | "right"
+      };
+    }
+
+    let style: React.CSSProperties = {
+      fontFamily: designSettings.font_family || "Inter, sans-serif",
+      textAlign: designSettings.text_alignment as "left" | "center" | "right"
+    };
+
+    // Set background based on type
+    if (designSettings.background_type === 'solid') {
+      style.backgroundColor = designSettings.background_color;
+    } else if (designSettings.background_type === 'gradient' && 
+               designSettings.background_gradient_start && 
+               designSettings.background_gradient_end) {
+      style.background = `linear-gradient(135deg, ${designSettings.background_gradient_start}, ${designSettings.background_gradient_end})`;
+      console.log('Applied gradient to profile page:', style.background);
+    } else if (designSettings.background_type === 'image' && designSettings.background_image_url) {
+      style.backgroundImage = `url(${designSettings.background_image_url})`;
+      style.backgroundPosition = 'center';
+      style.backgroundSize = 'cover';
+    }
+
+    return style;
+  };
   
-  if (loading || sectionsLoading) {
+  if (loading || sectionsLoading || designLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -176,13 +212,7 @@ const UserProfile = () => {
       
       <div 
         className="min-h-screen py-8 px-4"
-        style={{
-          background: "var(--profile-bg, var(--profile-bg-color))",
-          backgroundPosition: "var(--profile-bg-position, center)",
-          backgroundSize: "var(--profile-bg-size, cover)",
-          fontFamily: "var(--profile-font-family, Inter, sans-serif)",
-          textAlign: "var(--profile-text-align, center)" as "left" | "center" | "right"
-        }}
+        style={getBackgroundStyle()}
       >
         <ProfileThemeManager theme={theme} profileId={profile.id} />
         

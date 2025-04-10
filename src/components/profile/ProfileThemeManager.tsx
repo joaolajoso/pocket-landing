@@ -38,6 +38,8 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
   };
   
   useEffect(() => {
+    console.log('ProfileThemeManager: Applying settings', settings);
+    
     // Set design settings from the database if available
     if (settings) {
       // Apply background
@@ -47,10 +49,11 @@ const ProfileThemeManager = ({ theme, profileId }: ProfileThemeManagerProps) => 
         document.documentElement.style.setProperty('--profile-bg', settings.background_color);
       } else if (settings.background_type === 'gradient' && settings.background_gradient_start && settings.background_gradient_end) {
         backgroundStyle = `linear-gradient(135deg, ${settings.background_gradient_start}, ${settings.background_gradient_end})`;
-        document.documentElement.style.setProperty('--profile-bg', `linear-gradient(135deg, ${settings.background_gradient_start}, ${settings.background_gradient_end})`);
+        document.documentElement.style.setProperty('--profile-bg', backgroundStyle);
+        console.log('Setting gradient for public profile:', backgroundStyle);
       } else if (settings.background_type === 'image' && settings.background_image_url) {
-        backgroundStyle = `url(${settings.background_image_url}) center/cover no-repeat`;
-        document.documentElement.style.setProperty('--profile-bg', `url(${settings.background_image_url})`);
+        backgroundStyle = `url(${settings.background_image_url})`;
+        document.documentElement.style.setProperty('--profile-bg', backgroundStyle);
         document.documentElement.style.setProperty('--profile-bg-position', 'center');
         document.documentElement.style.setProperty('--profile-bg-size', 'cover');
       }

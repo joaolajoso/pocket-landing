@@ -21,7 +21,6 @@ export interface ProfileDesignSettings {
   button_background_color: string;
   button_icon_color: string;
   button_icon_position: 'left' | 'right';
-  // Removed button_size field
   button_border_color?: string | null;
   button_border_style?: 'none' | 'all' | 'left' | 'right' | 'top' | 'bottom' | 'x' | 'y' | null;
   text_alignment: 'left' | 'center' | 'right';
@@ -44,7 +43,6 @@ export const defaultDesignSettings: ProfileDesignSettings = {
   button_background_color: '#0ea5e9',
   button_icon_color: '#ffffff',
   button_icon_position: 'left',
-  // Removed button_size
   button_border_color: '#e5e7eb',
   button_border_style: 'all',
   text_alignment: 'center',
@@ -124,6 +122,17 @@ export const useProfileDesign = (profileId?: string) => {
         .eq('user_id', user.id)
         .maybeSingle();
       
+      // Ensure gradient values are included when background_type is gradient
+      const settingsToSave = { ...updatedSettings };
+      if (settingsToSave.background_type === 'gradient') {
+        if (!settingsToSave.background_gradient_start) {
+          settingsToSave.background_gradient_start = settings.background_gradient_start || defaultDesignSettings.background_gradient_start;
+        }
+        if (!settingsToSave.background_gradient_end) {
+          settingsToSave.background_gradient_end = settings.background_gradient_end || defaultDesignSettings.background_gradient_end;
+        }
+      }
+      
       let result;
       
       if (data) {
@@ -131,7 +140,7 @@ export const useProfileDesign = (profileId?: string) => {
         result = await supabase
           .from('profile_design_settings')
           .update({
-            ...updatedSettings,
+            ...settingsToSave,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id);
@@ -141,7 +150,7 @@ export const useProfileDesign = (profileId?: string) => {
           .from('profile_design_settings')
           .insert({
             ...defaultDesignSettings,
-            ...updatedSettings,
+            ...settingsToSave,
             user_id: user.id
           });
       }
@@ -151,7 +160,7 @@ export const useProfileDesign = (profileId?: string) => {
       // Update local state
       setSettings(prev => ({
         ...prev,
-        ...updatedSettings
+        ...settingsToSave
       }));
       
       toast({
