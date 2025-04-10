@@ -23,13 +23,24 @@ export const UserProfileForm = ({ userData, onClose }: UserProfileFormProps) => 
   } = useProfileFormLogic(userData, onClose);
 
   const handleProfilePhotoUpload = async (file: File): Promise<string | null> => {
+    if (!user) {
+      console.error('Cannot upload photo: No authenticated user');
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to upload a profile picture",
+        variant: "destructive"
+      });
+      return null;
+    }
+    
     try {
+      console.log('UserProfileForm: Starting photo upload for user', user.id);
       return await handlePhotoUpload(file);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in UserProfileForm photo upload:', error);
       toast({
         title: "Upload failed",
-        description: "There was a problem uploading your profile picture",
+        description: error.message || "There was a problem uploading your profile picture",
         variant: "destructive"
       });
       return null;
@@ -37,13 +48,24 @@ export const UserProfileForm = ({ userData, onClose }: UserProfileFormProps) => 
   };
   
   const handleProfilePhotoDelete = async (): Promise<boolean> => {
+    if (!user) {
+      console.error('Cannot delete photo: No authenticated user');
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to delete your profile picture",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
     try {
+      console.log('UserProfileForm: Starting photo deletion for user', user.id);
       return await handlePhotoDelete();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in UserProfileForm photo delete:', error);
       toast({
         title: "Delete failed",
-        description: "There was a problem deleting your profile picture",
+        description: error.message || "There was a problem deleting your profile picture",
         variant: "destructive"
       });
       return false;

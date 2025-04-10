@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useProfileData, ProfileData } from './useProfileData';
 import { useProfileUpdate } from './useProfileUpdate';
 import { useProfilePhoto } from './useProfilePhoto';

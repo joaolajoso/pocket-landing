@@ -13,37 +13,62 @@ export const useProfilePhoto = () => {
 
   // Upload profile photo
   const uploadProfilePhoto = async (file: File): Promise<string | null> => {
-    if (!user) return null;
+    if (!user) {
+      console.error('Cannot upload profile photo: User not authenticated');
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to upload a profile photo",
+        variant: "destructive"
+      });
+      return null;
+    }
     
     try {
       setLoading(true);
+      console.log('Starting profile photo upload for user:', user.id);
       
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file to path:', fileName);
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('profile_photos')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true
         });
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Error uploading profile photo:', uploadError);
+        throw uploadError;
+      }
+      
+      console.log('File uploaded successfully:', uploadData?.path);
       
       // Get public URL
       const { data } = supabase.storage
         .from('profile_photos')
         .getPublicUrl(fileName);
       
-      if (!data.publicUrl) throw new Error("Could not get public URL");
+      if (!data.publicUrl) {
+        console.error('Could not get public URL for uploaded file');
+        throw new Error("Could not get public URL");
+      }
+      
+      console.log('Got public URL:', data.publicUrl);
       
       // Update profile with new photo URL
       const success = await updateProfile({ 
         photo_url: data.publicUrl
       });
       
-      if (!success) throw new Error("Failed to update profile with new photo URL");
+      if (!success) {
+        console.error('Failed to update profile with new photo URL');
+        throw new Error("Failed to update profile with new photo URL");
+      }
+      
+      console.log('Profile updated with new photo URL');
       
       toast({
         title: "Photo updated",
@@ -56,7 +81,7 @@ export const useProfilePhoto = () => {
       console.error('Error uploading profile photo:', err);
       toast({
         title: "Error uploading photo",
-        description: err.message,
+        description: err.message || "There was a problem uploading your photo",
         variant: "destructive"
       });
       return null;
@@ -67,10 +92,19 @@ export const useProfilePhoto = () => {
   
   // Delete profile photo
   const deleteProfilePhoto = async (): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.error('Cannot delete profile photo: User not authenticated');
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to delete your profile photo",
+        variant: "destructive"
+      });
+      return false;
+    }
     
     try {
       setLoading(true);
+      console.log('Starting profile photo deletion for user:', user.id);
       
       // First check if user has a photo URL
       const { data: profileData, error: profileError } = await supabase
@@ -79,9 +113,13 @@ export const useProfilePhoto = () => {
         .eq('id', user.id)
         .single();
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error fetching profile data:', profileError);
+        throw profileError;
+      }
       
       if (!profileData.photo_url) {
+        console.log('No photo to delete');
         toast({
           title: "No photo to delete",
           description: "You don't have a profile photo to delete",
@@ -91,17 +129,26 @@ export const useProfilePhoto = () => {
       
       // Extract file path from URL
       const fileUrl = profileData.photo_url;
+      console.log('Extracting file path from URL:', fileUrl);
       const pathMatch = fileUrl.match(/\/([^/]+\/[^/]+)$/);
       
       if (pathMatch && pathMatch[1]) {
         const filePath = pathMatch[1];
+        console.log('Extracted file path:', filePath);
         
         // Delete the file from storage
         const { error: deleteError } = await supabase.storage
           .from('profile_photos')
           .remove([filePath]);
         
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error('Error deleting file from storage:', deleteError);
+          throw deleteError;
+        }
+        
+        console.log('File deleted from storage');
+      } else {
+        console.warn('Could not extract file path from URL:', fileUrl);
       }
       
       // Update profile to remove photo URL
@@ -109,7 +156,12 @@ export const useProfilePhoto = () => {
         photo_url: null
       });
       
-      if (!success) throw new Error("Failed to update profile after photo deletion");
+      if (!success) {
+        console.error('Failed to update profile after photo deletion');
+        throw new Error("Failed to update profile after photo deletion");
+      }
+      
+      console.log('Profile updated to remove photo URL');
       
       toast({
         title: "Photo deleted",
@@ -122,7 +174,7 @@ export const useProfilePhoto = () => {
       console.error('Error deleting profile photo:', err);
       toast({
         title: "Error deleting photo",
-        description: err.message,
+        description: err.message || "There was a problem deleting your profile photo",
         variant: "destructive"
       });
       return false;

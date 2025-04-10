@@ -35,6 +35,7 @@ export const ProfilePhotoUploader = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   const handleAvatarClick = () => {
     if (disabled || isUploading) return;
@@ -49,8 +50,11 @@ export const ProfilePhotoUploader = ({
     if (!files || files.length === 0) return;
     
     const file = files[0];
+    setUploadError(null);
     
+    // Validate file type
     if (!file.type.startsWith('image/')) {
+      setUploadError("Please upload an image file");
       toast({
         title: "Invalid file type",
         description: "Please upload an image file",
@@ -59,7 +63,9 @@ export const ProfilePhotoUploader = ({
       return;
     }
     
+    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
+      setUploadError("File size exceeds 2MB limit");
       toast({
         title: "File too large",
         description: "Please upload an image smaller than 2MB",
@@ -71,9 +77,23 @@ export const ProfilePhotoUploader = ({
     setIsUploading(true);
     
     try {
-      await onUpload(file);
+      console.log('Starting file upload process for file:', file.name);
+      const result = await onUpload(file);
+      
+      if (result) {
+        console.log('Upload successful:', result);
+      } else {
+        console.error('Upload failed: No URL returned');
+        setUploadError("Upload failed");
+      }
     } catch (error) {
       console.error('Error uploading profile picture:', error);
+      setUploadError("Upload failed due to an error");
+      toast({
+        title: "Upload failed",
+        description: "There was a problem uploading your profile picture",
+        variant: "destructive"
+      });
     } finally {
       setIsUploading(false);
       // Reset the input so the same file can be selected again
@@ -88,9 +108,16 @@ export const ProfilePhotoUploader = ({
     
     setIsDeleting(true);
     try {
-      await onDelete();
+      console.log('Starting photo deletion process');
+      const success = await onDelete();
+      console.log('Delete operation result:', success);
     } catch (error) {
       console.error('Error deleting profile picture:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was a problem deleting your profile picture",
+        variant: "destructive"
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -104,7 +131,6 @@ export const ProfilePhotoUploader = ({
         onChange={handleFileChange}
         accept="image/*"
         className="hidden"
-        capture="environment"
       />
       
       <div className="relative">
@@ -116,12 +142,24 @@ export const ProfilePhotoUploader = ({
           tabIndex={0}
         >
           <Avatar className="w-24 h-24">
-            <AvatarImage src={photoUrl} alt={displayName} />
+            <AvatarImage 
+              src={photoUrl} 
+              alt={displayName} 
+              onError={() => {
+                console.error('Failed to load image:', photoUrl);
+              }} 
+            />
             <AvatarFallback>
               {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </div>
+        
+        {uploadError && (
+          <div className="text-destructive text-xs mt-1">
+            {uploadError}
+          </div>
+        )}
         
         <div className="absolute -bottom-2 -right-2 flex gap-1">
           <Button 
