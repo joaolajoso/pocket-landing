@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from 'date-fns';
 
@@ -16,6 +17,12 @@ interface SourceData {
   count: number;
 }
 
+interface SupabaseResponse<T> {
+  data: T | null;
+  error: Error | null;
+}
+
+// Defining the color palette for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#a45de2'];
 
 const AnalyticsTab = () => {
@@ -46,17 +53,19 @@ const AnalyticsTab = () => {
       }
 
       // Process profile views data
-      const profileViewsData = profileViews.data.map((item: any) => ({
-        date: item.date,
-        views: item.views
-      }));
-      setAnalyticsData(profileViewsData);
-
-      // Process source data for profile views
-      setViewData(profileViews.data);
+      if (profileViews.data) {
+        const profileViewsData = profileViews.data.map((item: any) => ({
+          date: item.date,
+          views: item.views
+        }));
+        setAnalyticsData(profileViewsData);
+        setViewData(profileViews.data as SourceData[]);
+      }
 
       // Process source data for link clicks
-      setLinkData(linkClicks.data);
+      if (linkClicks.data) {
+        setLinkData(linkClicks.data as SourceData[]);
+      }
 
     } catch (error) {
       console.error("Error during data fetching:", error);
@@ -66,14 +75,14 @@ const AnalyticsTab = () => {
   };
 
   // Update the query calls with proper type arguments and null checks
-  const fetchProfileViews = async (dateFrom: string, dateTo: string) => {
+  const fetchProfileViews = async (dateFrom: string, dateTo: string): Promise<SupabaseResponse<any[]>> => {
     return await supabase.rpc('get_profile_views_by_date_range', {
       date_from: dateFrom,
       date_to: dateTo
     });
   };
 
-  const fetchLinkClicks = async (dateFrom: string, dateTo: string) => {
+  const fetchLinkClicks = async (dateFrom: string, dateTo: string): Promise<SupabaseResponse<any[]>> => {
     return await supabase.rpc('get_link_clicks_by_date_range', {
       date_from: dateFrom,
       date_to: dateTo
@@ -102,17 +111,21 @@ const AnalyticsTab = () => {
     return null;
   };
 
-  // Fix the referrer chart data
-  const referrerData = viewData ? viewData.filter(item => item.source !== null).map((item) => ({
-    source: item.source || 'Unknown',
-    count: item.count || 0
-  })) : [];
+  // Process the referrer chart data
+  const referrerData = viewData 
+    ? viewData.filter(item => item.source !== null).map((item) => ({
+        source: item.source || 'Unknown',
+        count: item.count || 0
+      })) 
+    : [];
 
-  // Fix the link clicks chart data
-  const linkClicksData = linkData ? linkData.filter(item => item.source !== null).map((item) => ({
-    source: item.source || 'Unknown',
-    count: item.count || 0
-  })) : [];
+  // Process the link clicks chart data
+  const linkClicksData = linkData 
+    ? linkData.filter(item => item.source !== null).map((item) => ({
+        source: item.source || 'Unknown',
+        count: item.count || 0
+      })) 
+    : [];
 
   return (
     <div className="space-y-6">

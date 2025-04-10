@@ -1,11 +1,13 @@
 
-import { LinkType } from "@/components/LinkCard";
+import { useState } from "react";
 import WelcomeHeader from "./overview/WelcomeHeader";
 import StatisticsCards from "./overview/StatisticsCards";
-import UserLinks from "./overview/UserLinks";
-import QuickActions from "./overview/QuickActions";
-import CompletionTasks from "./overview/CompletionTasks";
 import ProfileViewStats from "./overview/ProfileViewStats";
+import QuickActions from "./overview/QuickActions";
+import UserLinks from "./overview/UserLinks";
+import CompletionTasks from "./overview/CompletionTasks";
+import UserProfileForm from "./overview/UserProfileForm";
+import { LinkType } from "@/components/LinkCard";
 
 interface OverviewTabProps {
   userData: {
@@ -24,46 +26,61 @@ interface OverviewTabProps {
   onNavigateToTab: (tab: string) => void;
 }
 
-const OverviewTab = ({ 
-  userData, 
-  links, 
-  onOpenLinkEditor, 
+const OverviewTab = ({
+  userData,
+  links,
+  onOpenLinkEditor,
   onDeleteLink,
-  onNavigateToTab
+  onNavigateToTab,
 }: OverviewTabProps) => {
-  const firstName = userData.name.split(' ')[0];
+  const [isFormVisible, setIsFormVisible] = useState(false);
+
+  const handleNavigateToAnalytics = () => {
+    onNavigateToTab("analytics");
+  };
 
   return (
-    <div className="space-y-8">
-      <WelcomeHeader firstName={firstName} />
+    <div className="space-y-6">
+      <WelcomeHeader firstName={userData.name?.split(' ')[0] || ''} />
       
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-6">
-        <StatisticsCards 
-          onNavigateToAnalytics={() => onNavigateToTab('analytics')}
-        />
-      </div>
-      
-      {/* Profile View Stats */}
-      <ProfileViewStats />
-      
-      {/* Quick Actions & Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <UserLinks 
-          links={links} 
-          onOpenLinkEditor={onOpenLinkEditor} 
-          onDeleteLink={onDeleteLink}
-          onNavigateToLinksTab={() => onNavigateToTab('links')}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <StatisticsCards />
+          
+          <ProfileViewStats onNavigateToAnalytics={handleNavigateToAnalytics} />
+          
+          <UserLinks 
+            links={links} 
+            onAddLink={onOpenLinkEditor} 
+            onEditLink={onOpenLinkEditor}
+            onDeleteLink={onDeleteLink}
+          />
+        </div>
         
-        <QuickActions 
-          userData={userData} 
-          onOpenLinkEditor={() => onOpenLinkEditor()} 
-        />
+        <div className="space-y-6">
+          <QuickActions 
+            username={userData.username} 
+            onEditProfile={() => setIsFormVisible(true)} 
+            onAddLink={() => onOpenLinkEditor()}
+          />
+          
+          <CompletionTasks 
+            hasName={!!userData.name}
+            hasBio={!!userData.bio}
+            hasLinks={links.length > 0}
+            hasAvatar={!!userData.avatarUrl}
+            onEditProfile={() => setIsFormVisible(true)}
+            onAddLink={() => onOpenLinkEditor()}
+          />
+        </div>
       </div>
       
-      {/* Completion Tasks */}
-      <CompletionTasks onOpenLinkEditor={() => onOpenLinkEditor()} />
+      {isFormVisible && (
+        <UserProfileForm 
+          userData={userData}
+          onClose={() => setIsFormVisible(false)}
+        />
+      )}
     </div>
   );
 };

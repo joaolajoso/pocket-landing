@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,11 @@ interface StatisticCardProps {
   value: number;
   icon: React.ReactNode;
   className?: string;
+}
+
+interface SupabaseResponse<T> {
+  data: T | null;
+  error: Error | null;
 }
 
 const StatisticCard = ({ title, value, icon, className }: StatisticCardProps) => (
@@ -28,11 +34,11 @@ const StatisticsCards = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Update the queries with proper type arguments
-  const fetchTotalProfileViews = async () => {
+  const fetchTotalProfileViews = async (): Promise<SupabaseResponse<number>> => {
     return await supabase.rpc('get_total_profile_views');
   };
 
-  const fetchTotalLinkClicks = async () => {
+  const fetchTotalLinkClicks = async (): Promise<SupabaseResponse<number>> => {
     return await supabase.rpc('get_total_link_clicks');
   };
 
@@ -43,12 +49,12 @@ const StatisticsCards = () => {
         const profileViewsResult = await fetchTotalProfileViews();
         const linkClicksResult = await fetchTotalLinkClicks();
 
-        if (profileViewsResult.data) {
-          setTotalProfileViews(profileViewsResult.data as number);
+        if (profileViewsResult.data !== null) {
+          setTotalProfileViews(profileViewsResult.data);
         }
 
-        if (linkClicksResult.data) {
-          setTotalLinkClicks(linkClicksResult.data as number);
+        if (linkClicksResult.data !== null) {
+          setTotalLinkClicks(linkClicksResult.data);
         }
       } catch (error) {
         console.error("Error fetching statistics:", error);
