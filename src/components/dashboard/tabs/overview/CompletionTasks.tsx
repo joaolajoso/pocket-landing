@@ -15,7 +15,7 @@ const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksPro
   const { uploadProfilePhoto, refreshProfile } = useProfile();
   const { toast } = useToast();
   
-  const handleProfilePhotoUpload = async (file: File) => {
+  const handleProfilePhotoUpload = async (file: File): Promise<void> => {
     try {
       const photoUrl = await uploadProfilePhoto(file);
       
@@ -26,8 +26,6 @@ const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksPro
         });
         refreshProfile();
       }
-      
-      return photoUrl;
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       toast({
