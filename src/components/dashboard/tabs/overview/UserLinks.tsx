@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import LinkCard, { LinkType } from "@/components/LinkCard";
+import { useState, useEffect } from "react";
 
 interface UserLinksProps {
   links: LinkType[];
@@ -16,6 +17,41 @@ const UserLinks = ({
   onDeleteLink,
   onNavigateToLinksTab 
 }: UserLinksProps) => {
+  const [currentLinks, setCurrentLinks] = useState<LinkType[]>(links);
+
+  // Update when props change
+  useEffect(() => {
+    setCurrentLinks(links);
+  }, [links]);
+
+  const handleMoveUp = (linkId: string) => {
+    setCurrentLinks(prevLinks => {
+      const index = prevLinks.findIndex(link => link.id === linkId);
+      if (index <= 0) return prevLinks;
+      
+      const newLinks = [...prevLinks];
+      const temp = newLinks[index];
+      newLinks[index] = newLinks[index - 1];
+      newLinks[index - 1] = temp;
+      
+      return newLinks;
+    });
+  };
+
+  const handleMoveDown = (linkId: string) => {
+    setCurrentLinks(prevLinks => {
+      const index = prevLinks.findIndex(link => link.id === linkId);
+      if (index < 0 || index >= prevLinks.length - 1) return prevLinks;
+      
+      const newLinks = [...prevLinks];
+      const temp = newLinks[index];
+      newLinks[index] = newLinks[index + 1];
+      newLinks[index + 1] = temp;
+      
+      return newLinks;
+    });
+  };
+
   return (
     <Card className="md:col-span-2">
       <CardHeader>
@@ -25,13 +61,15 @@ const UserLinks = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        {links.length > 0 ? (
-          links.slice(0, 3).map(link => (
+        {currentLinks.length > 0 ? (
+          currentLinks.slice(0, 3).map(link => (
             <LinkCard
               key={link.id}
               link={link}
               onEdit={onOpenLinkEditor}
               onDelete={onDeleteLink}
+              onMoveUp={handleMoveUp}
+              onMoveDown={handleMoveDown}
               isEditable={true}
             />
           ))

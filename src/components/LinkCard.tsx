@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, ExternalLink, ArrowUpDown } from "lucide-react";
+import { Trash2, Edit, ExternalLink, MoveUp, MoveDown } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CSSProperties } from "react";
 
@@ -17,11 +17,13 @@ interface LinkCardProps {
   link: LinkType;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
+  onMoveUp?: (id: string) => void;
+  onMoveDown?: (id: string) => void;
   isEditable: boolean;
   style?: CSSProperties;
 }
 
-const LinkCard = ({ link, onDelete, onEdit, isEditable, style = {} }: LinkCardProps) => {
+const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, style = {} }: LinkCardProps) => {
   const [alertOpen, setAlertOpen] = useState(false);
   
   const handleDelete = () => {
@@ -62,9 +64,16 @@ const LinkCard = ({ link, onDelete, onEdit, isEditable, style = {} }: LinkCardPr
         
         {isEditable ? (
           <div className="flex gap-1 ml-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            {onMoveUp && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMoveUp(link.id)}>
+                <MoveUp className="h-4 w-4" />
+              </Button>
+            )}
+            {onMoveDown && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMoveDown(link.id)}>
+                <MoveDown className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleEdit}>
               <Edit className="h-4 w-4" />
             </Button>

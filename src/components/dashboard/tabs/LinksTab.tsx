@@ -37,6 +37,34 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
     avatarUrl: profile?.photo_url || '',
   };
 
+  const handleMoveUp = (linkId: string) => {
+    setCurrentLinks(prevLinks => {
+      const index = prevLinks.findIndex(link => link.id === linkId);
+      if (index <= 0) return prevLinks;
+      
+      const newLinks = [...prevLinks];
+      const temp = newLinks[index];
+      newLinks[index] = newLinks[index - 1];
+      newLinks[index - 1] = temp;
+      
+      return newLinks;
+    });
+  };
+
+  const handleMoveDown = (linkId: string) => {
+    setCurrentLinks(prevLinks => {
+      const index = prevLinks.findIndex(link => link.id === linkId);
+      if (index < 0 || index >= prevLinks.length - 1) return prevLinks;
+      
+      const newLinks = [...prevLinks];
+      const temp = newLinks[index];
+      newLinks[index] = newLinks[index + 1];
+      newLinks[index + 1] = temp;
+      
+      return newLinks;
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -63,6 +91,8 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
                       link={link}
                       onEdit={onOpenLinkEditor}
                       onDelete={onDeleteLink}
+                      onMoveUp={handleMoveUp}
+                      onMoveDown={handleMoveDown}
                       isEditable={true}
                     />
                   ))}
