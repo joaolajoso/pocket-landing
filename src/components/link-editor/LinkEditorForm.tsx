@@ -8,6 +8,7 @@ import LinkTypeSelect from "./form/LinkTypeSelect";
 import TitleInput from "./form/TitleInput";
 import UrlInput from "./form/UrlInput";
 import FormFooter from "./form/FormFooter";
+import { useToast } from "@/hooks/use-toast";
 
 interface LinkEditorFormProps {
   onSave: (link: Omit<LinkType, "id"> & {id?: string, section?: string}) => void;
@@ -19,11 +20,22 @@ interface LinkEditorFormProps {
 export const LinkEditorForm = ({ onSave, onCancel, editingLink, sections = [] }: LinkEditorFormProps) => {
   const { formData, handleChange, handleSelectChange, handleSectionChange } = useFormState(editingLink, sections);
   const { errors, clearError, validateForm } = useFormValidation();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm(formData.title, formData.url, formData.type)) return;
+    if (!validateForm(formData.title, formData.url, formData.type)) {
+      // Show toast for validation errors
+      if (errors.title || errors.url) {
+        toast({
+          title: "Validation Error",
+          description: errors.title || errors.url,
+          variant: "destructive"
+        });
+      }
+      return;
+    }
     
     // Format email as mailto if needed
     let url = formData.url;
@@ -37,7 +49,7 @@ export const LinkEditorForm = ({ onSave, onCancel, editingLink, sections = [] }:
       id: editingLink?.id,
       title: formData.title,
       url: url,
-      icon: selectedType.icon,
+      icon: selectedType.id || selectedType.icon,
       section: formData.section
     });
   };

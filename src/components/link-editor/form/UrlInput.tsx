@@ -27,8 +27,14 @@ const UrlInput = ({ url, error, type, onChange }: UrlInputProps) => {
             ? "e.g. your@email.com"
             : "e.g. https://example.com"
         }
+        className="w-full truncate"
       />
       {error && <p className="text-destructive text-sm">{error}</p>}
+      {url && url.length > 40 && (
+        <p className="text-xs text-muted-foreground break-all">
+          {url}
+        </p>
+      )}
     </div>
   );
 };

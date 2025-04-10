@@ -54,8 +54,10 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
         case 'linkedin':
           return <Linkedin className="h-4 w-4" />;
         case 'globe':
+        case 'website':
           return <Globe className="h-4 w-4" />;
         case 'mail':
+        case 'email':
           return <Mail className="h-4 w-4" />;
         case 'user':
         default:
@@ -75,8 +77,8 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
           style={!isEditable ? style : {}}
         >
           {renderIcon()}
-          <div className="flex-1 min-w-0 max-w-[calc(100%-60px)]">
-            <div className="font-medium truncate">{link.title}</div>
+          <div className="flex-1 min-w-0 max-w-full">
+            <div className="font-medium truncate">{link.title || 'Untitled Link'}</div>
             <div className="text-sm text-muted-foreground truncate">{link.url}</div>
           </div>
         </div>
@@ -106,7 +108,7 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will permanently delete the link to "{link.title}".
+                    This will permanently delete the link to "{link.title || 'this link'}".
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

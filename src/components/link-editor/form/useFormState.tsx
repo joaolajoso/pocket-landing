@@ -26,12 +26,15 @@ export const useFormState = (
       // Find the type based on icon
       const iconType = linkTypes.find(type => {
         // This is a simple comparison, might need refinement
+        if (typeof editingLink.icon === 'string') {
+          return type.id === editingLink.icon;
+        }
         return JSON.stringify(type.icon) === JSON.stringify(editingLink.icon);
       });
 
       setFormData({
-        title: editingLink.title,
-        url: editingLink.url,
+        title: editingLink.title || "",
+        url: editingLink.url || "",
         type: iconType?.id || "other",
         section: editingLink.section || ""
       });

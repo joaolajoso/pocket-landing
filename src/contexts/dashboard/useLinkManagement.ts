@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { LinkType } from "@/components/LinkCard";
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +35,7 @@ export const useLinkManagement = (
           id: "website-link",
           title: "Website",
           url: profile.website.startsWith('http') ? profile.website : `https://${profile.website}`,
-          icon: "globe"
+          icon: "website"
         });
       }
       
@@ -43,7 +44,7 @@ export const useLinkManagement = (
           id: "email-link",
           title: "Email",
           url: `mailto:${profile.email}`,
-          icon: "mail"
+          icon: "email"
         });
       }
       
@@ -69,9 +70,9 @@ export const useLinkManagement = (
 
   const getIconForLinkType = (type: string): string => {
     if (type === 'linkedin') return "linkedin";
-    if (type === 'website') return "globe";
-    if (type === 'email') return "mail";
-    return "user";
+    if (type === 'website') return "website";
+    if (type === 'email') return "email";
+    return "website"; // Default to website icon
   };
 
   // Link Management Functions
@@ -95,22 +96,30 @@ export const useLinkManagement = (
         else if (linkType === 'website') fieldToUpdate = 'website';
         else if (linkType === 'email') fieldToUpdate = 'email';
       } else {
-        const title = linkData.title.toLowerCase();
-        
-        if (title.includes('linkedin')) {
-          fieldToUpdate = 'linkedin';
-          linkType = 'linkedin';
-        } else if (title.includes('website') || title.includes('portfolio')) {
-          fieldToUpdate = 'website';
-          linkType = 'website';
-        } else if (title.includes('email')) {
-          fieldToUpdate = 'email';
-          linkType = 'email';
-        }
-        
-        if (!fieldToUpdate) {
-          fieldToUpdate = 'website';
-          linkType = 'website';
+        // New link being created - determine type based on icon or title
+        if (typeof linkData.icon === 'string') {
+          linkType = linkData.icon;
+          if (linkType === 'linkedin') fieldToUpdate = 'linkedin';
+          else if (linkType === 'website' || linkType === 'globe') fieldToUpdate = 'website';
+          else if (linkType === 'email' || linkType === 'mail') fieldToUpdate = 'email';
+        } else {
+          // Fallback to title-based detection
+          const title = linkData.title.toLowerCase();
+          
+          if (title.includes('linkedin')) {
+            fieldToUpdate = 'linkedin';
+            linkType = 'linkedin';
+          } else if (title.includes('website') || title.includes('portfolio')) {
+            fieldToUpdate = 'website';
+            linkType = 'website';
+          } else if (title.includes('email')) {
+            fieldToUpdate = 'email';
+            linkType = 'email';
+          } else {
+            // Default to website if nothing else matches
+            fieldToUpdate = 'website';
+            linkType = 'website';
+          }
         }
       }
       
@@ -121,7 +130,7 @@ export const useLinkManagement = (
         url = `https://${url}`;
       }
       
-      console.log(`Saving link type: ${linkType}, field: ${fieldToUpdate}, url: ${url}`);
+      console.log(`Saving link type: ${linkType}, field: ${fieldToUpdate}, url: ${url}, title: ${linkData.title}`);
       
       if (fieldToUpdate) {
         const { error } = await supabase
@@ -138,6 +147,7 @@ export const useLinkManagement = (
         const newLink = {
           ...linkData,
           id: newLinkId,
+          title: linkData.title,
           url: url,
           icon: getIconForLinkType(fieldToUpdate)
         } as LinkType;
