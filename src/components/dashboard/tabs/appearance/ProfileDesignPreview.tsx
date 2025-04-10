@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LinkType } from "@/components/LinkCard";
 import { ProfileDesignSettings } from "@/hooks/profile/useProfileDesign";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Linkedin, Globe, Mail, User } from "lucide-react";
 
 interface ProfileDesignPreviewProps {
   userData: {
@@ -141,6 +140,24 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
     };
   }, [designSettings]);
 
+  // Render the appropriate icon based on the icon type
+  const renderIcon = (icon: string | React.ReactNode) => {
+    if (typeof icon === 'string') {
+      switch (icon) {
+        case 'linkedin':
+          return <Linkedin className="h-4 w-4" />;
+        case 'globe':
+          return <Globe className="h-4 w-4" />;
+        case 'mail':
+          return <Mail className="h-4 w-4" />;
+        case 'user':
+        default:
+          return <User className="h-4 w-4" />;
+      }
+    }
+    return icon;
+  };
+
   return (
     <Card className="overflow-hidden h-[520px] shadow-md border">
       <style>{cssStyles}</style>
@@ -164,7 +181,7 @@ const ProfileDesignPreview = ({ userData, links, designSettings }: ProfileDesign
             {links.map(link => (
               <div key={link.id} className="link-card">
                 <div className="link-title">
-                  {link.icon && <span className="link-icon">{link.icon}</span>}
+                  {link.icon && <span className="link-icon">{renderIcon(link.icon)}</span>}
                   <span>{link.title}</span>
                 </div>
                 <ExternalLink className="external-icon h-4 w-4" />

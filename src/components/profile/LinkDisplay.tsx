@@ -1,8 +1,7 @@
-
 import { LinkType } from '@/components/LinkCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Linkedin, Globe, Mail, User } from 'lucide-react';
 import { incrementLinkClick } from '@/lib/supabase';
 import { useProfileDesign } from '@/hooks/profile/useProfileDesign';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,6 +62,24 @@ const LinkDisplay = ({ link, onClick, profileId, designSettings }: LinkDisplayPr
     }
   };
 
+  // Render the appropriate icon based on the icon type
+  const renderIcon = () => {
+    if (typeof link.icon === 'string') {
+      switch (link.icon) {
+        case 'linkedin':
+          return <Linkedin className="h-4 w-4" />;
+        case 'globe':
+          return <Globe className="h-4 w-4" />;
+        case 'mail':
+          return <Mail className="h-4 w-4" />;
+        case 'user':
+        default:
+          return <User className="h-4 w-4" />;
+      }
+    }
+    return link.icon;
+  };
+
   return (
     <Card
       className="w-full hover:shadow-md transition-shadow cursor-pointer link-card-container p-4"
@@ -75,7 +92,9 @@ const LinkDisplay = ({ link, onClick, profileId, designSettings }: LinkDisplayPr
     >
       <CardContent className="p-0 flex items-center justify-between">
         <div className={`flex items-center gap-3 link-title ${settings?.button_icon_position === 'right' ? 'flex-row-reverse' : 'flex-row'} flex-1 min-w-0`}>
-          {link.icon && <div style={{ color: "var(--profile-button-icon, white)" }} className="link-icon shrink-0">{link.icon}</div>}
+          <div style={{ color: "var(--profile-button-icon, white)" }} className="link-icon shrink-0">
+            {renderIcon()}
+          </div>
           <div className="flex-1 min-w-0">
             <div className="truncate" style={{ color: "var(--profile-button-text, white)" }}>{link.title}</div>
           </div>

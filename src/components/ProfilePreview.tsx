@@ -206,10 +206,6 @@ const ProfilePreview = ({
     if (!initialProfile.links) return [];
     
     return initialProfile.links.map(link => {
-      if (typeof link.icon !== 'string') {
-        return link;
-      }
-      
       return {
         ...link
       };
@@ -217,10 +213,7 @@ const ProfilePreview = ({
   }, [initialProfile.links]);
   
   return (
-    <div 
-      className={`flex flex-col items-center max-w-md mx-auto w-full ${profileClass}`}
-      style={getContainerStyle()}
-    >
+    <div>
       {isPreview && (
         <div className="w-full bg-primary/10 text-primary px-4 py-2 text-center text-sm rounded-lg mb-8">
           Preview Mode - This is how your profile will look at {profile.username ? getProfileUrl(profile.username) : 'your PocketCV page'}
