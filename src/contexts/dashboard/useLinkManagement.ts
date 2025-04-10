@@ -1,78 +1,22 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useState, useEffect } from "react";
 import { LinkType } from "@/components/LinkCard";
 import { useToast } from "@/hooks/use-toast";
-import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Linkedin, Globe, Mail, User } from "lucide-react";
+import { ProfileData } from "@/hooks/profile/useProfileData";
 
-// Define the shape of our context
-interface DashboardContextType {
-  links: LinkType[];
-  userData: {
-    id: string;
-    name: string;
-    bio: string;
-    email: string;
-    avatarUrl: string;
-    username: string;
-    profileViews: number;
-    totalClicks: number;
-  };
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  isLinkEditorOpen: boolean;
-  openLinkEditor: (linkId?: string) => void;
-  closeLinkEditor: () => void;
-  currentEditingLink: LinkType | undefined;
-  saveLink: (linkData: Omit<LinkType, "id"> & { id?: string }) => Promise<void>;
-  deleteLink: (linkId: string) => Promise<void>;
-  refreshData: () => void;
-  profileLoading: boolean;
-}
-
-// Create the context with a default value
-const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
-
-// Provider component
-export function DashboardProvider({ children }: { children: ReactNode }) {
+export const useLinkManagement = (
+  profile: ProfileData | null,
+  refreshProfile: () => void
+) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { profile, loading: profileLoading, refreshProfile } = useProfile();
-  
-  // State
   const [links, setLinks] = useState<LinkType[]>([]);
-  const [userData, setUserData] = useState({
-    id: "",
-    name: "",
-    bio: "",
-    email: "",
-    avatarUrl: "",
-    username: "",
-    profileViews: 0,
-    totalClicks: 0,
-  });
-  const [activeTab, setActiveTab] = useState("overview");
   const [isLinkEditorOpen, setIsLinkEditorOpen] = useState(false);
   const [currentEditingLink, setCurrentEditingLink] = useState<LinkType | undefined>(undefined);
 
-  // Update user data when profile is loaded
-  useEffect(() => {
-    if (profile && user) {
-      setUserData({
-        id: user.id || "",
-        name: profile.name || "",
-        bio: profile.bio || "",
-        email: profile.email || user.email || "",
-        avatarUrl: profile.photo_url || "",
-        username: profile.slug || "",
-        profileViews: 0,
-        totalClicks: 0,
-      });
-    }
-  }, [profile, user]);
-  
   // Fetch links from profile data
   useEffect(() => {
     if (profile) {
@@ -123,6 +67,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const closeLinkEditor = () => {
     setIsLinkEditorOpen(false);
     setCurrentEditingLink(undefined);
+  };
+
+  const getIconForLinkType = (type: string) => {
+    if (type === 'linkedin') return <Linkedin className="h-4 w-4" />;
+    if (type === 'website') return <Globe className="h-4 w-4" />;
+    if (type === 'email') return <Mail className="h-4 w-4" />;
+    return <User className="h-4 w-4" />;
   };
 
   // Link Management Functions
@@ -284,45 +235,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const getIconForLinkType = (type: string) => {
-    if (type === 'linkedin') return <Linkedin className="h-4 w-4" />;
-    if (type === 'website') return <Globe className="h-4 w-4" />;
-    if (type === 'email') return <Mail className="h-4 w-4" />;
-    return <User className="h-4 w-4" />;
-  };
-
-  const refreshData = () => {
-    refreshProfile();
-  };
-
-  // Provide the context value
-  const contextValue = {
+  return {
     links,
-    userData,
-    activeTab,
-    setActiveTab,
     isLinkEditorOpen,
+    currentEditingLink,
     openLinkEditor,
     closeLinkEditor,
-    currentEditingLink,
     saveLink,
-    deleteLink,
-    refreshData,
-    profileLoading
+    deleteLink
   };
-
-  return (
-    <DashboardContext.Provider value={contextValue}>
-      {children}
-    </DashboardContext.Provider>
-  );
-}
-
-// Custom hook to use the dashboard context
-export const useDashboard = () => {
-  const context = useContext(DashboardContext);
-  if (context === undefined) {
-    throw new Error("useDashboard must be used within a DashboardProvider");
-  }
-  return context;
 };

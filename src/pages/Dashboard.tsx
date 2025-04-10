@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import LinkEditor from "@/components/LinkEditor";
 import Footer from "@/components/Footer";
-import { DashboardProvider, useDashboard } from "@/contexts/DashboardContext";
+import { DashboardProvider, useDashboard } from "@/contexts/dashboard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import MobileNavigation from "@/components/dashboard/MobileNavigation";

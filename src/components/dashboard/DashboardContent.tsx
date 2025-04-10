@@ -1,5 +1,5 @@
 
-import { useDashboard } from "@/contexts/DashboardContext";
+import { useDashboard } from "@/contexts/dashboard";
 import OverviewTab from "./tabs/OverviewTab";
 import LinksTab from "./tabs/LinksTab";
 import NetworkTab from "./tabs/NetworkTab";
