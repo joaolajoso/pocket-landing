@@ -6,40 +6,53 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from 'date-fns';
+import { DateRange } from "react-day-picker";
 
-interface AnalyticsData {
+const COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884d8',
+  '#a45de2'
+];
+
+interface ProfileView {
   date: string;
   views: number;
+  source?: string;
+  count?: number;
 }
 
-interface SourceData {
-  source: string;
-  count: number;
+interface LinkClick {
+  date: string;
+  clicks: number;
+  source?: string;
+  count?: number;
 }
-
-interface SupabaseResponse<T> {
-  data: T | null;
-  error: Error | null;
-}
-
-// Defining the color palette for charts
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#a45de2'];
 
 const AnalyticsTab = () => {
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(new Date().setDate(new Date().getDate() - 7)),
-    to: new Date(),
+    to: new Date()
   });
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
-  const [viewData, setViewData] = useState<SourceData[] | null>(null);
-  const [linkData, setLinkData] = useState<SourceData[] | null>(null);
+  
+  const [analyticsData, setAnalyticsData] = useState<Array<{ date: string, views: number }>>([]);
+  const [viewData, setViewData] = useState<ProfileView[] | null>(null);
+  const [linkData, setLinkData] = useState<LinkClick[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Function to fetch analytics data from Supabase
   const fetchData = async () => {
     setLoading(true);
-    const fromDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd');
-    const toDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    
+    const fromDate = dateRange?.from 
+      ? format(dateRange.from, 'yyyy-MM-dd') 
+      : format(new Date(new Date().setDate(new Date().getDate() - 7)), 'yyyy-MM-dd');
+    
+    const toDate = dateRange?.to 
+      ? format(dateRange.to, 'yyyy-MM-dd') 
+      : format(new Date(), 'yyyy-MM-dd');
 
     try {
       const [profileViews, linkClicks] = await Promise.all([
@@ -53,20 +66,18 @@ const AnalyticsTab = () => {
       }
 
       // Process profile views data
-      if (profileViews.data) {
-        const profileViewsData = profileViews.data.map((item: any) => ({
-          date: item.date,
-          views: item.views
-        }));
-        setAnalyticsData(profileViewsData);
-        setViewData(profileViews.data as SourceData[]);
-      }
-
+      const profileViewsData = profileViews.data?.map((item: ProfileView) => ({
+        date: item.date,
+        views: item.views
+      })) || [];
+      
+      setAnalyticsData(profileViewsData);
+      
+      // Process source data for profile views
+      setViewData(profileViews.data || []);
+      
       // Process source data for link clicks
-      if (linkClicks.data) {
-        setLinkData(linkClicks.data as SourceData[]);
-      }
-
+      setLinkData(linkClicks.data || []);
     } catch (error) {
       console.error("Error during data fetching:", error);
     } finally {
@@ -75,14 +86,14 @@ const AnalyticsTab = () => {
   };
 
   // Update the query calls with proper type arguments and null checks
-  const fetchProfileViews = async (dateFrom: string, dateTo: string): Promise<SupabaseResponse<any[]>> => {
+  const fetchProfileViews = async (dateFrom: string, dateTo: string) => {
     return await supabase.rpc('get_profile_views_by_date_range', {
       date_from: dateFrom,
       date_to: dateTo
     });
   };
 
-  const fetchLinkClicks = async (dateFrom: string, dateTo: string): Promise<SupabaseResponse<any[]>> => {
+  const fetchLinkClicks = async (dateFrom: string, dateTo: string) => {
     return await supabase.rpc('get_link_clicks_by_date_range', {
       date_from: dateFrom,
       date_to: dateTo
@@ -111,20 +122,24 @@ const AnalyticsTab = () => {
     return null;
   };
 
-  // Process the referrer chart data
+  // Fix the referrer chart data
   const referrerData = viewData 
-    ? viewData.filter(item => item.source !== null).map((item) => ({
-        source: item.source || 'Unknown',
-        count: item.count || 0
-      })) 
+    ? viewData
+        .filter((item) => item.source !== null)
+        .map((item) => ({
+          source: item.source || 'Unknown',
+          count: item.count || 0
+        })) 
     : [];
 
-  // Process the link clicks chart data
+  // Fix the link clicks chart data
   const linkClicksData = linkData 
-    ? linkData.filter(item => item.source !== null).map((item) => ({
-        source: item.source || 'Unknown',
-        count: item.count || 0
-      })) 
+    ? linkData
+        .filter((item) => item.source !== null)
+        .map((item) => ({
+          source: item.source || 'Unknown',
+          count: item.count || 0
+        })) 
     : [];
 
   return (
@@ -133,7 +148,7 @@ const AnalyticsTab = () => {
         <h1 className="text-2xl font-bold">Analytics</h1>
         <p className="text-muted-foreground">Track your profile performance over time</p>
       </div>
-
+      
       <Card>
         <CardHeader>
           <CardTitle>Profile Views</CardTitle>
@@ -143,25 +158,37 @@ const AnalyticsTab = () => {
           <div className="flex justify-between items-center mb-4">
             <div>
               <Label>Date Range</Label>
-              <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+              <DateRangePicker 
+                date={dateRange} 
+                onDateChange={setDateRange}
+              />
             </div>
           </div>
+          
           {loading ? (
             <div className="text-center">Loading...</div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={analyticsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <AreaChart
+                data={analyticsData}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tickFormatter={formatDate} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="views" stroke="#8884d8" fill="#8884d8" />
+                <Area
+                  type="monotone"
+                  dataKey="views"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                />
               </AreaChart>
             </ResponsiveContainer>
           )}
         </CardContent>
       </Card>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -184,11 +211,9 @@ const AnalyticsTab = () => {
                     fill="#8884d8"
                     label
                   >
-                    {
-                      referrerData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))
-                    }
+                    {referrerData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>
@@ -196,7 +221,7 @@ const AnalyticsTab = () => {
             )}
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader>
             <CardTitle>Referrers for Link Clicks</CardTitle>
@@ -218,11 +243,9 @@ const AnalyticsTab = () => {
                     fill="#82ca9d"
                     label
                   >
-                    {
-                      linkClicksData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))
-                    }
+                    {linkClicksData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>

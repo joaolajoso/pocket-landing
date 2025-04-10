@@ -18,10 +18,11 @@ interface QuickActionsProps {
     username: string;
     avatarUrl: string;
   };
+  onEditProfile: () => void;
   onOpenLinkEditor: () => void;
 }
 
-const QuickActions = ({ userData, onOpenLinkEditor }: QuickActionsProps) => {
+const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor }: QuickActionsProps) => {
   const { toast } = useToast();
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
@@ -91,7 +92,7 @@ const QuickActions = ({ userData, onOpenLinkEditor }: QuickActionsProps) => {
         
         <Sheet>
           <SheetTrigger asChild>
-            <Button className="w-full justify-start" variant="outline">
+            <Button className="w-full justify-start" variant="outline" onClick={onEditProfile}>
               <Edit3 className="mr-2 h-4 w-4" />
               Edit Profile
             </Button>

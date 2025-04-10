@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { LinkIcon, Mail, User } from "lucide-react";
 
 interface CompletionTasksProps {
+  onEditProfile: () => void;
   onOpenLinkEditor: () => void;
 }
 
-const CompletionTasks = ({ onOpenLinkEditor }: CompletionTasksProps) => {
+const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksProps) => {
   return (
     <Card>
       <CardHeader>
@@ -28,7 +29,7 @@ const CompletionTasks = ({ onOpenLinkEditor }: CompletionTasksProps) => {
                 <p className="text-sm text-muted-foreground">Help others recognize you</p>
               </div>
             </div>
-            <Button size="sm">Upload</Button>
+            <Button size="sm" onClick={onEditProfile}>Upload</Button>
           </div>
           
           <div className="flex items-center justify-between p-4 rounded-lg border">

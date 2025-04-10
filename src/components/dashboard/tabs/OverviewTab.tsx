@@ -6,7 +6,7 @@ import ProfileViewStats from "./overview/ProfileViewStats";
 import QuickActions from "./overview/QuickActions";
 import UserLinks from "./overview/UserLinks";
 import CompletionTasks from "./overview/CompletionTasks";
-import UserProfileForm from "./overview/UserProfileForm";
+import { UserProfileForm } from "./overview/UserProfileForm";
 import { LinkType } from "@/components/LinkCard";
 
 interface OverviewTabProps {
@@ -39,6 +39,10 @@ const OverviewTab = ({
     onNavigateToTab("analytics");
   };
 
+  const handleNavigateToLinksTab = () => {
+    onNavigateToTab("links");
+  };
+
   return (
     <div className="space-y-6">
       <WelcomeHeader firstName={userData.name?.split(' ')[0] || ''} />
@@ -51,26 +55,22 @@ const OverviewTab = ({
           
           <UserLinks 
             links={links} 
-            onAddLink={onOpenLinkEditor} 
-            onEditLink={onOpenLinkEditor}
+            onNavigateToLinksTab={handleNavigateToLinksTab}
+            onOpenLinkEditor={onOpenLinkEditor}
             onDeleteLink={onDeleteLink}
           />
         </div>
         
         <div className="space-y-6">
           <QuickActions 
-            username={userData.username} 
+            userData={userData}
             onEditProfile={() => setIsFormVisible(true)} 
-            onAddLink={() => onOpenLinkEditor()}
+            onOpenLinkEditor={() => onOpenLinkEditor()}
           />
           
           <CompletionTasks 
-            hasName={!!userData.name}
-            hasBio={!!userData.bio}
-            hasLinks={links.length > 0}
-            hasAvatar={!!userData.avatarUrl}
             onEditProfile={() => setIsFormVisible(true)}
-            onAddLink={() => onOpenLinkEditor()}
+            onOpenLinkEditor={() => onOpenLinkEditor()}
           />
         </div>
       </div>
