@@ -34,6 +34,22 @@ interface AnalyticsData {
   totalClicks: number;
 }
 
+// Define the types for Supabase RPC responses
+interface ViewByDayResponse {
+  date: string;
+  count: string | number;
+}
+
+interface LinkClickResponse {
+  link_type: string;
+  count: string | number;
+}
+
+interface ReferrerResponse {
+  source: string;
+  count: string | number;
+}
+
 const AnalyticsTab = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState({
@@ -57,7 +73,7 @@ const AnalyticsTab = () => {
       
       try {
         // Get profile view count by day
-        const { data: viewData, error: viewError } = await supabase.rpc(
+        const { data: viewData, error: viewError } = await supabase.rpc<ViewByDayResponse>(
           'get_profile_views_by_day',
           { user_id_param: user.id as string }
         );
@@ -65,19 +81,18 @@ const AnalyticsTab = () => {
         if (viewError) throw viewError;
         
         // Get link click data
-        const { data: linkData, error: linkError } = await supabase.rpc(
+        const { data: linkData, error: linkError } = await supabase.rpc<LinkClickResponse>(
           'get_link_clicks_by_type',
           { user_id_param: user.id as string }
         );
         
         if (linkError) throw linkError;
         
-        // Get referrers data
+        // Get referrers data - using select query with count aggregation
         const { data: referrersData, error: referrersError } = await supabase
           .from('profile_views')
-          .select('source, count')
+          .select('source, count(*)')
           .eq('profile_id', user.id)
-          .group('source')
           .order('count', { ascending: false })
           .limit(5);
         
@@ -85,21 +100,21 @@ const AnalyticsTab = () => {
         
         // Process data
         const formattedViewData: ViewData[] = Array.isArray(viewData) ? viewData.map((d) => ({
-          date: d && new Date(d.date).toLocaleDateString('en-US', {
+          date: d && d.date ? new Date(d.date).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
-          }),
-          count: d ? Number(d.count) : 0
+          }) : '',
+          count: d && d.count ? Number(d.count) : 0
         })) : [];
         
         const formattedLinkData: LinkData[] = Array.isArray(linkData) ? linkData.map((d) => ({
           name: d && d.link_type ? d.link_type : 'Unknown',
-          clicks: d ? Number(d.count) : 0
+          clicks: d && d.count ? Number(d.count) : 0
         })) : [];
         
         const formattedRefData: ReferrerData[] = Array.isArray(referrersData) ? referrersData.map((d) => ({
           name: d && d.source ? d.source : 'Direct',
-          count: d ? Number(d.count) : 0
+          count: d && d.count ? Number(d.count) : 0
         })) : [];
         
         // Calculate totals

@@ -11,6 +11,10 @@ interface StatisticsCardsProps {
   onNavigateToAnalytics?: () => void;
 }
 
+interface StatCount {
+  count: number;
+}
+
 export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -26,7 +30,7 @@ export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps)
       
       try {
         // Get profile view count
-        const { data: viewData, error: viewError } = await supabase.rpc(
+        const { data: viewData, error: viewError } = await supabase.rpc<StatCount>(
           'get_profile_view_count',
           { user_id_param: user.id as string }
         );
@@ -37,7 +41,7 @@ export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps)
         }
         
         // Get link click count
-        const { data: clickData, error: clickError } = await supabase.rpc(
+        const { data: clickData, error: clickError } = await supabase.rpc<StatCount>(
           'get_total_link_clicks',
           { user_id_param: user.id as string }
         );
@@ -48,8 +52,8 @@ export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps)
         }
         
         setStats({
-          views: viewData || 0,
-          clicks: clickData || 0
+          views: viewData !== null ? Number(viewData) : 0,
+          clicks: clickData !== null ? Number(clickData) : 0
         });
       } catch (error) {
         console.error('Error fetching analytics data:', error);

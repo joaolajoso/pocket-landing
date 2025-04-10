@@ -1,7 +1,7 @@
 
 import { LinkType } from "@/components/LinkCard";
 import WelcomeHeader from "./overview/WelcomeHeader";
-import { StatisticsCards } from "./overview/StatisticsCards";
+import StatisticsCards from "./overview/StatisticsCards";
 import UserLinks from "./overview/UserLinks";
 import QuickActions from "./overview/QuickActions";
 import CompletionTasks from "./overview/CompletionTasks";
