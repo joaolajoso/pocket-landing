@@ -66,9 +66,18 @@ const StatisticsCards = () => {
           setProfileViews(viewsCount || 0);
         }
         
-        // For now, we'll use a placeholder for link clicks since there's no table for it yet
-        // In a real implementation, you'd fetch from a link_clicks table
-        setLinkClicks(0);  // Placeholder
+        // Fetch link clicks from profile_views table where source starts with "click:"
+        const { count: clicksCount, error: clicksError } = await supabase
+          .from("profile_views")
+          .select("*", { count: "exact", head: false })
+          .eq("profile_id", user.id)
+          .like("source", "click:%");
+        
+        if (clicksError) {
+          console.error("Error fetching link clicks:", clicksError);
+        } else {
+          setLinkClicks(clicksCount || 0);
+        }
         
       } catch (error) {
         console.error("Error fetching stats:", error);

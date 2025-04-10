@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,59 +19,16 @@ interface LinksTabProps {
 
 const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, refreshProfile } = useProfile();
   const { settings } = useProfileDesign();
   const [saving, setSaving] = useState(false);
   const [currentLinks, setCurrentLinks] = useState<LinkType[]>(links);
 
-  const handleSaveProfile = async (linkData: LinkType) => {
-    if (!user) {
-      toast({
-        title: "Not logged in",
-        description: "You must be logged in to save links",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSaving(true);
-    try {
-      // Update the profile with the new link data
-      const linkField = getLinkFieldName(linkData);
-      
-      if (linkField) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ [linkField]: linkData.url })
-          .eq('id', user.id);
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Link updated",
-          description: `Your ${linkData.title} link has been updated.`
-        });
-      }
-    } catch (error) {
-      console.error('Error saving link:', error);
-      toast({
-        title: "Error saving link",
-        description: "There was a problem updating your profile link",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Helper function to map link types to profile fields
-  const getLinkFieldName = (link: LinkType): string | null => {
-    const type = link.id.split('-')[0];
-    if (type === 'linkedin') return 'linkedin';
-    if (type === 'website') return 'website';
-    if (type === 'email') return 'email';
-    return null;
-  };
+  // Update current links when props change
+  useEffect(() => {
+    setCurrentLinks(links);
+    console.log("Links updated in LinksTab:", links);
+  }, [links]);
 
   // Create user data for the preview
   const userData = {

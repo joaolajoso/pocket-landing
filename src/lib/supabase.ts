@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Use import.meta.env for Vite instead of process.env
@@ -109,12 +108,8 @@ const processDailyViewData = (viewsData: any[]) => {
  * @returns Fully qualified URL to the user's profile
  */
 export const getProfileUrl = (slug: string) => {
-  // Always use pocketcv.pt domain for production URLs
-  const baseUrl = window.location.hostname.includes('localhost') ? 
-    `${window.location.origin}/u` : 
-    'https://pocketcv.pt/u';
-  
-  return `${baseUrl}/${slug}`;
+  // Always use pocketcv.pt domain for all URLs
+  return `https://pocketcv.pt/u/${slug}`;
 };
 
 export const incrementLinkClick = async (linkId: string, userId: string): Promise<void> => {

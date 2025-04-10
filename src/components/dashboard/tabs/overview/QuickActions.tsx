@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -57,11 +58,20 @@ const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor }: QuickAction
           Add New Link
         </Button>
         
-        <Button className="w-full justify-start" variant="outline" asChild>
-          <Link to={`/u/${userData.username}`} target="_blank">
-            <Eye className="mr-2 h-4 w-4" />
-            View Public Profile
-          </Link>
+        <Button className="w-full justify-start" variant="outline" onClick={() => {
+          if (!userData.username) {
+            toast({
+              title: "Username not set",
+              description: "Please set a username in your profile settings first",
+              variant: "destructive"
+            });
+            return;
+          }
+          const profileUrl = getProfileUrl(userData.username);
+          window.open(profileUrl, '_blank');
+        }}>
+          <Eye className="mr-2 h-4 w-4" />
+          View Public Profile
         </Button>
         
         <Button className="w-full justify-start" variant="outline" onClick={handleCopyProfileLink}>
