@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { LinkType } from "@/components/LinkCard";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Linkedin, Globe, Mail, User } from "lucide-react";
 import { ProfileData } from "@/hooks/profile/useProfileData";
 
 export const useLinkManagement = (
@@ -27,7 +25,7 @@ export const useLinkManagement = (
           id: "linkedin-link",
           title: "LinkedIn Profile",
           url: profile.linkedin.startsWith('http') ? profile.linkedin : `https://linkedin.com/in/${profile.linkedin}`,
-          icon: <Linkedin className="h-4 w-4" />,
+          icon: "linkedin"
         });
       }
       
@@ -36,7 +34,7 @@ export const useLinkManagement = (
           id: "website-link",
           title: "Website",
           url: profile.website.startsWith('http') ? profile.website : `https://${profile.website}`,
-          icon: <Globe className="h-4 w-4" />,
+          icon: "globe"
         });
       }
       
@@ -45,7 +43,7 @@ export const useLinkManagement = (
           id: "email-link",
           title: "Email",
           url: `mailto:${profile.email}`,
-          icon: <Mail className="h-4 w-4" />,
+          icon: "mail"
         });
       }
       
@@ -69,11 +67,11 @@ export const useLinkManagement = (
     setCurrentEditingLink(undefined);
   };
 
-  const getIconForLinkType = (type: string) => {
-    if (type === 'linkedin') return <Linkedin className="h-4 w-4" />;
-    if (type === 'website') return <Globe className="h-4 w-4" />;
-    if (type === 'email') return <Mail className="h-4 w-4" />;
-    return <User className="h-4 w-4" />;
+  const getIconForLinkType = (type: string): string => {
+    if (type === 'linkedin') return "linkedin";
+    if (type === 'website') return "globe";
+    if (type === 'email') return "mail";
+    return "user";
   };
 
   // Link Management Functions
@@ -88,18 +86,15 @@ export const useLinkManagement = (
     }
     
     try {
-      // Determine field to update based on link type
       let fieldToUpdate: string | null = null;
       let linkType = "";
       
-      // If it's an existing link, use its ID to determine the type
       if (linkData.id) {
         linkType = linkData.id.split('-')[0];
         if (linkType === 'linkedin') fieldToUpdate = 'linkedin';
         else if (linkType === 'website') fieldToUpdate = 'website';
         else if (linkType === 'email') fieldToUpdate = 'email';
       } else {
-        // For new links, use the title to determine the type
         const title = linkData.title.toLowerCase();
         
         if (title.includes('linkedin')) {
@@ -113,14 +108,12 @@ export const useLinkManagement = (
           linkType = 'email';
         }
         
-        // If no specific type is detected, default to website
         if (!fieldToUpdate) {
           fieldToUpdate = 'website';
           linkType = 'website';
         }
       }
       
-      // Process URL for LinkedIn and website links
       let url = linkData.url;
       if (fieldToUpdate === 'linkedin' && !url.startsWith('http')) {
         url = `https://linkedin.com/in/${url}`;
@@ -131,7 +124,6 @@ export const useLinkManagement = (
       console.log(`Saving link type: ${linkType}, field: ${fieldToUpdate}, url: ${url}`);
       
       if (fieldToUpdate) {
-        // Update profile in Supabase
         const { error } = await supabase
           .from('profiles')
           .update({ [fieldToUpdate]: url })
@@ -142,7 +134,6 @@ export const useLinkManagement = (
           throw error;
         }
         
-        // Create or update link in state
         const newLinkId = linkData.id || `${linkType}-link`;
         const newLink = {
           ...linkData,
@@ -152,16 +143,13 @@ export const useLinkManagement = (
         } as LinkType;
         
         setLinks(prevLinks => {
-          // Check if link exists
           const existingLinkIndex = prevLinks.findIndex(link => link.id === newLinkId);
           
           if (existingLinkIndex >= 0) {
-            // Replace existing link
             const updatedLinks = [...prevLinks];
             updatedLinks[existingLinkIndex] = newLink;
             return updatedLinks;
           } else {
-            // Add new link
             return [...prevLinks, newLink];
           }
         });
@@ -171,10 +159,8 @@ export const useLinkManagement = (
           description: `Your ${linkData.title} has been saved to your profile.`,
         });
         
-        // Refresh profile to get updated links
         refreshProfile();
       } else {
-        // Should not happen with our improved logic, but just in case
         toast({
           title: "Error saving link",
           description: "Could not determine link type. Please try again.",
@@ -198,7 +184,6 @@ export const useLinkManagement = (
       const linkToDelete = links.find(link => link.id === linkId);
       if (!linkToDelete) return;
       
-      // Determine field to update based on link id
       let fieldToUpdate: string | null = null;
       
       if (linkId === 'linkedin-link') fieldToUpdate = 'linkedin';
@@ -206,7 +191,6 @@ export const useLinkManagement = (
       else if (linkId === 'email-link') fieldToUpdate = 'email';
       
       if (fieldToUpdate) {
-        // Set field to null in Supabase
         const { error } = await supabase
           .from('profiles')
           .update({ [fieldToUpdate]: null })
@@ -214,7 +198,6 @@ export const useLinkManagement = (
           
         if (error) throw error;
         
-        // Remove link from state
         setLinks(prevLinks => prevLinks.filter(link => link.id !== linkId));
         
         toast({
@@ -222,7 +205,6 @@ export const useLinkManagement = (
           description: "Your link has been removed",
         });
         
-        // Refresh profile data
         refreshProfile();
       }
     } catch (error) {

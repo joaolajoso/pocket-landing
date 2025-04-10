@@ -27,7 +27,7 @@ export const useProfileSections = (profile: any) => {
           id: 'email-link',
           title: 'Email',
           url: `mailto:${profile.email}`,
-          icon: null
+          icon: 'mail'
         });
       }
       
@@ -38,7 +38,7 @@ export const useProfileSections = (profile: any) => {
           url: profile.linkedin.startsWith('http') 
             ? profile.linkedin 
             : `https://linkedin.com/in/${profile.linkedin}`,
-          icon: null
+          icon: 'linkedin'
         });
       }
       
@@ -49,7 +49,7 @@ export const useProfileSections = (profile: any) => {
           url: profile.website.startsWith('http') 
             ? profile.website 
             : `https://${profile.website}`,
-          icon: null
+          icon: 'globe'
         });
       }
       

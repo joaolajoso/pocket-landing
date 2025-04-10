@@ -1,10 +1,9 @@
-
 import { useMemo, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LinkCard, { LinkType } from "./LinkCard";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, Linkedin, Globe, Mail, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getProfileUrl } from "@/lib/supabase";
 import { useProfile } from "@/hooks/useProfile";
@@ -33,7 +32,6 @@ const ProfilePreview = ({
   const { profile: supabaseProfile } = useProfile();
   const [styleId] = useState(`profile-preview-styles-${Math.random().toString(36).substring(2, 9)}`);
   
-  // Apply design settings
   useEffect(() => {
     if (!designSettings) return;
     
@@ -45,7 +43,6 @@ const ProfilePreview = ({
       document.head.appendChild(styleEl);
     }
     
-    // Prepare background style
     let backgroundStyle = '';
     if (designSettings.background_type === 'solid') {
       backgroundStyle = designSettings.background_color;
@@ -58,16 +55,13 @@ const ProfilePreview = ({
       backgroundStyle = `url(${designSettings.background_image_url}) center/cover no-repeat`;
     }
     
-    // Generate border style
     let borderStyle = 'none';
     if (designSettings.button_border_color && designSettings.button_border_style !== 'none') {
       borderStyle = `1px solid ${designSettings.button_border_color}`;
     }
     
-    // Create CSS for this specific profile preview
     const profileClass = `profile-preview-${styleId}`;
     
-    // Create CSS
     const css = `
       .${profileClass} {
         background: ${backgroundStyle};
@@ -96,7 +90,6 @@ const ProfilePreview = ({
     
     styleEl.textContent = css;
     
-    // Clean up
     return () => {
       if (styleEl && document.getElementById(styleId)) {
         styleEl.remove();
@@ -104,7 +97,6 @@ const ProfilePreview = ({
     };
   }, [designSettings, styleId, isPreview]);
   
-  // Merge initial profile with Supabase profile data if available
   const profile = useMemo(() => {
     if (!supabaseProfile) return initialProfile;
     
@@ -160,7 +152,6 @@ const ProfilePreview = ({
     }
   };
 
-  // Get the text alignment style
   const getTextAlignClass = () => {
     const alignment = designSettings?.text_alignment || 'center';
     return {
@@ -170,7 +161,6 @@ const ProfilePreview = ({
     }[alignment];
   };
 
-  // Determine background style for the outer container
   const getContainerStyle = () => {
     if (!designSettings) return {};
     
@@ -191,7 +181,6 @@ const ProfilePreview = ({
     return backgroundStyle;
   };
 
-  // Get button style
   const getButtonStyle = (link: LinkType) => {
     if (!designSettings) return {};
     
@@ -200,12 +189,10 @@ const ProfilePreview = ({
       color: designSettings.button_text_color || 'white',
     };
     
-    // Add border if needed
     if (designSettings.button_border_color) {
       style.border = `1px solid ${designSettings.button_border_color}`;
     }
     
-    // Add border radius if needed
     if (designSettings.button_border_style === 'all') {
       style.borderRadius = '0.375rem';
     }
@@ -214,6 +201,20 @@ const ProfilePreview = ({
   };
 
   const profileClass = `profile-preview-${styleId}`;
+  
+  const processedLinks = useMemo(() => {
+    if (!initialProfile.links) return [];
+    
+    return initialProfile.links.map(link => {
+      if (typeof link.icon !== 'string') {
+        return link;
+      }
+      
+      return {
+        ...link
+      };
+    });
+  }, [initialProfile.links]);
   
   return (
     <div 
@@ -249,8 +250,8 @@ const ProfilePreview = ({
       </div>
       
       <div className="w-full space-y-3 mb-8 px-4">
-        {profile.links.length > 0 ? (
-          profile.links.map(link => (
+        {processedLinks.length > 0 ? (
+          processedLinks.map(link => (
             <LinkCard 
               key={link.id} 
               link={link} 

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, ExternalLink, MoveUp, MoveDown } from "lucide-react";
+import { Trash2, Edit, ExternalLink, MoveUp, MoveDown, Linkedin, Globe, Mail, User } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CSSProperties } from "react";
 
@@ -10,7 +10,7 @@ export interface LinkType {
   id: string;
   title: string;
   url: string;
-  icon: React.ReactNode;
+  icon: string | React.ReactNode;
 }
 
 interface LinkCardProps {
@@ -46,6 +46,25 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
       window.open(link.url, '_blank', 'noopener,noreferrer');
     }
   };
+
+  // Render the appropriate icon based on the icon type
+  const renderIcon = () => {
+    if (typeof link.icon === 'string') {
+      switch (link.icon) {
+        case 'linkedin':
+          return <Linkedin className="h-4 w-4" />;
+        case 'globe':
+          return <Globe className="h-4 w-4" />;
+        case 'mail':
+          return <Mail className="h-4 w-4" />;
+        case 'user':
+        default:
+          return <User className="h-4 w-4" />;
+      }
+    }
+    // If it's already a ReactNode, return it as is
+    return link.icon;
+  };
   
   return (
     <Card className="w-full bg-card shadow-sm border">
@@ -55,7 +74,7 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
           onClick={!isEditable ? handleClick : undefined}
           style={!isEditable ? style : {}}
         >
-          {link.icon}
+          {renderIcon()}
           <div className="flex-1 min-w-0 max-w-[calc(100%-60px)]">
             <div className="font-medium truncate">{link.title}</div>
             <div className="text-sm text-muted-foreground truncate">{link.url}</div>
