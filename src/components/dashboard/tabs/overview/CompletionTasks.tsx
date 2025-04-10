@@ -2,6 +2,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LinkIcon, Mail, User } from "lucide-react";
+import { UploadButton } from "@/components/UploadButton";
+import { useProfile } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
 
 interface CompletionTasksProps {
   onEditProfile: () => void;
@@ -9,6 +12,33 @@ interface CompletionTasksProps {
 }
 
 const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksProps) => {
+  const { uploadProfilePhoto, refreshProfile } = useProfile();
+  const { toast } = useToast();
+  
+  const handleProfilePhotoUpload = async (file: File) => {
+    try {
+      const photoUrl = await uploadProfilePhoto(file);
+      
+      if (photoUrl) {
+        toast({
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully"
+        });
+        refreshProfile();
+      }
+      
+      return photoUrl;
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast({
+        title: "Upload failed",
+        description: "There was a problem uploading your profile picture",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -29,7 +59,12 @@ const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksPro
                 <p className="text-sm text-muted-foreground">Help others recognize you</p>
               </div>
             </div>
-            <Button size="sm" onClick={onEditProfile}>Upload</Button>
+            <UploadButton 
+              onUpload={handleProfilePhotoUpload}
+              uploadText="Upload"
+              accept="image/*"
+              maxSize={2}
+            />
           </div>
           
           <div className="flex items-center justify-between p-4 rounded-lg border">
