@@ -45,6 +45,11 @@ export const useProfilePhoto = () => {
       
       if (!success) throw new Error("Failed to update profile with new photo URL");
       
+      toast({
+        title: "Photo updated",
+        description: "Your profile photo has been updated successfully",
+      });
+      
       return data.publicUrl;
       
     } catch (err: any) {
@@ -59,9 +64,76 @@ export const useProfilePhoto = () => {
       setLoading(false);
     }
   };
+  
+  // Delete profile photo
+  const deleteProfilePhoto = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      setLoading(true);
+      
+      // First check if user has a photo URL
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('photo_url')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      if (!profileData.photo_url) {
+        toast({
+          title: "No photo to delete",
+          description: "You don't have a profile photo to delete",
+        });
+        return false;
+      }
+      
+      // Extract file path from URL
+      const fileUrl = profileData.photo_url;
+      const pathMatch = fileUrl.match(/\/([^/]+\/[^/]+)$/);
+      
+      if (pathMatch && pathMatch[1]) {
+        const filePath = pathMatch[1];
+        
+        // Delete the file from storage
+        const { error: deleteError } = await supabase.storage
+          .from('profile_photos')
+          .remove([filePath]);
+        
+        if (deleteError) throw deleteError;
+      }
+      
+      // Update profile to remove photo URL
+      const success = await updateProfile({
+        photo_url: null
+      });
+      
+      if (!success) throw new Error("Failed to update profile after photo deletion");
+      
+      toast({
+        title: "Photo deleted",
+        description: "Your profile photo has been removed",
+      });
+      
+      return true;
+      
+    } catch (err: any) {
+      console.error('Error deleting profile photo:', err);
+      toast({
+        title: "Error deleting photo",
+        description: err.message,
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     uploadProfilePhoto,
+    deleteProfilePhoto,
     loading
   };
 };

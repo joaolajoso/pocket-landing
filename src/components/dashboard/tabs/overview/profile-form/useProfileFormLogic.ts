@@ -14,7 +14,7 @@ export const useProfileFormLogic = (userData: {
 }, onClose?: () => void) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { profile, loading, updateProfile, uploadProfilePhoto, refreshProfile } = useProfile();
+  const { profile, loading, updateProfile, uploadProfilePhoto, deleteProfilePhoto, refreshProfile } = useProfile();
   
   const form = useForm<ProfileFormValues>({
     defaultValues: {
@@ -59,10 +59,6 @@ export const useProfileFormLogic = (userData: {
       const photoUrl = await uploadProfilePhoto(file);
       
       if (photoUrl) {
-        toast({
-          title: "Profile picture updated",
-          description: "Your profile picture has been updated successfully"
-        });
         refreshProfile();
       }
       
@@ -75,6 +71,26 @@ export const useProfileFormLogic = (userData: {
         variant: "destructive"
       });
       return null;
+    }
+  };
+  
+  const handlePhotoDelete = async (): Promise<boolean> => {
+    try {
+      const success = await deleteProfilePhoto();
+      
+      if (success) {
+        refreshProfile();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was a problem deleting your profile picture",
+        variant: "destructive"
+      });
+      return false;
     }
   };
   
@@ -125,6 +141,7 @@ export const useProfileFormLogic = (userData: {
     onSubmit,
     handleNameChange,
     handlePhotoUpload,
+    handlePhotoDelete,
     displayName,
     photoUrl
   };

@@ -129,7 +129,7 @@ export const useProfile = (username?: string) => {
       
       // Upload to storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('profile_photos')
@@ -164,6 +164,49 @@ export const useProfile = (username?: string) => {
       setLoading(false);
     }
   };
+  
+  // Add the delete photo function
+  const deleteProfilePhoto = async (): Promise<boolean> => {
+    if (!user || !profile?.photo_url) return false;
+    
+    try {
+      setLoading(true);
+      
+      // Extract file path from URL
+      const photoUrl = profile.photo_url;
+      const pathMatch = photoUrl.match(/\/([^/]+\/[^/]+)$/);
+      
+      if (pathMatch && pathMatch[1]) {
+        const filePath = pathMatch[1];
+        
+        // Delete from storage
+        const { error: deleteError } = await supabase.storage
+          .from('profile_photos')
+          .remove([filePath]);
+          
+        if (deleteError) throw deleteError;
+      }
+      
+      // Update profile to remove photo URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ photo_url: null })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setProfile(prev => prev ? { ...prev, photo_url: null } : null);
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting profile photo:', err);
+      setError(err as Error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     profile,
@@ -171,6 +214,7 @@ export const useProfile = (username?: string) => {
     error,
     refreshProfile: fetchProfile,
     updateProfile,
-    uploadProfilePhoto
+    uploadProfilePhoto,
+    deleteProfilePhoto
   };
 };

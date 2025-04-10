@@ -9,7 +9,7 @@ export type { ProfileData } from './useProfileData';
 export const useProfile = (slug?: string) => {
   const { profile, loading: dataLoading, error, refreshProfile } = useProfileData(slug);
   const { updateProfile, loading: updateLoading } = useProfileUpdate();
-  const { uploadProfilePhoto, loading: photoLoading } = useProfilePhoto();
+  const { uploadProfilePhoto, deleteProfilePhoto, loading: photoLoading } = useProfilePhoto();
   
   // Combine loading states
   const loading = dataLoading || updateLoading || photoLoading;
@@ -20,6 +20,7 @@ export const useProfile = (slug?: string) => {
     error,
     updateProfile,
     uploadProfilePhoto,
+    deleteProfilePhoto,
     refreshProfile
   };
 };

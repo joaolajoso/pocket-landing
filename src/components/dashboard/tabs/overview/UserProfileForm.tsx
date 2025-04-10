@@ -17,6 +17,7 @@ export const UserProfileForm = ({ userData, onClose }: UserProfileFormProps) => 
     onSubmit,
     handleNameChange,
     handlePhotoUpload,
+    handlePhotoDelete,
     displayName,
     photoUrl
   } = useProfileFormLogic(userData, onClose);
@@ -34,6 +35,20 @@ export const UserProfileForm = ({ userData, onClose }: UserProfileFormProps) => 
       return null;
     }
   };
+  
+  const handleProfilePhotoDelete = async (): Promise<boolean> => {
+    try {
+      return await handlePhotoDelete();
+    } catch (error) {
+      console.error('Error in UserProfileForm photo delete:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was a problem deleting your profile picture",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
 
   return (
     <Form {...form}>
@@ -43,6 +58,7 @@ export const UserProfileForm = ({ userData, onClose }: UserProfileFormProps) => 
             displayName={displayName}
             photoUrl={photoUrl}
             onUpload={handleProfilePhotoUpload}
+            onDelete={handleProfilePhotoDelete}
             disabled={!user || loading}
           />
         </div>
