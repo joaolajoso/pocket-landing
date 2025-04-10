@@ -2,23 +2,49 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { 
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
+} from "recharts";
 import { CalendarRange } from "@/components/dashboard/tabs/analytics/CalendarRange";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
+interface ViewData {
+  date: string;
+  count: number;
+}
+
+interface LinkData {
+  name: string;
+  clicks: number;
+}
+
+interface ReferrerData {
+  name: string;
+  count: number;
+}
+
+interface AnalyticsData {
+  viewsByDay: ViewData[];
+  topLinks: LinkData[];
+  referrers: ReferrerData[];
+  totalViews: number;
+  totalClicks: number;
+}
+
 const AnalyticsTab = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     to: new Date()
   });
   const [loading, setLoading] = useState(true);
-  const [analyticsData, setAnalyticsData] = useState({
-    viewsByDay: [] as Array<{date: string, count: number}>,
-    topLinks: [] as Array<{name: string, clicks: number}>,
-    referrers: [] as Array<{name: string, count: number}>,
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
+    viewsByDay: [],
+    topLinks: [],
+    referrers: [],
     totalViews: 0,
     totalClicks: 0
   });
@@ -33,7 +59,7 @@ const AnalyticsTab = () => {
         // Get profile view count by day
         const { data: viewData, error: viewError } = await supabase.rpc(
           'get_profile_views_by_day',
-          { user_id_param: user.id }
+          { user_id_param: user.id as string }
         );
         
         if (viewError) throw viewError;
@@ -41,43 +67,40 @@ const AnalyticsTab = () => {
         // Get link click data
         const { data: linkData, error: linkError } = await supabase.rpc(
           'get_link_clicks_by_type',
-          { user_id_param: user.id }
+          { user_id_param: user.id as string }
         );
         
         if (linkError) throw linkError;
         
-        // Get referrers data using count method - fixed to avoid using .group()
+        // Get referrers data
         const { data: referrersData, error: referrersError } = await supabase
           .from('profile_views')
-          .select('source, count(*)')
+          .select('source, count')
           .eq('profile_id', user.id)
+          .group('source')
           .order('count', { ascending: false })
           .limit(5);
-          
+        
         if (referrersError) throw referrersError;
         
-        // Process data with null checks
-        const formattedViewData = Array.isArray(viewData) ? viewData.map(d => ({
-          date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          count: Number(d.count || 0)
+        // Process data
+        const formattedViewData: ViewData[] = Array.isArray(viewData) ? viewData.map((d) => ({
+          date: d && new Date(d.date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          }),
+          count: d ? Number(d.count) : 0
         })) : [];
         
-        const formattedLinkData = Array.isArray(linkData) ? linkData.map(d => ({
-          name: d.link_type || 'Unknown',
-          clicks: Number(d.count || 0)
+        const formattedLinkData: LinkData[] = Array.isArray(linkData) ? linkData.map((d) => ({
+          name: d && d.link_type ? d.link_type : 'Unknown',
+          clicks: d ? Number(d.count) : 0
         })) : [];
         
-        // Safely process referrers data with type checking
-        const formattedRefData = Array.isArray(referrersData) ? referrersData.map(d => {
-          // Ensure this is not a ParserError object
-          if (d && typeof d === 'object' && 'source' in d) {
-            return {
-              name: d.source || 'Direct',
-              count: Number(d.count || 0)
-            };
-          }
-          return { name: 'Unknown', count: 0 };
-        }) : [];
+        const formattedRefData: ReferrerData[] = Array.isArray(referrersData) ? referrersData.map((d) => ({
+          name: d && d.source ? d.source : 'Direct',
+          count: d ? Number(d.count) : 0
+        })) : [];
         
         // Calculate totals
         const totalViews = formattedViewData.reduce((acc, item) => acc + item.count, 0);
@@ -120,8 +143,8 @@ const AnalyticsTab = () => {
       
       <div className="flex justify-end">
         <CalendarRange 
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+          dateRange={dateRange} 
+          onDateRangeChange={setDateRange} 
         />
       </div>
       

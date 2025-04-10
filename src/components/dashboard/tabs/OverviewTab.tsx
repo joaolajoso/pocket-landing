@@ -1,7 +1,7 @@
 
 import { LinkType } from "@/components/LinkCard";
 import WelcomeHeader from "./overview/WelcomeHeader";
-import StatisticsCards from "./overview/StatisticsCards";
+import { StatisticsCards } from "./overview/StatisticsCards";
 import UserLinks from "./overview/UserLinks";
 import QuickActions from "./overview/QuickActions";
 import CompletionTasks from "./overview/CompletionTasks";
@@ -38,10 +38,9 @@ const OverviewTab = ({
       <WelcomeHeader firstName={firstName} />
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <StatisticsCards 
-          userData={userData}
-          onNavigateToTab={onNavigateToTab}
+          onNavigateToAnalytics={() => onNavigateToTab('analytics')}
         />
       </div>
       

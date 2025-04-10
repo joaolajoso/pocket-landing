@@ -7,7 +7,11 @@ import { Loader2, Eye, MousePointerClick } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 
-export function StatisticsCards() {
+interface StatisticsCardsProps {
+  onNavigateToAnalytics?: () => void;
+}
+
+export function StatisticsCards({ onNavigateToAnalytics }: StatisticsCardsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -24,7 +28,7 @@ export function StatisticsCards() {
         // Get profile view count
         const { data: viewData, error: viewError } = await supabase.rpc(
           'get_profile_view_count',
-          { user_id_param: user.id }
+          { user_id_param: user.id as string }
         );
         
         if (viewError) {
@@ -35,7 +39,7 @@ export function StatisticsCards() {
         // Get link click count
         const { data: clickData, error: clickError } = await supabase.rpc(
           'get_total_link_clicks',
-          { user_id_param: user.id }
+          { user_id_param: user.id as string }
         );
         
         if (clickError) {
@@ -56,6 +60,14 @@ export function StatisticsCards() {
     
     fetchStats();
   }, [user]);
+
+  const handleNavigateToAnalytics = () => {
+    if (onNavigateToAnalytics) {
+      onNavigateToAnalytics();
+    } else {
+      navigate('/dashboard?tab=analytics');
+    }
+  };
 
   if (loading) {
     return (
@@ -98,13 +110,6 @@ export function StatisticsCards() {
                 Total profile views
               </p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/dashboard?tab=analytics')}
-            >
-              View analytics
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -122,16 +127,22 @@ export function StatisticsCards() {
                 Total link clicks
               </p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/dashboard?tab=analytics')}
-            >
-              View analytics
-            </Button>
           </div>
         </CardContent>
       </Card>
+
+      <div className="md:col-span-2 flex justify-center">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleNavigateToAnalytics}
+        >
+          View analytics
+        </Button>
+      </div>
     </div>
   );
 }
+
+// Add a default export that forwards to the named export
+export default StatisticsCards;
