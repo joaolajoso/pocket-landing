@@ -74,11 +74,13 @@ const LinkDisplay = ({ link, onClick, profileId, designSettings }: LinkDisplayPr
       }}
     >
       <CardContent className="p-0 flex items-center justify-between">
-        <div className={`flex items-center gap-3 link-title ${settings?.button_icon_position === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
-          {link.icon && <div style={{ color: "var(--profile-button-icon, white)" }} className="link-icon">{link.icon}</div>}
-          <span style={{ color: "var(--profile-button-text, white)" }}>{link.title}</span>
+        <div className={`flex items-center gap-3 link-title ${settings?.button_icon_position === 'right' ? 'flex-row-reverse' : 'flex-row'} flex-1 min-w-0`}>
+          {link.icon && <div style={{ color: "var(--profile-button-icon, white)" }} className="link-icon shrink-0">{link.icon}</div>}
+          <div className="flex-1 min-w-0">
+            <div className="truncate" style={{ color: "var(--profile-button-text, white)" }}>{link.title}</div>
+          </div>
         </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
           <ExternalLink className="h-4 w-4" style={{ color: "var(--profile-button-icon, white)" }} />
         </Button>
       </CardContent>

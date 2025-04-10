@@ -56,14 +56,14 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
           style={!isEditable ? style : {}}
         >
           {link.icon}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-[calc(100%-60px)]">
             <div className="font-medium truncate">{link.title}</div>
             <div className="text-sm text-muted-foreground truncate">{link.url}</div>
           </div>
         </div>
         
         {isEditable ? (
-          <div className="flex gap-1 ml-2">
+          <div className="flex gap-1 ml-2 shrink-0">
             {onMoveUp && (
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMoveUp(link.id)}>
                 <MoveUp className="h-4 w-4" />
@@ -100,7 +100,7 @@ const LinkCard = ({ link, onDelete, onEdit, onMoveUp, onMoveDown, isEditable, st
             </AlertDialog>
           </div>
         ) : (
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleClick}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleClick}>
             <ExternalLink className="h-4 w-4" />
           </Button>
         )}

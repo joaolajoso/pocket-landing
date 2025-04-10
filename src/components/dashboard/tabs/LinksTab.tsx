@@ -37,7 +37,8 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
     avatarUrl: profile?.photo_url || '',
   };
 
-  const handleMoveUp = (linkId: string) => {
+  const handleMoveUp = async (linkId: string) => {
+    // First update the UI
     setCurrentLinks(prevLinks => {
       const index = prevLinks.findIndex(link => link.id === linkId);
       if (index <= 0) return prevLinks;
@@ -49,9 +50,12 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
       
       return newLinks;
     });
+    
+    // You could also implement server-side reordering here if needed
   };
 
-  const handleMoveDown = (linkId: string) => {
+  const handleMoveDown = async (linkId: string) => {
+    // First update the UI
     setCurrentLinks(prevLinks => {
       const index = prevLinks.findIndex(link => link.id === linkId);
       if (index < 0 || index >= prevLinks.length - 1) return prevLinks;
@@ -63,6 +67,8 @@ const LinksTab = ({ links, onOpenLinkEditor, onDeleteLink }: LinksTabProps) => {
       
       return newLinks;
     });
+    
+    // You could also implement server-side reordering here if needed
   };
 
   return (
