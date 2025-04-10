@@ -59,6 +59,33 @@ const StatisticsCards = ({ userData, onNavigateToTab }: StatisticsCardsProps) =>
     };
     
     fetchStatistics();
+    
+    // Listen for real-time updates to statistics
+    const channel = supabase
+      .channel('statistics-updates')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'profile_views',
+        filter: `profile_id=eq.${userData.id}`
+      }, payload => {
+        console.log('New profile view:', payload);
+        setProfileViews(prevViews => prevViews + 1);
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'link_clicks',
+        filter: `user_id=eq.${userData.id}`
+      }, payload => {
+        console.log('New link click:', payload);
+        setLinkClicks(prevClicks => prevClicks + 1);
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userData.id]);
 
   return (

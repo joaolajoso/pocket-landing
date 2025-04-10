@@ -82,7 +82,7 @@ const QuickActions = ({ userData, onOpenLinkEditor }: QuickActionsProps) => {
             </DialogHeader>
             <div className="mt-4">
               <ProfileQRCode 
-                profileUrl={getProfileUrl(userData.username)} 
+                profileUrl={`${getProfileUrl(userData.username)}?source=qr`} 
                 profileName={userData.name || userData.username} 
               />
             </div>

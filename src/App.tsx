@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,9 +15,10 @@ import ProfileExample from "./pages/ProfileExample";
 import GetStarted from "./pages/GetStarted";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Preview from "./pages/Preview";
 import BusinessPreview from "./pages/BusinessPreview";
 import UserProfile from "./pages/UserProfile";
+import { useProfile } from "./hooks/useProfile";
+import { Loader2 } from "lucide-react";
 
 // Scroll restoration component
 const ScrollToTop = () => {
@@ -28,6 +29,26 @@ const ScrollToTop = () => {
   }, [pathname]);
   
   return null;
+};
+
+// Redirect to public profile page
+const PreviewRedirect = () => {
+  const { profile, loading } = useProfile();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Redirecting to your profile...</p>
+      </div>
+    );
+  }
+  
+  if (profile?.slug) {
+    return <Navigate to={`/u/${profile.slug}`} replace />;
+  }
+  
+  return <Navigate to="/dashboard" replace />;
 };
 
 const queryClient = new QueryClient();
@@ -65,7 +86,7 @@ function App() {
                 } />
                 <Route path="/preview" element={
                   <ProtectedRoute>
-                    <Preview />
+                    <PreviewRedirect />
                   </ProtectedRoute>
                 } />
                 <Route path="/business-preview" element={

@@ -10,9 +10,10 @@ import { useAuth } from '@/contexts/AuthContext';
 interface LinkDisplayProps {
   link: LinkType;
   onClick?: () => void;
+  profileId?: string;
 }
 
-const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
+const LinkDisplay = ({ link, onClick, profileId }: LinkDisplayProps) => {
   const { settings } = useProfileDesign();
   const { user } = useAuth();
   
@@ -20,12 +21,16 @@ const LinkDisplay = ({ link, onClick }: LinkDisplayProps) => {
     // Call the onClick handler if provided
     if (onClick) {
       onClick();
-    } else {
-      // If no onClick was provided, track the click directly
-      await incrementLinkClick(link.id);
     }
     
-    try {      
+    try {
+      // Track the click with the correct user ID
+      const userIdToTrack = profileId || (user?.id ? user.id : null);
+      
+      if (userIdToTrack) {
+        await incrementLinkClick(link.id, userIdToTrack);
+      }
+      
       // Open the link in a new tab
       window.open(link.url, '_blank', 'noopener,noreferrer');
     } catch (error) {

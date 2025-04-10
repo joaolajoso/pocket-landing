@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileContent from '@/components/profile/ProfileContent';
@@ -34,20 +34,43 @@ interface ProfileTheme {
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, loading, error } = useProfile(username);
   const [sections, setSections] = useState<ProfileSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
   const [requiresLogin, setRequiresLogin] = useState(false);
   
+  // Check if this is a QR code scan or NFC tap
   useEffect(() => {
-    const trackView = async () => {
+    const checkSource = async () => {
       try {
         if (profile?.id) {
-          console.log('Tracking view for profile:', profile.id);
           const urlParams = new URLSearchParams(location.search);
-          const source = urlParams.get('utm_source') || urlParams.get('source') || 'direct';
-          await trackProfileView(profile.id, source);
+          const source = urlParams.get('source');
+          
+          if (source === 'qr') {
+            console.log('QR code scan for profile:', profile.id);
+            await trackProfileView(profile.id, 'qr');
+            
+            // Remove source param from URL without refreshing page
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('source');
+            navigate(newUrl.pathname + newUrl.search, { replace: true });
+          } else if (source === 'nfc') {
+            console.log('NFC tap for profile:', profile.id);
+            await trackProfileView(profile.id, 'nfc');
+            
+            // Remove source param from URL without refreshing page
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('source');
+            navigate(newUrl.pathname + newUrl.search, { replace: true });
+          } else {
+            // Regular view tracking
+            const urlParams = new URLSearchParams(location.search);
+            const utmSource = urlParams.get('utm_source') || urlParams.get('source') || 'direct';
+            await trackProfileView(profile.id, utmSource);
+          }
         }
       } catch (error) {
         console.error('Error tracking profile view:', error);
@@ -55,9 +78,9 @@ const UserProfile = () => {
     };
     
     if (profile) {
-      trackView();
+      checkSource();
     }
-  }, [profile, location.search]);
+  }, [profile, location.search, navigate]);
   
   useEffect(() => {
     if (profile) {
@@ -183,6 +206,7 @@ const UserProfile = () => {
           <ProfileContent 
             sections={sections} 
             username={profile.slug || ''} 
+            profileId={profile.id}
           />
         </div>
       </div>

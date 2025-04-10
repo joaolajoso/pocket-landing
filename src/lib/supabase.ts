@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // Use import.meta.env for Vite instead of process.env
@@ -8,20 +9,6 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getProfileViewStats = async (profileId: string) => {
   try {
-    // Since profile_views_stats table doesn't exist yet, let's return mock data
-    // that matches the expected schema until the table is created
-    
-    // Check if the profile_views table exists
-    const { count, error: countError } = await supabase
-      .from('profile_views')
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_id', profileId);
-    
-    if (countError) {
-      console.error('Error checking profile views:', countError);
-      return { total: 0, lastWeek: 0, lastMonth: 0, daily: [] };
-    }
-    
     // Calculate dates for filtering
     const now = new Date();
     const oneWeekAgo = new Date(now);
@@ -30,60 +17,51 @@ export const getProfileViewStats = async (profileId: string) => {
     const oneMonthAgo = new Date(now);
     oneMonthAgo.setDate(now.getDate() - 30);
     
+    // Get total count of views
+    const { data: totalData, error: totalError } = await supabase.rpc(
+      'get_profile_view_count',
+      { user_id_param: profileId }
+    );
+    
+    if (totalError) {
+      console.error('Error counting total profile views:', totalError);
+    }
+    
     // Get count of views in the past week
-    const { count: weekCount, error: weekError } = await supabase
-      .from('profile_views')
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_id', profileId)
-      .gte('timestamp', oneWeekAgo.toISOString());
+    const { data: weekData, error: weekError } = await supabase.rpc(
+      'get_weekly_profile_views',
+      { user_id_param: profileId }
+    );
     
     if (weekError) {
       console.error('Error counting weekly profile views:', weekError);
     }
     
     // Get count of views in the past month
-    const { count: monthCount, error: monthError } = await supabase
-      .from('profile_views')
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_id', profileId)
-      .gte('timestamp', oneMonthAgo.toISOString());
+    const { data: monthData, error: monthError } = await supabase.rpc(
+      'get_monthly_profile_views',
+      { user_id_param: profileId }
+    );
     
     if (monthError) {
       console.error('Error counting monthly profile views:', monthError);
     }
     
     // Get daily view counts for the past 7 days
-    const dailyData = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      
-      const nextDate = new Date(date);
-      nextDate.setDate(date.getDate() + 1);
-      
-      const { count: dayCount, error: dayError } = await supabase
-        .from('profile_views')
-        .select('*', { count: 'exact', head: true })
-        .eq('profile_id', profileId)
-        .gte('timestamp', date.toISOString())
-        .lt('timestamp', nextDate.toISOString());
-      
-      if (dayError) {
-        console.error(`Error counting views for ${date.toISOString()}:`, dayError);
-      }
-      
-      dailyData.push({
-        date: date.toISOString().split('T')[0],
-        count: dayCount || 0
-      });
+    const { data: dailyData, error: dailyError } = await supabase.rpc(
+      'get_daily_profile_views',
+      { user_id_param: profileId }
+    );
+    
+    if (dailyError) {
+      console.error('Error getting daily view data:', dailyError);
     }
     
     return {
-      total: count || 0,
-      lastWeek: weekCount || 0,
-      lastMonth: monthCount || 0,
-      daily: dailyData
+      total: totalData || 0,
+      lastWeek: weekData || 0,
+      lastMonth: monthData || 0,
+      daily: Array.isArray(dailyData) ? dailyData : []
     };
   } catch (error) {
     console.error('Error fetching profile views:', error);
@@ -98,14 +76,19 @@ export const getProfileViewStats = async (profileId: string) => {
  */
 export const getProfileUrl = (slug: string) => {
   // Always use pocketcv.pt domain for production URLs
-  return `https://pocketcv.pt/u/${slug}`;
+  const baseUrl = window.location.hostname.includes('localhost') ? 
+    `${window.location.origin}/u` : 
+    'https://pocketcv.pt/u';
+  
+  return `${baseUrl}/${slug}`;
 };
 
-export const incrementLinkClick = async (linkId: string): Promise<void> => {
+export const incrementLinkClick = async (linkId: string, userId: string): Promise<void> => {
   try {
     // Use RPC to insert link click
     const { error } = await supabase.rpc('insert_link_click', {
-      link_id_param: linkId
+      link_id_param: linkId,
+      user_id_param: userId
     });
     
     if (error) {
@@ -131,4 +114,18 @@ export const trackProfileView = async (profileId: string, source: string = 'dire
   } catch (error) {
     console.error('Error tracking profile view:', error);
   }
+};
+
+/**
+ * Track access to a profile via NFC tap
+ */
+export const trackNfcTap = async (profileId: string): Promise<void> => {
+  return trackProfileView(profileId, 'nfc');
+};
+
+/**
+ * Track access to a profile via QR code scan
+ */
+export const trackQrScan = async (profileId: string): Promise<void> => {
+  return trackProfileView(profileId, 'qr');
 };
