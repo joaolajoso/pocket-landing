@@ -1,0 +1,40 @@
+{
+  "name": "PocketCV - Digital Business Card",
+  "short_name": "PocketCV",
+  "description": "Create your professional digital business card with NFC technology. Share your profile with a tap.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["business", "productivity", "networking"],
+  "icons": [
+    {
+      "src": "/lovable-uploads/f4fe412a-c168-45e3-8bea-bfb38a829f75.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/lovable-uploads/f4fe412a-c168-45e3-8bea-bfb38a829f75.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Access your PocketCV dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/lovable-uploads/f4fe412a-c168-45e3-8bea-bfb38a829f75.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

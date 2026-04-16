@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,10 +17,19 @@ export default {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'xs': '475px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       fontFamily: {
         'museomoderno': ['MuseoModerno', 'cursive'],
         'outfit': ['Outfit', 'sans-serif'],
+        'barlow': ['Barlow', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -117,6 +125,21 @@ export default {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.02)" },
         },
+        slide: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "marquee-scroll": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "heartbeat-color": {
+          "0%, 100%": { transform: "scale(1)", borderColor: "hsl(var(--input))" },
+          "15%": { transform: "scale(1.06)", borderColor: "#8c52ff" },
+          "30%": { transform: "scale(1)", borderColor: "#ff914d" },
+          "45%": { transform: "scale(1.06)", borderColor: "#8c52ff" },
+          "60%": { transform: "scale(1)", borderColor: "hsl(var(--input))" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -129,6 +152,8 @@ export default {
         scale: "scale 0.3s ease-out forwards",
         float: "float 6s ease-in-out infinite",
         breath: "breath 8s ease-in-out infinite",
+        "heartbeat-color": "heartbeat-color 2.5s ease-in-out infinite",
+        "marquee-scroll": "marquee-scroll 30s linear infinite",
       },
       transitionTimingFunction: {
         "in-expo": "cubic-bezier(0.95, 0.05, 0.795, 0.035)",

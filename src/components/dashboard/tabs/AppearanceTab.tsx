@@ -3,19 +3,32 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { LinkType } from "@/components/LinkCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Smartphone, ExternalLink } from "lucide-react";
+import { useSaveOperation } from "@/hooks/useSaveOperation";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AnimatePresence, motion } from "framer-motion";
 
-// Import our components
-import ThemeSelector from "./appearance/ThemeSelector";
-import ColorSelector from "./appearance/ColorSelector";
-import LayoutSelector from "./appearance/LayoutSelector";
-import ProfilePreviewCard from "./appearance/ProfilePreviewCard";
-import DesignTab from "./appearance/DesignTab";
-import ProfileDesignPreview from "./appearance/ProfileDesignPreview";
+import NewPublicPagePreview from "./appearance/NewPublicPagePreview";
+import BusinessPublicPagePreview from "./appearance/BusinessPublicPagePreview";
 import { useProfileDesign, ProfileDesignSettings, defaultDesignSettings } from "@/hooks/profile/useProfileDesign";
 import { useProfile } from "@/hooks/useProfile";
+import { useExperiences } from "@/hooks/useExperiences";
+import { useNetworkingPreferences } from "@/hooks/profile/useNetworkingPreferences";
+import { useSocialLinks } from "@/hooks/useSocialLinks";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/organization/useOrganization";
+import { useProfileMode } from "@/hooks/useProfileMode";
+
+interface LinkGroup {
+  id: string;
+  title: string;
+  displayTitle: boolean;
+  position: number;
+  links: LinkType[];
+}
 
 interface AppearanceTabProps {
   userData: {
@@ -26,113 +39,91 @@ interface AppearanceTabProps {
   links: LinkType[];
 }
 
-const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
-  const [activeTab, setActiveTab] = useState<"design">("design");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [primaryColor, setPrimaryColor] = useState<string>("#8b5cf6");
-  const [backgroundColor, setBackgroundColor] = useState<string>("#faf5ff");
-  const [buttonStyle, setButtonStyle] = useState<"rounded" | "square">("rounded");
-  const [font, setFont] = useState<string>("inter");
-  const [saving, setSaving] = useState(false);
+const AppearanceTab = ({ userData: propsUserData, links }: AppearanceTabProps) => {
+  const [linkGroups, setLinkGroups] = useState<LinkGroup[]>([]);
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile } = useProfile();
+  const { profile, updateProfile, refreshProfile } = useProfile();
+  const { user } = useAuth();
+  const { experiences } = useExperiences();
+  const { preferences: interests } = useNetworkingPreferences();
+  const { socialLinks } = useSocialLinks();
   const { settings: designSettings, saveDesignSettings, loading: designLoading, refreshSettings } = useProfileDesign();
+  const { organization } = useOrganization();
+  const { currentMode, setCurrentMode, hasBusinessProfile } = useProfileMode();
+  const { saving, performSave, error: saveError } = useSaveOperation({
+    retryAttempts: 3,
+    timeoutMs: 15000
+  });
 
-  // Set initial values from design settings
-  useEffect(() => {
-    if (designSettings) {
-      // Attempt to extract primary color from button settings
-      setPrimaryColor(designSettings.button_background_color);
-      setBackgroundColor(designSettings.background_color);
-      
-      // Extract font name from font-family string
-      const fontFamily = designSettings.font_family.toLowerCase();
-      if (fontFamily.includes('roboto')) {
-        setFont('roboto');
-      } else if (fontFamily.includes('poppins')) {
-        setFont('poppins');
-      } else if (fontFamily.includes('open sans')) {
-        setFont('opensans');
-      } else {
-        setFont('inter'); // Default to Inter
-      }
-      
-      // Map rounded/square based on design
-      setButtonStyle(designSettings.button_border_style === 'all' ? 'rounded' : 'square');
-    }
-  }, [designSettings]);
-
-  const handleSaveAppearance = async () => {
-    setSaving(true);
-    
-    try {
-      // Get current design settings to preserve gradient settings
-      const currentSettings = designSettings || defaultDesignSettings;
-      
-      // Convert font name to proper font family string
-      let fontFamily = 'Inter, sans-serif';
-      switch(font) {
-        case 'roboto':
-          fontFamily = 'Roboto, sans-serif';
-          break;
-        case 'poppins':
-          fontFamily = 'Poppins, sans-serif';
-          break;
-        case 'opensans':
-          fontFamily = 'Open Sans, sans-serif';
-          break;
-        default:
-          fontFamily = 'Inter, sans-serif';
-      }
-      
-      // Convert basic settings to design settings format
-      const updatedSettings: Partial<ProfileDesignSettings> = {
-        background_color: backgroundColor,
-        button_background_color: primaryColor,
-        font_family: fontFamily,
-        button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
-      };
-      
-      // If current background type is gradient, preserve gradient colors
-      if (currentSettings.background_type === 'gradient') {
-        updatedSettings.background_type = 'gradient';
-        updatedSettings.background_gradient_start = currentSettings.background_gradient_start;
-        updatedSettings.background_gradient_end = currentSettings.background_gradient_end;
-      }
-      
-      // Save to database
-      const success = await saveDesignSettings(updatedSettings);
-      
-      if (success) {
-        // Refresh settings to ensure everything is in sync
-        await refreshSettings();
-        
-        toast({
-          title: "Theme saved",
-          description: "Your profile appearance has been updated"
-        });
-      }
-    } catch (error) {
-      console.error('Error saving appearance:', error);
-      toast({
-        title: "Error saving theme",
-        description: "There was a problem saving your profile appearance",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
+  // Animation variants for preview transitions
+  const previewVariants = {
+    initial: { opacity: 0, x: 20, scale: 0.98 },
+    animate: { opacity: 1, x: 0, scale: 1 },
+    exit: { opacity: 0, x: -20, scale: 0.98 }
   };
 
+  useEffect(() => {
+    const fetchLinkGroups = async () => {
+      if (!profile?.id) return;
+
+      try {
+        const { data: groups, error: groupsError } = await supabase
+          .from('link_groups')
+          .select('*')
+          .eq('user_id', profile.id)
+          .order('position');
+
+        if (groupsError) {
+          console.error('Error fetching link groups:', groupsError);
+          return;
+        }
+
+        const { data: links, error: linksError } = await supabase
+          .from('links')
+          .select('*')
+          .eq('user_id', profile.id)
+          .order('position');
+
+        if (linksError) {
+          console.error('Error fetching links:', linksError);
+          return;
+        }
+
+        const groupsWithLinks = groups.map(group => ({
+          id: group.id,
+          title: group.title,
+          displayTitle: group.display_title,
+          position: group.position,
+          links: links.filter(link => link.group_id === group.id).map(link => ({
+            id: link.id,
+            title: link.title,
+            url: link.url,
+            icon: link.icon
+          }))
+        }));
+
+        setLinkGroups(groupsWithLinks);
+      } catch (error) {
+        console.error('Error in fetchLinkGroups:', error);
+      }
+    };
+
+    fetchLinkGroups();
+  }, [profile?.id, links]);
+
+  useEffect(() => {
+    if (profile) {
+      setPhoneNumber(profile.phone_number || "");
+    }
+  }, [profile]);
+
   const handlePreview = () => {
-    // Navigate to the public profile with pocketcv.pt domain
     if (profile?.slug) {
-      // Open in a new tab to external URL
       window.open(`https://pocketcv.pt/u/${profile.slug}`, '_blank');
-    } else if (userData && userData.name) {
-      // Fallback to slug derived from name if profile.slug is not available
-      const slug = userData.name.toLowerCase().replace(/\s+/g, '-');
+    } else if (propsUserData && propsUserData.name) {
+      const slug = propsUserData.name.toLowerCase().replace(/\s+/g, '-');
       window.open(`https://pocketcv.pt/u/${slug}`, '_blank');
     } else {
       toast({
@@ -143,137 +134,161 @@ const AppearanceTab = ({ userData, links }: AppearanceTabProps) => {
     }
   };
 
-  // Handle color communication with DesignTab
-  const handleExternalColorChange = (property: string, value: string) => {
-    if (property === 'background_color') {
-      setBackgroundColor(value);
-    } else if (property === 'button_background_color') {
-      setPrimaryColor(value);
-    }
+  const previewUserData = {
+    name: profile?.name || user?.email?.split('@')[0] || 'User',
+    bio: profile?.bio || 'Your professional bio',
+    avatarUrl: profile?.photo_url || '',
+    phoneNumber: phoneNumber,
+    headline: profile?.headline || '',
+    jobTitle: profile?.job_title || '',
+    email: profile?.email || '',
+    shareEmailPublicly: profile?.share_email_publicly ?? true,
+    sharePhonePublicly: profile?.share_phone_publicly ?? true,
   };
 
-  // Handle font and button style changes from LayoutSelector
-  const handleFontChange = (newFont: string) => {
-    setFont(newFont);
-    
-    // Convert font name to proper font family string
-    let fontFamily = 'Inter, sans-serif';
-    switch(newFont) {
-      case 'roboto':
-        fontFamily = 'Roboto, sans-serif';
-        break;
-      case 'poppins':
-        fontFamily = 'Poppins, sans-serif';
-        break;
-      case 'opensans':
-        fontFamily = 'Open Sans, sans-serif';
-        break;
-      default:
-        fontFamily = 'Inter, sans-serif';
-    }
-    
-    // Apply font change immediately
-    saveDesignSettings({ font_family: fontFamily });
-  };
-
-  const handleButtonStyleChange = (newStyle: "rounded" | "square") => {
-    setButtonStyle(newStyle);
-    
-    // Apply button style change immediately
-    const buttonBorderStyle = newStyle === 'rounded' ? 'all' : 'none';
-    saveDesignSettings({ button_border_style: buttonBorderStyle });
-  };
-
-  // Create a preview design settings object that updates in real-time
-  const livePreviewSettings: ProfileDesignSettings = {
-    ...(designSettings || defaultDesignSettings),
-    background_color: backgroundColor,
-    button_background_color: primaryColor,
-    font_family: (() => {
-      switch(font) {
-        case 'roboto': return 'Roboto, sans-serif';
-        case 'poppins': return 'Poppins, sans-serif';
-        case 'opensans': return 'Open Sans, sans-serif';
-        default: return 'Inter, sans-serif';
+  const handleUpdateVisibility = async (field: 'share_email_publicly' | 'share_phone_publicly', value: boolean) => {
+    try {
+      const success = await updateProfile({ [field]: value });
+      if (success) {
+        toast({
+          title: value ? "Visibilidade ativada" : "Visibilidade desativada",
+          description: field === 'share_email_publicly' 
+            ? (value ? "O seu email agora está visível na página pública." : "O seu email foi ocultado da página pública.")
+            : (value ? "O seu telefone agora está visível na página pública." : "O seu telefone foi ocultado da página pública."),
+        });
       }
-    })(),
-    button_border_style: buttonStyle === 'rounded' ? 'all' : 'none',
+    } catch (error) {
+      console.error('Error updating visibility:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a visibilidade.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateTheme = async (themeKey: string, bgColor: string) => {
+    try {
+      const success = await saveDesignSettings({ 
+        background_color: bgColor,
+        button_background_color: bgColor 
+      });
+      if (success) {
+        await refreshSettings();
+        toast({
+          title: "Tema atualizado",
+          description: "A cor do tema foi guardada com sucesso.",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating theme:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o tema.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Appearance</h1>
-        <p className="text-muted-foreground">Customize how your profile looks</p>
-      </div>
-      
-      <div className="flex justify-end mb-4">
-        <Button onClick={handlePreview} variant="outline" className="mr-2">
-          View Public Profile
-        </Button>
-        <Button
-          onClick={handleSaveAppearance}
-          disabled={saving || designLoading}
-        >
-          {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : "Save Changes"}
-        </Button>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as "design")}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="design">Profile Design</TabsTrigger>
-        </TabsList>
+    <ErrorBoundary>
+      <div className="space-y-6 relative">
+        <LoadingOverlay 
+          isVisible={saving} 
+          message="Saving appearance settings..." 
+        />
         
-        <TabsContent value="design">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 space-y-6">
-              <DesignTab 
-                onExternalColorChange={handleExternalColorChange}
-                externalBackgroundColor={backgroundColor}
-                externalButtonColor={primaryColor}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ColorSelector 
-                  primaryColor={primaryColor}
-                  setPrimaryColor={(color) => {
-                    setPrimaryColor(color);
-                    saveDesignSettings({ button_background_color: color });
-                  }}
-                  backgroundColor={backgroundColor}
-                  setBackgroundColor={(color) => {
-                    setBackgroundColor(color);
-                    saveDesignSettings({ background_color: color });
-                  }}
-                />
-                
-                <LayoutSelector 
-                  font={font}
-                  setFont={handleFontChange}
-                  buttonStyle={buttonStyle}
-                  setButtonStyle={handleButtonStyleChange}
-                  saving={saving}
-                  onSave={null} // Remove save button from LayoutSelector
-                />
-              </div>
-            </div>
-            <div className="lg:col-span-2">
-              <h3 className="text-lg font-medium mb-4">Live Preview</h3>
-              <ProfileDesignPreview 
-                userData={userData}
-                links={links}
-                designSettings={livePreviewSettings}
-              />
-            </div>
+        {/* Header - Events tab style */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Página Pública</h1>
+          <Button onClick={handlePreview} variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/60 hover:bg-muted">
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Preview mode tabs for business users */}
+        {organization && (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => setCurrentMode('personal')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${currentMode === 'personal' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+            >
+              Pessoal
+            </button>
+            <button
+              onClick={() => setCurrentMode('business')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${currentMode === 'business' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+            >
+              Business
+            </button>
           </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        )}
+
+        <p className="text-muted-foreground text-sm text-center max-w-md mx-auto">
+          {hasBusinessProfile && currentMode === 'business' 
+            ? 'Pré-visualização da sua página Business. Para mostrar este perfil, use o QR/cartão NFC da empresa.'
+            : 'O seu cartão NFC pessoal mostra sempre este perfil. Personalize cores e visibilidade do contacto.'
+          }
+        </p>
+        
+        <div className="flex flex-col items-center">
+          
+          {/* Animated Preview Transition */}
+          <AnimatePresence mode="wait">
+            {hasBusinessProfile && currentMode === 'business' ? (
+              <motion.div
+                key="business"
+                variants={previewVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="w-full flex justify-center"
+              >
+                <BusinessPublicPagePreview />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="personal"
+                variants={previewVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="w-full flex justify-center"
+              >
+                <NewPublicPagePreview 
+                  userData={previewUserData}
+                  sections={linkGroups}
+                  experiences={experiences}
+                  interests={interests}
+                  socialLinks={socialLinks}
+                  onUpdateVisibility={handleUpdateVisibility}
+                  onUpdateTheme={handleUpdateTheme}
+                  initialThemeColor={designSettings?.background_color}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        
+        {saveError && (
+          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <p className="text-sm text-destructive">
+              Save Error: {saveError}
+            </p>
+            <Button 
+              onClick={handlePreview}
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
 

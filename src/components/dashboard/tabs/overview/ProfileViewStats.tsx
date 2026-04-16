@@ -37,11 +37,13 @@ const ProfileViewStats = ({ onNavigateToAnalytics }: ProfileViewStatsProps) => {
           return format(date, 'yyyy-MM-dd');
         }).reverse();
         
-        // Count views by date for the current user's profile
+        // Count views by date for the current user's profile - only last 7 days for performance
+        const sevenDaysAgo = subDays(new Date(), 7);
         const { data: viewsData, error: viewsError } = await supabase
           .from('profile_views')
           .select('timestamp')
-          .eq('profile_id', user.id);
+          .eq('profile_id', user.id)
+          .gte('timestamp', format(sevenDaysAgo, 'yyyy-MM-dd'));
         
         if (viewsError) {
           console.error('Error getting view data:', viewsError);

@@ -1,8 +1,9 @@
 
 import { useState, useRef } from "react";
-import { Loader2, Edit3, Trash2 } from "lucide-react";
+import { Loader2, Edit3, Trash2, Camera, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { PhotoCropDialog } from "./PhotoCropDialog";
 
 interface ProfilePhotoUploaderProps {
   displayName: string;
@@ -22,6 +31,7 @@ interface ProfilePhotoUploaderProps {
   onUpload: (file: File) => Promise<string | null>;
   onDelete?: () => Promise<boolean>;
   disabled?: boolean;
+  className?: string;
 }
 
 export const ProfilePhotoUploader = ({
@@ -29,19 +39,33 @@ export const ProfilePhotoUploader = ({
   photoUrl,
   onUpload,
   onDelete,
-  disabled = false
+  disabled = false,
+  className
 }: ProfilePhotoUploaderProps) => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [tempPhotoUrl, setTempPhotoUrl] = useState<string>("");
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   
-  const handleAvatarClick = () => {
+  const handleFileSelect = () => {
     if (disabled || isUploading) return;
     
     if (fileInputRef.current) {
       fileInputRef.current.click();
+    }
+  };
+  
+  const handleCameraCapture = () => {
+    if (disabled || isUploading) return;
+    
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
     }
   };
   
@@ -50,11 +74,8 @@ export const ProfilePhotoUploader = ({
     if (!files || files.length === 0) return;
     
     const file = files[0];
-    setUploadError(null);
     
-    // Validate file type
     if (!file.type.startsWith('image/')) {
-      setUploadError("Please upload an image file");
       toast({
         title: "Invalid file type",
         description: "Please upload an image file",
@@ -63,32 +84,52 @@ export const ProfilePhotoUploader = ({
       return;
     }
     
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      setUploadError("File size exceeds 2MB limit");
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please upload an image smaller than 2MB",
+        description: "Please upload an image smaller than 5MB",
         variant: "destructive"
       });
       return;
     }
     
+    // Store the file and create a temporary URL for the cropper
+    setSelectedFile(file);
+    const url = URL.createObjectURL(file);
+    setTempPhotoUrl(url);
+    setCropDialogOpen(true);
+    
+    // Reset the input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
+  };
+  
+  const handleCropDialogClose = () => {
+    setCropDialogOpen(false);
+    // Clean up the temporary URL
+    if (tempPhotoUrl) {
+      URL.revokeObjectURL(tempPhotoUrl);
+      setTempPhotoUrl("");
+    }
+    setSelectedFile(null);
+  };
+  
+  const handleCroppedImage = async (croppedBlob: Blob) => {
     setIsUploading(true);
     
     try {
-      console.log('Starting file upload process for file:', file.name);
-      const result = await onUpload(file);
+      // Convert blob to file
+      const file = new File([croppedBlob], selectedFile?.name || "profile-photo.jpg", {
+        type: "image/jpeg",
+      });
       
-      if (result) {
-        console.log('Upload successful:', result);
-      } else {
-        console.error('Upload failed: No URL returned');
-        setUploadError("Upload failed");
-      }
+      await onUpload(file);
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      setUploadError("Upload failed due to an error");
+      console.error('Error uploading cropped profile picture:', error);
       toast({
         title: "Upload failed",
         description: "There was a problem uploading your profile picture",
@@ -96,9 +137,12 @@ export const ProfilePhotoUploader = ({
       });
     } finally {
       setIsUploading(false);
-      // Reset the input so the same file can be selected again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      setSelectedFile(null);
+      
+      // Clean up the temporary URL
+      if (tempPhotoUrl) {
+        URL.revokeObjectURL(tempPhotoUrl);
+        setTempPhotoUrl("");
       }
     }
   };
@@ -108,16 +152,10 @@ export const ProfilePhotoUploader = ({
     
     setIsDeleting(true);
     try {
-      console.log('Starting photo deletion process');
-      const success = await onDelete();
-      console.log('Delete operation result:', success);
+      await onDelete();
+      setShowDeleteAlert(false);
     } catch (error) {
       console.error('Error deleting profile picture:', error);
-      toast({
-        title: "Delete failed",
-        description: "There was a problem deleting your profile picture",
-        variant: "destructive"
-      });
     } finally {
       setIsDeleting(false);
     }
@@ -125,6 +163,7 @@ export const ProfilePhotoUploader = ({
 
   return (
     <>
+      {/* Hidden file inputs */}
       <input
         type="file"
         ref={fileInputRef}
@@ -132,42 +171,82 @@ export const ProfilePhotoUploader = ({
         accept="image/*"
         className="hidden"
       />
+      <input
+        type="file"
+        ref={cameraInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+      
+      {/* Crop Dialog */}
+      {tempPhotoUrl && (
+        <PhotoCropDialog
+          photoUrl={tempPhotoUrl}
+          isOpen={cropDialogOpen}
+          onClose={handleCropDialogClose}
+          onSave={handleCroppedImage}
+        />
+      )}
       
       <div className="relative">
-        <div 
-          className="cursor-pointer" 
-          onClick={handleAvatarClick}
-          aria-label="Change profile picture"
-          role="button"
-          tabIndex={0}
-        >
-          <Avatar className="w-24 h-24">
-            <AvatarImage 
-              src={photoUrl} 
-              alt={displayName} 
-              onError={() => {
-                console.error('Failed to load image:', photoUrl);
-              }} 
-            />
-            <AvatarFallback>
-              {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div 
+              className="cursor-pointer" 
+              aria-label="Change profile picture"
+              role="button"
+              tabIndex={0}
+            >
+              <Avatar className={cn("w-24 h-24", className)}>
+                <AvatarImage src={photoUrl} alt={displayName} />
+                <AvatarFallback>
+                  {displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center">
+            <DropdownMenuItem 
+              onClick={handleFileSelect}
+              disabled={isUploading || disabled}
+              className="cursor-pointer"
+            >
+              <Image className="mr-2 h-4 w-4" />
+              Choose from gallery
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={handleCameraCapture}
+              disabled={isUploading || disabled}
+              className="cursor-pointer"
+            >
+              <Camera className="mr-2 h-4 w-4" />
+              Take a photo
+            </DropdownMenuItem>
+            {photoUrl && onDelete && (
+              <DropdownMenuItem 
+                onClick={() => setShowDeleteAlert(true)}
+                disabled={isDeleting || disabled}
+                className="cursor-pointer text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Remove photo
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
         
-        {uploadError && (
-          <div className="text-destructive text-xs mt-1">
-            {uploadError}
-          </div>
-        )}
-        
-        <div className="absolute -bottom-2 -right-2 flex gap-1">
+        <div className="absolute -bottom-2 -right-2">
           <Button 
             size="icon"
             className="h-8 w-8 rounded-full"
             variant="secondary"
             type="button"
-            onClick={handleAvatarClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFileSelect();
+            }}
             disabled={isUploading || disabled}
             aria-label="Upload profile picture"
           >
@@ -177,41 +256,34 @@ export const ProfilePhotoUploader = ({
               <Edit3 className="h-4 w-4" />
             )}
           </Button>
-          
-          {photoUrl && onDelete && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  variant="destructive"
-                  type="button"
-                  disabled={isDeleting || disabled}
-                  aria-label="Delete profile picture"
-                >
-                  {isDeleting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete profile picture?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently remove your profile picture. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeletePhoto}>Delete</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
         </div>
       </div>
+
+      {/* Alert Dialog for Delete Confirmation */}
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete profile picture?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove your profile picture. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeletePhoto}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

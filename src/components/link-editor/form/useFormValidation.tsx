@@ -1,52 +1,40 @@
 
-import { useState } from "react";
+import { z } from "zod";
 import { FormErrors } from "./FormErrors";
 
 export const useFormValidation = () => {
-  const [errors, setErrors] = useState<FormErrors>({
-    title: "",
-    url: ""
+  // Create a schema for form validation using zod
+  const schema = z.object({
+    title: z.string().min(1, { message: "Title is required" }),
+    url: z.string().min(1, { message: "URL is required" }),
+    type: z.string(),
+    section: z.string().optional()
   });
 
+  const errors = { title: "", url: "" } as FormErrors;
+  
   const clearError = (name: keyof FormErrors) => {
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ""
-      }));
-    }
+    console.log(`Clearing error for ${name}`);
   };
-
+  
   const validateForm = (title: string, url: string, type: string): boolean => {
-    const newErrors = {
-      title: "",
-      url: ""
-    };
+    // Validate that we have at least a title and URL
+    const validationResult = schema.safeParse({
+      title,
+      url,
+      type
+    });
     
-    if (!title.trim()) {
-      newErrors.title = "Title is required";
+    if (!validationResult.success) {
+      console.error("Form validation failed:", validationResult.error);
+      return false;
     }
     
-    if (!url.trim()) {
-      newErrors.url = "URL is required";
-    } else if (
-      type !== "email" && 
-      !url.match(/^(http|https):\/\/[^ "]+$/)
-    ) {
-      newErrors.url = "Please enter a valid URL starting with http:// or https://";
-    } else if (
-      type === "email" && 
-      !url.match(/^mailto:[^ "]+$/) &&
-      !url.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-    ) {
-      newErrors.url = "Please enter a valid email address or mailto: link";
-    }
-    
-    setErrors(newErrors);
-    return !newErrors.title && !newErrors.url;
+    return true;
   };
 
   return {
+    schema,
     errors,
     clearError,
     validateForm

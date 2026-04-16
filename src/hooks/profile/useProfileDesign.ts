@@ -48,28 +48,83 @@ export const defaultDesignSettings: ProfileDesignSettings = {
   text_alignment: 'center',
   font_family: 'Inter, sans-serif',
 };
+// Cache key prefix for localStorage
+const DESIGN_CACHE_PREFIX = 'pocketcv_design_';
+
+// Get cached design settings from localStorage
+const getCachedDesign = (userId: string): ProfileDesignSettings | null => {
+  try {
+    const cached = localStorage.getItem(`${DESIGN_CACHE_PREFIX}${userId}`);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      // Cache TTL: 7 days for better performance on public profiles
+      const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+      if (parsed.timestamp && Date.now() - parsed.timestamp < CACHE_TTL) {
+        return parsed.settings;
+      }
+    }
+  } catch (e) {
+    console.error('Error reading design cache:', e);
+  }
+  return null;
+};
+
+// Save design settings to localStorage cache
+const setCachedDesign = (userId: string, settings: ProfileDesignSettings) => {
+  try {
+    localStorage.setItem(`${DESIGN_CACHE_PREFIX}${userId}`, JSON.stringify({
+      settings,
+      timestamp: Date.now()
+    }));
+  } catch (e) {
+    console.error('Error saving design cache:', e);
+  }
+};
 
 export const useProfileDesign = (profileId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [settings, setSettings] = useState<ProfileDesignSettings>(defaultDesignSettings);
-  const [loading, setLoading] = useState(true);
+  
+  // Initialize with cached value if available
+  const getInitialSettings = (): ProfileDesignSettings => {
+    const targetId = profileId || user?.id;
+    if (targetId) {
+      const cached = getCachedDesign(targetId);
+      if (cached) return cached;
+    }
+    return defaultDesignSettings;
+  };
+  
+  const [settings, setSettings] = useState<ProfileDesignSettings>(getInitialSettings);
+  const [loading, setLoading] = useState(() => {
+    // If we have cached data, don't show loading
+    const targetId = profileId || user?.id;
+    return targetId ? !getCachedDesign(targetId) : true;
+  });
   const [saving, setSaving] = useState(false);
 
   // Fetch design settings
   const fetchDesignSettings = async () => {
-    try {
+    // Determine which profile ID to fetch
+    const targetId = profileId || user?.id;
+    
+    if (!targetId) {
+      setSettings(defaultDesignSettings);
+      setLoading(false);
+      return;
+    }
+    
+    // Check cache first - if we have cached data, use it immediately
+    const cached = getCachedDesign(targetId);
+    if (cached) {
+      setSettings(cached);
+      setLoading(false);
+    } else {
       setLoading(true);
-      
-      // Determine which profile ID to fetch
-      const targetId = profileId || user?.id;
-      
-      if (!targetId) {
-        setSettings(defaultDesignSettings);
-        return;
-      }
-      
-      // Fix: Use type assertion to handle the response properly
+    }
+    
+    try {
+      // Fetch fresh data from server
       const { data, error } = await supabase
         .from('profile_design_settings')
         .select('*')
@@ -81,7 +136,9 @@ export const useProfileDesign = (profileId?: string) => {
           console.error('Error fetching design settings:', error);
         }
         // If no settings found, we'll use defaults
-        setSettings(defaultDesignSettings);
+        if (!cached) {
+          setSettings(defaultDesignSettings);
+        }
         return;
       }
       
@@ -89,13 +146,18 @@ export const useProfileDesign = (profileId?: string) => {
         // Cast the data to our expected type with type assertion
         // Remove the button_size field from the data if it exists
         const { button_size, ...cleanedData } = data as any;
-        setSettings(cleanedData as ProfileDesignSettings);
-      } else {
+        const newSettings = cleanedData as ProfileDesignSettings;
+        setSettings(newSettings);
+        // Update cache with fresh data
+        setCachedDesign(targetId, newSettings);
+      } else if (!cached) {
         setSettings(defaultDesignSettings);
       }
     } catch (err) {
       console.error('Error in fetchDesignSettings:', err);
-      setSettings(defaultDesignSettings);
+      if (!cached) {
+        setSettings(defaultDesignSettings);
+      }
     } finally {
       setLoading(false);
     }
@@ -104,6 +166,7 @@ export const useProfileDesign = (profileId?: string) => {
   // Save design settings
   const saveDesignSettings = async (updatedSettings: Partial<ProfileDesignSettings>): Promise<boolean> => {
     if (!user) {
+      console.error('SaveDesignSettings: No user logged in');
       toast({
         title: "Cannot save design settings",
         description: "You must be logged in to save profile design settings",
@@ -111,6 +174,12 @@ export const useProfileDesign = (profileId?: string) => {
       });
       return false;
     }
+    
+    // Optimistic update: apply immediately before DB call
+    const optimisticSettings = { ...settings, ...updatedSettings };
+    setSettings(optimisticSettings);
+    if (user.id) setCachedDesign(user.id, optimisticSettings);
+    window.dispatchEvent(new CustomEvent('pocketcv-design-updated', { detail: optimisticSettings }));
     
     try {
       setSaving(true);
@@ -121,6 +190,11 @@ export const useProfileDesign = (profileId?: string) => {
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('SaveDesignSettings: Error checking existing settings:', checkError);
+        throw checkError;
+      }
       
       // Ensure gradient values are included when background_type is gradient
       const settingsToSave = { ...updatedSettings };
@@ -137,6 +211,7 @@ export const useProfileDesign = (profileId?: string) => {
       
       if (data) {
         // Update existing settings
+        console.log('SaveDesignSettings: Updating existing settings with ID:', data.id);
         result = await supabase
           .from('profile_design_settings')
           .update({
@@ -146,6 +221,7 @@ export const useProfileDesign = (profileId?: string) => {
           .eq('user_id', user.id);
       } else {
         // Insert new settings
+        console.log('SaveDesignSettings: Creating new settings record');
         result = await supabase
           .from('profile_design_settings')
           .insert({
@@ -155,28 +231,40 @@ export const useProfileDesign = (profileId?: string) => {
           });
       }
       
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('SaveDesignSettings: Database operation failed:', result.error);
+        throw result.error;
+      }
+      
+      console.log('SaveDesignSettings: Database operation successful');
       
       // Update local state
-      setSettings(prev => ({
-        ...prev,
+      const newSettings = {
+        ...settings,
         ...settingsToSave
-      }));
+      };
+      setSettings(newSettings);
       
-      toast({
-        title: "Design settings saved",
-        description: "Your profile appearance has been updated"
-      });
+      // Update cache
+      setCachedDesign(user.id, newSettings);
+      
+      // Broadcast to other components
+      window.dispatchEvent(new CustomEvent('pocketcv-design-updated', { detail: newSettings }));
+      
+      console.log('SaveDesignSettings: Local state and cache updated');
       
       return true;
     } catch (err: any) {
-      console.error('Error saving design settings:', err);
-      toast({
-        title: "Error saving design settings",
-        description: err.message,
-        variant: "destructive"
+      console.error('SaveDesignSettings: Error occurred:', err);
+      console.error('SaveDesignSettings: Error details:', {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint
       });
-      return false;
+      
+      // Don't show toast here - let the calling component handle it
+      throw err;
     } finally {
       setSaving(false);
     }
@@ -210,6 +298,16 @@ export const useProfileDesign = (profileId?: string) => {
       supabase.removeChannel(channel);
     };
   }, [user?.id]);
+
+  // Listen for cross-component design updates
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as ProfileDesignSettings;
+      setSettings(detail);
+    };
+    window.addEventListener('pocketcv-design-updated', handler);
+    return () => window.removeEventListener('pocketcv-design-updated', handler);
+  }, []);
 
   // Initial fetch
   useEffect(() => {

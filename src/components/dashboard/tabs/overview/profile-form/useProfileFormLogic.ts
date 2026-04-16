@@ -23,7 +23,10 @@ export const useProfileFormLogic = (userData: {
       username: profile?.slug || userData.username,
       headline: profile?.headline || "",
       linkedin: profile?.linkedin || "",
-      website: profile?.website || ""
+      website: profile?.website || "",
+      phone_number: profile?.phone_number || "",
+      share_email_publicly: profile?.share_email_publicly ?? true,
+      share_phone_publicly: profile?.share_phone_publicly ?? true
     }
   });
   
@@ -36,7 +39,10 @@ export const useProfileFormLogic = (userData: {
         username: profile.slug || userData.username,
         headline: profile.headline || "",
         linkedin: profile.linkedin || "",
-        website: profile.website || ""
+        website: profile.website || "",
+        phone_number: profile.phone_number || "",
+        share_email_publicly: profile.share_email_publicly ?? true,
+        share_phone_publicly: profile.share_phone_publicly ?? true
       });
     }
   }, [profile, userData, form]);
@@ -103,13 +109,17 @@ export const useProfileFormLogic = (userData: {
         username = generateSlugFromName(values.name);
       }
       
+      // Make sure to pass all form values to updateProfile
       const success = await updateProfile({
         name: values.name,
         bio: values.bio,
         slug: username,
         headline: values.headline,
         linkedin: values.linkedin,
-        website: values.website
+        website: values.website,
+        phone_number: values.phone_number,
+        share_email_publicly: values.share_email_publicly,
+        share_phone_publicly: values.share_phone_publicly
       });
       
       if (success) {

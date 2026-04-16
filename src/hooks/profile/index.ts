@@ -1,9 +1,12 @@
 
+import { useState, useEffect } from 'react';
 import { useProfileData, ProfileData } from './useProfileData';
 import { useProfileUpdate } from './useProfileUpdate';
 import { useProfilePhoto } from './useProfilePhoto';
+import { ProfileSection, LinkType } from './types/profileSectionTypes';
 
 export type { ProfileData } from './useProfileData';
+export type { ProfileSection, LinkType } from './types/profileSectionTypes';
 
 export const useProfile = (slug?: string) => {
   const { profile, loading: dataLoading, error, refreshProfile } = useProfileData(slug);

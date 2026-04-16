@@ -15,7 +15,7 @@ export const UploadButton = ({
   onUpload,
   uploadText = 'Upload File',
   accept = 'image/*',
-  maxSize = 2, // Default 2MB
+  maxSize = 5,
   className = '',
 }: UploadButtonProps) => {
   const [loading, setLoading] = useState(false);
@@ -34,13 +34,14 @@ export const UploadButton = ({
 
     const file = files[0];
     
+    setError(null);
+    
     // Check file size
     if (file.size > maxSize * 1024 * 1024) {
       setError(`File size exceeds ${maxSize}MB limit`);
       return;
     }
     
-    setError(null);
     setLoading(true);
     
     try {
@@ -71,7 +72,8 @@ export const UploadButton = ({
         onClick={handleButtonClick}
         disabled={loading}
         variant="outline"
-        className="w-full"
+        size="sm"
+        className="shrink-0"
       >
         {loading ? (
           <>

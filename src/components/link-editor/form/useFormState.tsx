@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { LinkType } from "@/components/LinkCard";
 import { linkTypes } from "../LinkTypes";
 
-interface FormData {
+export interface FormData {
   title: string;
   url: string;
   type: string;
@@ -11,8 +11,8 @@ interface FormData {
 }
 
 export const useFormState = (
-  editingLink?: LinkType & {section?: string},
-  sections?: {id: string, title: string}[]
+  onSave: (link: Omit<LinkType, "id"> & { id?: string, section?: string }) => void,
+  editingLink?: LinkType & {section?: string}
 ) => {
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -35,7 +35,7 @@ export const useFormState = (
       setFormData({
         title: editingLink.title || "",
         url: editingLink.url || "",
-        type: iconType?.id || "other",
+        type: iconType?.id || "website",
         section: editingLink.section || ""
       });
     } else {
@@ -43,10 +43,10 @@ export const useFormState = (
         title: "",
         url: "",
         type: "website",
-        section: sections && sections.length > 0 ? sections[0].id : ""
+        section: ""
       });
     }
-  }, [editingLink, sections]);
+  }, [editingLink]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -70,10 +70,22 @@ export const useFormState = (
     }));
   };
 
+  const handleSaveClick = (data: FormData) => {
+    onSave({
+      title: data.title,
+      url: data.url,
+      icon: data.type,
+      id: editingLink?.id,
+      section: data.section
+    });
+  };
+
   return {
     formData,
+    defaultFormState: formData,
     handleChange,
     handleSelectChange,
-    handleSectionChange
+    handleSectionChange,
+    handleSaveClick
   };
 };

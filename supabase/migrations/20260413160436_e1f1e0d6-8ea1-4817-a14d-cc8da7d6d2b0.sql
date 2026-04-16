@@ -1,0 +1,1 @@
+UPDATE event_participants SET status = 'participating' WHERE user_id = '47963c84-0914-4f29-8bd5-7a88581a8cc9' AND event_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';

@@ -14,9 +14,19 @@ interface LinkEditorProps {
   onSave: (link: Omit<LinkType, "id"> & {id?: string, section?: string}) => void;
   editingLink?: LinkType & {section?: string};
   sections?: {id: string, title: string}[];
+  maxLinksReached?: boolean;
+  currentSectionId?: string;
 }
 
-const LinkEditor = ({ isOpen, onClose, onSave, editingLink, sections = [] }: LinkEditorProps) => {
+const LinkEditor = ({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  editingLink, 
+  sections = [], 
+  maxLinksReached,
+  currentSectionId 
+}: LinkEditorProps) => {
   const handleSave = (link: Omit<LinkType, "id"> & {id?: string, section?: string}) => {
     onSave(link);
     onClose();
@@ -34,6 +44,8 @@ const LinkEditor = ({ isOpen, onClose, onSave, editingLink, sections = [] }: Lin
           onCancel={onClose}
           editingLink={editingLink}
           sections={sections}
+          maxLinksReached={maxLinksReached}
+          currentSectionId={currentSectionId}
         />
       </DialogContent>
     </Dialog>
