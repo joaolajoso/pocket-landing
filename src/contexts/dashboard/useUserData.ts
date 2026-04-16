@@ -27,9 +27,9 @@ export const useUserData = (
         bio: profile.bio || "",
         email: profile.email || user.email || "",
         avatarUrl: profile.photo_url || "",
-        username: profile.slug || "",
-        profileViews: 0,
-        totalClicks: 0,
+        username: profile.username || profile.slug || "", // Use either username or slug
+        profileViews: profile.view_count || 0,
+        totalClicks: profile.link_click_count || 0,
       });
     }
   }, [profile, user]);

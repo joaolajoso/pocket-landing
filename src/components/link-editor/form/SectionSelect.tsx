@@ -7,20 +7,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFormContext } from "react-hook-form";
 
 interface SectionSelectProps {
-  sectionId: string;
   sections: { id: string; title: string }[];
-  onChange: (value: string) => void;
+  form: ReturnType<typeof useFormContext>;
 }
 
-const SectionSelect = ({ sectionId, sections, onChange }: SectionSelectProps) => {
+const SectionSelect = ({ sections, form }: SectionSelectProps) => {
+  const { setValue, watch } = form;
+  const sectionId = watch("section");
+  
   if (sections.length === 0) return null;
   
   return (
     <div className="space-y-2">
       <Label htmlFor="section">Section</Label>
-      <Select value={sectionId} onValueChange={onChange}>
+      <Select value={sectionId} onValueChange={(value) => setValue("section", value)}>
         <SelectTrigger>
           <SelectValue placeholder="Select a section" />
         </SelectTrigger>

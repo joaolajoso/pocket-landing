@@ -8,13 +8,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { linkTypes } from "../LinkTypes";
+import { useFormContext } from "react-hook-form";
 
 interface LinkTypeSelectProps {
-  typeId: string;
-  onChange: (value: string) => void;
+  form: ReturnType<typeof useFormContext>;
 }
 
-const LinkTypeSelect = ({ typeId, onChange }: LinkTypeSelectProps) => {
+const LinkTypeSelect = ({ form }: LinkTypeSelectProps) => {
+  const { watch, setValue } = form;
+  const typeId = watch("type");
+
+  const onChange = (value: string) => {
+    setValue("type", value);
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor="type">Link Type</Label>

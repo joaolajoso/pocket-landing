@@ -10,6 +10,14 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import StatisticsCards from "./overview/StatisticsCards";
 
 const AnalyticsTab = () => {
   const { user } = useAuth();
@@ -43,7 +51,7 @@ const AnalyticsTab = () => {
           const dailyCounts = processViewsByDate(viewsData || []);
           setProfileViews(dailyCounts);
           
-          // Process views data to get referrer counts
+          // Process views data to get referrer counts (excluding click data)
           const referrerCounts = processViewsByReferrer(viewsData || []);
           setTopReferrers(referrerCounts);
         }
@@ -86,13 +94,46 @@ const AnalyticsTab = () => {
     }));
   };
 
-  // Process views data to get counts by referrer
+  // Process views data to get counts by referrer (excluding click data)
   const processViewsByReferrer = (views: any[]) => {
     const referrerMap = new Map();
     
     views.forEach(view => {
       const source = view.source || "direct";
-      referrerMap.set(source, (referrerMap.get(source) || 0) + 1);
+      
+      // Skip click data - we only want actual referral sources
+      if (source.startsWith("click:")) {
+        return;
+      }
+      
+      // Clean up and categorize referral sources
+      let cleanSource = source;
+      if (source === "direct" || source === "") {
+        cleanSource = "Direct";
+      } else if (source === "qr") {
+        cleanSource = "QR Code";
+      } else if (source === "nfc") {
+        cleanSource = "NFC Tap";
+      } else if (source.includes("google")) {
+        cleanSource = "Google";
+      } else if (source.includes("linkedin")) {
+        cleanSource = "LinkedIn";
+      } else if (source.includes("facebook")) {
+        cleanSource = "Facebook";
+      } else if (source.includes("twitter")) {
+        cleanSource = "Twitter";
+      } else if (source.includes("instagram")) {
+        cleanSource = "Instagram";
+      } else if (source.startsWith("utm_")) {
+        // Handle UTM parameters
+        cleanSource = source.replace("utm_", "").replace("_", " ");
+        cleanSource = cleanSource.charAt(0).toUpperCase() + cleanSource.slice(1);
+      } else {
+        // For other sources, just capitalize first letter
+        cleanSource = source.charAt(0).toUpperCase() + source.slice(1);
+      }
+      
+      referrerMap.set(cleanSource, (referrerMap.get(cleanSource) || 0) + 1);
     });
     
     // Convert to array and sort by count
@@ -112,17 +153,21 @@ const AnalyticsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Analytics</h2>
-          <p className="text-muted-foreground">Track your profile engagement</p>
-        </div>
-        <DateRangePicker
-          date={dateRange}
-          onDateChange={setDateRange}
-          className="w-auto"
-        />
+      <div className="flex items-center gap-2">
+        <h2 className="text-2xl font-bold">Analytics</h2>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-4 w-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">Track your profile's performance! See how many people view your profile and where your visitors are coming from. Use these insights to optimize your profile.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
+
+      <StatisticsCards />
 
       <Tabs defaultValue="overview">
         <TabsList>
@@ -155,7 +200,7 @@ const AnalyticsTab = () => {
             <CardHeader>
               <CardTitle>Top Referrers</CardTitle>
               <CardDescription>
-                Where your profile views are coming from
+                Where your profile visitors are coming from
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,15 +1,13 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Edit3, Eye, PlusCircle, Share2, QrCode } from "lucide-react";
+import { Edit3, Eye, PlusCircle, Share2, QrCode, RefreshCw } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { UserProfileForm } from "./UserProfileForm";
 import { useToast } from "@/hooks/use-toast";
 import { getProfileUrl } from "@/lib/supabase";
 import { useState } from "react";
-import ProfileQRCode from "@/components/profile/ProfileQRCode";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import QRCodeDialog from "@/components/profile/QRCodeDialog";
 
 interface QuickActionsProps {
   userData: {
@@ -17,12 +15,14 @@ interface QuickActionsProps {
     bio: string;
     username: string;
     avatarUrl: string;
+    headline?: string;
   };
   onEditProfile: () => void;
   onOpenLinkEditor: () => void;
+  onRefreshMetrics?: () => void;
 }
 
-const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor }: QuickActionsProps) => {
+const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor, onRefreshMetrics }: QuickActionsProps) => {
   const { toast } = useToast();
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
@@ -44,6 +44,31 @@ const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor }: QuickAction
     });
   };
 
+  const handleViewPublicProfile = () => {
+    if (!userData.username) {
+      toast({
+        title: "Username not set",
+        description: "Please set a username in your profile settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const profileUrl = getProfileUrl(userData.username);
+    window.open(profileUrl, '_blank');
+  };
+
+  // Add a refresh button option
+  const handleRefreshMetrics = () => {
+    if (onRefreshMetrics) {
+      onRefreshMetrics();
+      toast({
+        title: "Metrics refreshed",
+        description: "Your profile metrics have been updated"
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -58,18 +83,11 @@ const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor }: QuickAction
           Add New Link
         </Button>
         
-        <Button className="w-full justify-start" variant="outline" onClick={() => {
-          if (!userData.username) {
-            toast({
-              title: "Username not set",
-              description: "Please set a username in your profile settings first",
-              variant: "destructive"
-            });
-            return;
-          }
-          const profileUrl = getProfileUrl(userData.username);
-          window.open(profileUrl, '_blank');
-        }}>
+        <Button 
+          className="w-full justify-start" 
+          variant="outline" 
+          onClick={handleViewPublicProfile}
+        >
           <Eye className="mr-2 h-4 w-4" />
           View Public Profile
         </Button>
@@ -79,25 +97,28 @@ const QuickActions = ({ userData, onEditProfile, onOpenLinkEditor }: QuickAction
           Share Profile
         </Button>
         
-        <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-          <DialogTrigger asChild>
+        <QRCodeDialog
+          open={qrDialogOpen}
+          onOpenChange={setQrDialogOpen}
+          profileUrl={`${getProfileUrl(userData.username)}?source=qr`}
+          profileName={userData.name || userData.username}
+          profilePhoto={userData.avatarUrl}
+          headline={userData.headline}
+          title="Share Profile"
+          trigger={
             <Button className="w-full justify-start" variant="outline">
               <QrCode className="mr-2 h-4 w-4" />
               Generate QR Code
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Profile QR Code</DialogTitle>
-            </DialogHeader>
-            <div className="mt-4">
-              <ProfileQRCode 
-                profileUrl={`${getProfileUrl(userData.username)}?source=qr`} 
-                profileName={userData.name || userData.username} 
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+          }
+        />
+        
+        {onRefreshMetrics && (
+          <Button className="w-full justify-start" variant="outline" onClick={handleRefreshMetrics}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh Metrics
+          </Button>
+        )}
         
         <Sheet>
           <SheetTrigger asChild>

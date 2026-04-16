@@ -1,10 +1,72 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
-// Use import.meta.env for Vite instead of process.env
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xhcqhmbhivxbwnoifcoc.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY3FobWJoaXZ4Yndub2lmY29jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2ODU4MTQsImV4cCI6MjA1OTI2MTgxNH0.-0BpfJiCPk8rQkhEV2DJTKHwXx8kjrN5uYTv5kAR7Xo';
+// ============= Visitor Tracking Utilities =============
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+/**
+ * Get or create a persistent visitor ID for this device/browser
+ */
+const getVisitorId = (): string => {
+  const VISITOR_KEY = 'pocketcv_visitor_id';
+  let visitorId = localStorage.getItem(VISITOR_KEY);
+  
+  if (!visitorId) {
+    visitorId = crypto.randomUUID();
+    localStorage.setItem(VISITOR_KEY, visitorId);
+  }
+  
+  return visitorId;
+};
+
+/**
+ * Get the localStorage key for tracking views
+ */
+const getViewKey = (profileId: string): string => {
+  const visitorId = getVisitorId();
+  return `pocketcv_view_${profileId}_${visitorId}`;
+};
+
+/**
+ * Get the localStorage key for tracking link clicks
+ */
+const getClickKey = (linkId: string, profileOwnerId: string): string => {
+  const visitorId = getVisitorId();
+  return `pocketcv_click_${linkId}_${profileOwnerId}_${visitorId}`;
+};
+
+/**
+ * Cleanup old view/click entries from localStorage (older than 7 days)
+ */
+const cleanupOldTrackingKeys = (): void => {
+  try {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+    
+    const keysToRemove: string[] = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('pocketcv_view_') || key.startsWith('pocketcv_click_'))) {
+        const dateStr = localStorage.getItem(key);
+        if (dateStr && dateStr < sevenDaysAgoStr) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  } catch (error) {
+    console.error('[Cleanup] Error cleaning old tracking keys:', error);
+  }
+};
+
+// Run cleanup on module load (once per session)
+if (typeof window !== 'undefined') {
+  cleanupOldTrackingKeys();
+}
+
+// ============= Profile View Stats =============
 
 export const getProfileViewStats = async (profileId: string) => {
   try {
@@ -112,27 +174,79 @@ export const getProfileUrl = (slug: string) => {
   return `https://pocketcv.pt/u/${slug}`;
 };
 
-export const incrementLinkClick = async (linkId: string, userId: string): Promise<void> => {
+// ============= Link Click Tracking =============
+
+export const incrementLinkClick = async (
+  linkId: string, 
+  profileOwnerId: string,
+  currentUserId?: string
+): Promise<void> => {
   try {
-    // Instead of calling a DB function that doesn't exist, simply track link clicks
-    // by inserting into profile_views table with a "click" source
+    // SYNC CHECK: Don't track clicks from the profile owner
+    if (currentUserId && currentUserId === profileOwnerId) {
+      console.log('[LinkClick] Skipping - owner clicking own link');
+      return;
+    }
+
+    // Check if this device already clicked today (persistent across sessions)
+    const clickKey = getClickKey(linkId, profileOwnerId);
+    const lastClick = localStorage.getItem(clickKey);
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (lastClick === today) {
+      console.log('[LinkClick] Skipping - already clicked today from this device');
+      return;
+    }
+
     const { error } = await supabase
       .from('profile_views')
       .insert({
-        profile_id: userId,
-        source: `click:${linkId}` // Store the link ID in the source field
+        profile_id: profileOwnerId,
+        source: `click:${linkId}`
       });
     
-    if (error) {
-      console.error('Error tracking link click:', error);
+    if (!error) {
+      localStorage.setItem(clickKey, today);
+      console.log('[LinkClick] Tracked successfully');
+    } else {
+      console.error('[LinkClick] Error:', error);
     }
   } catch (error) {
-    console.error('Error tracking link click:', error);
+    console.error('[LinkClick] Error:', error);
   }
 };
 
-export const trackProfileView = async (profileId: string, source: string = 'direct'): Promise<void> => {
+// ============= Profile View Tracking =============
+
+/**
+ * Track a profile view with robust deduplication
+ * @param profileId - The profile being viewed
+ * @param source - Source of the view (direct, qr, nfc, etc.)
+ * @param currentUserId - The current authenticated user's ID (passed from context)
+ */
+export const trackProfileView = async (
+  profileId: string, 
+  source: string = 'direct',
+  currentUserId?: string
+): Promise<void> => {
   try {
+    // SYNC CHECK 1: Don't track views from the profile owner (using passed user ID)
+    if (currentUserId && currentUserId === profileId) {
+      console.log('[TrackView] Skipping - owner viewing own profile (sync check)');
+      return;
+    }
+
+    // Check if this device already viewed today (persistent across sessions)
+    const viewKey = getViewKey(profileId);
+    const lastView = localStorage.getItem(viewKey);
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (lastView === today) {
+      console.log('[TrackView] Skipping - already viewed today from this device');
+      return;
+    }
+
+    // Insert the view
     const { error } = await supabase
       .from('profile_views')
       .insert({
@@ -140,24 +254,27 @@ export const trackProfileView = async (profileId: string, source: string = 'dire
         source: source
       });
 
-    if (error) {
-      console.error('Error tracking profile view:', error);
+    if (!error) {
+      localStorage.setItem(viewKey, today);
+      console.log('[TrackView] View tracked successfully for profile:', profileId);
+    } else {
+      console.error('[TrackView] Error:', error);
     }
   } catch (error) {
-    console.error('Error tracking profile view:', error);
+    console.error('[TrackView] Error:', error);
   }
 };
 
 /**
  * Track access to a profile via NFC tap
  */
-export const trackNfcTap = async (profileId: string): Promise<void> => {
-  return trackProfileView(profileId, 'nfc');
+export const trackNfcTap = async (profileId: string, currentUserId?: string): Promise<void> => {
+  return trackProfileView(profileId, 'nfc', currentUserId);
 };
 
 /**
  * Track access to a profile via QR code scan
  */
-export const trackQrScan = async (profileId: string): Promise<void> => {
-  return trackProfileView(profileId, 'qr');
+export const trackQrScan = async (profileId: string, currentUserId?: string): Promise<void> => {
+  return trackProfileView(profileId, 'qr', currentUserId);
 };

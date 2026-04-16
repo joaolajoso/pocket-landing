@@ -1,22 +1,8 @@
-
-import { LinkType } from "@/components/LinkCard";
 import { ReactNode } from "react";
+import { LinkType } from "@/components/LinkCard";
+import { ProfileModeType } from "@/hooks/useProfileMode";
 
-// Define the shape of our context
-export interface DashboardContextType {
-  links: LinkType[];
-  userData: UserData;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  isLinkEditorOpen: boolean;
-  openLinkEditor: (linkId?: string) => void;
-  closeLinkEditor: () => void;
-  currentEditingLink: LinkType | undefined;
-  saveLink: (linkData: Omit<LinkType, "id"> & { id?: string }) => Promise<void>;
-  deleteLink: (linkId: string) => Promise<void>;
-  refreshData: () => void;
-  profileLoading: boolean;
-}
+export type { ProfileModeType } from "@/hooks/useProfileMode";
 
 export interface UserData {
   id: string;
@@ -27,6 +13,47 @@ export interface UserData {
   username: string;
   profileViews: number;
   totalClicks: number;
+}
+
+export interface SectionWithLinks {
+  id: string;
+  title: string;
+  displayTitle: boolean;
+  active: boolean;
+  links: LinkType[];
+}
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  message: string | null;
+  created_at: string;
+  profile_owner_id: string;
+}
+
+export interface DashboardContextType {
+  links: SectionWithLinks[];
+  userData: UserData;
+  activeTab: string;
+  setActiveTab: (tab: string, subTab?: string) => void;
+  networkSubTab?: string;
+  isLinkEditorOpen: boolean;
+  openLinkEditor: (linkId?: string, sectionId?: string) => void;
+  closeLinkEditor: () => void;
+  currentEditingLink?: LinkType & { section?: string };
+  currentSectionId?: string;
+  saveLink: (linkData: Omit<LinkType, "id"> & { id?: string, section?: string }) => Promise<void>;
+  deleteLink: (linkId: string) => Promise<void>;
+  refreshData: () => void;
+  profileLoading: boolean;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  // Profile mode state
+  profileMode: ProfileModeType;
+  setProfileMode: (mode: ProfileModeType) => void;
+  hasBusinessProfile: boolean;
 }
 
 export interface DashboardProviderProps {

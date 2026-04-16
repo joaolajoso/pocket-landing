@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LinkIcon, Mail, User } from "lucide-react";
+import { LinkIcon, User } from "lucide-react";
 import { UploadButton } from "@/components/UploadButton";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
@@ -48,21 +48,24 @@ const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksPro
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 rounded-lg border">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <User className="h-5 w-5 text-primary" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <h4 className="font-medium">Add a profile picture</h4>
                 <p className="text-sm text-muted-foreground">Help others recognize you</p>
               </div>
             </div>
-            <UploadButton 
-              onUpload={handleProfilePhotoUpload}
-              uploadText="Upload"
-              accept="image/*"
-              maxSize={2}
-            />
+            <div className="flex flex-col items-end gap-1 ml-4">
+              <UploadButton 
+                onUpload={handleProfilePhotoUpload}
+                uploadText="Upload"
+                accept="image/*"
+                maxSize={5}
+                className="flex flex-col items-end"
+              />
+            </div>
           </div>
           
           <div className="flex items-center justify-between p-4 rounded-lg border">
@@ -76,19 +79,6 @@ const CompletionTasks = ({ onEditProfile, onOpenLinkEditor }: CompletionTasksPro
               </div>
             </div>
             <Button size="sm" onClick={onOpenLinkEditor}>Add Link</Button>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 rounded-lg border">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Mail className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h4 className="font-medium">Verify your email</h4>
-                <p className="text-sm text-muted-foreground">Confirm your email address</p>
-              </div>
-            </div>
-            <Button size="sm" variant="outline">Resend</Button>
           </div>
         </div>
       </CardContent>

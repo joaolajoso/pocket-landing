@@ -1,72 +1,40 @@
 
 import { useState, useEffect } from 'react';
+import { ProfileSection, LinkType } from './types/profileSectionTypes';
+import { fetchProfileSections } from './utils/sectionFetching';
 
-export interface ProfileSection {
-  id: string;
-  title: string;
-  links: LinkType[];
-}
-
-export interface LinkType {
-  id: string;
-  title: string;
-  url: string;
-  icon: string | null;
-}
-
+/**
+ * Hook to fetch and manage profile sections and their links
+ */
 export const useProfileSections = (profile: any) => {
   const [sections, setSections] = useState<ProfileSection[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (profile) {
-      const contactLinks = [];
-      
-      if (profile.email) {
-        contactLinks.push({
-          id: 'email-link',
-          title: 'Email',
-          url: `mailto:${profile.email}`,
-          icon: 'mail'
-        });
+    const loadSections = async () => {
+      if (!profile) {
+        setLoading(false);
+        return;
       }
-      
-      if (profile.linkedin) {
-        contactLinks.push({
-          id: 'linkedin-link',
-          title: 'LinkedIn',
-          url: profile.linkedin.startsWith('http') 
-            ? profile.linkedin 
-            : `https://linkedin.com/in/${profile.linkedin}`,
-          icon: 'linkedin'
-        });
+
+      try {
+        setLoading(true);
+        const profileId = profile.id;
+        
+        const sectionData = await fetchProfileSections(profileId);
+        setSections(sectionData);
+      } catch (error) {
+        console.error('Error loading profile sections:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      if (profile.website) {
-        contactLinks.push({
-          id: 'website-link',
-          title: 'Website',
-          url: profile.website.startsWith('http') 
-            ? profile.website 
-            : `https://${profile.website}`,
-          icon: 'globe'
-        });
-      }
-      
-      const sections = [];
-      
-      if (contactLinks.length > 0) {
-        sections.push({
-          id: 'contact-section',
-          title: 'Contact Information',
-          links: contactLinks
-        });
-      }
-      
-      setSections(sections);
-      setLoading(false);
-    }
+    };
+
+    loadSections();
   }, [profile]);
 
   return { sections, loading };
 };
+
+// Re-export LinkType and ProfileSection for backward compatibility
+export type { ProfileSection, LinkType };

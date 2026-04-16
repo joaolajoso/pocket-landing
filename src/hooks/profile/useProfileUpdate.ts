@@ -25,23 +25,40 @@ export const useProfileUpdate = () => {
       setLoading(true);
       console.log("Updating profile with data:", updatedData);
       
-      // If updating slug, ensure it's unique and URL-friendly
-      if (updatedData.slug) {
+      // Map username to slug if provided
+      const dataToUpdate: any = { ...updatedData };
+      
+      if (updatedData.username) {
         // Create URL-friendly slug
-        updatedData.slug = updatedData.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+        dataToUpdate.slug = updatedData.username.toLowerCase()
+            .normalize("NFD") // separa acento de letra
+            .replace(/[\u0300-\u036f]/g, "") // remove acentos
+            .replace(/\s+/g, "") // remove espaços
+            .replace(/[^a-z0-9]/g, "");
+        delete dataToUpdate.username; // Remove username since we're using slug
         
-        // Check if slug is already taken
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('slug', updatedData.slug)
-          .neq('id', user.id)
-          .single();
+        // Check if slug is available using database function
+        const { data: isAvailable, error: availabilityError } = await supabase
+          .rpc('is_slug_available', { 
+            slug_to_check: dataToUpdate.slug, 
+            excluding_user_id: user.id 
+          });
         
-        if (data) {
+        if (availabilityError) {
+          console.error("Error checking slug availability:", availabilityError);
           toast({
-            title: "Username already taken",
-            description: "Please choose a different username",
+            title: "Error checking username availability",
+            description: "Please try again",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return false;
+        }
+        
+        if (!isAvailable) {
+          toast({
+            title: "Username not available",
+            description: "This username is already taken or reserved. Please choose a different one.",
             variant: "destructive"
           });
           setLoading(false);
@@ -51,7 +68,7 @@ export const useProfileUpdate = () => {
       
       // Include updated_at timestamp
       const dataWithTimestamp = {
-        ...updatedData,
+        ...dataToUpdate,
         updated_at: new Date().toISOString()
       };
       

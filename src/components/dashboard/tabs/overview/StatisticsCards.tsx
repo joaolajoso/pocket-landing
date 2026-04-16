@@ -1,50 +1,21 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, ArrowUpRight, MousePointer } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface StatsCardProps {
-  title: string;
-  value: string | number;
-  description: string;
-  icon: React.ReactNode;
-  trend?: "up" | "down" | "neutral";
-  trendValue?: string;
-}
-
-const StatsCard = ({ title, value, description, icon, trend, trendValue }: StatsCardProps) => {
-  const getTrendColor = () => {
-    if (trend === "up") return "text-green-600";
-    if (trend === "down") return "text-red-600";
-    return "text-muted-foreground";
-  };
-
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-        {trendValue && (
-          <div className={`flex items-center mt-1 text-xs ${getTrendColor()}`}>
-            <ArrowUpRight className="h-3 w-3 mr-1" />
-            {trendValue}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Eye, MousePointerClick, TrendingUp } from "lucide-react";
+import { StatCard } from "@/components/ui/stat-card";
+import { useState, useEffect } from "react";
+import { format, subDays } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslation, dashboardTranslations } from "@/translations";
 
 const StatisticsCards = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
+  const t = getTranslation(language, dashboardTranslations);
   const [profileViews, setProfileViews] = useState(0);
   const [linkClicks, setLinkClicks] = useState(0);
+  const [profileViewsLastWeek, setProfileViewsLastWeek] = useState(0);
+  const [linkClicksLastWeek, setLinkClicksLastWeek] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,30 +25,59 @@ const StatisticsCards = () => {
       try {
         setLoading(true);
         
-        // Fetch profile views count
-        const { count: viewsCount, error: viewsError } = await supabase
-          .from("profile_views")
-          .select("*", { count: "exact", head: false })
-          .eq("profile_id", user.id);
+        // Get date ranges for current and previous week
+        const now = new Date();
+        const oneWeekAgo = subDays(now, 7);
+        const twoWeeksAgo = subDays(now, 14);
         
-        if (viewsError) {
-          console.error("Error fetching profile views:", viewsError);
-        } else {
-          setProfileViews(viewsCount || 0);
-        }
+        // Format dates for querying
+        const oneWeekAgoStr = format(oneWeekAgo, "yyyy-MM-dd");
+        const twoWeeksAgoStr = format(twoWeeksAgo, "yyyy-MM-dd");
         
-        // Fetch link clicks from profile_views table where source starts with "click:"
-        const { count: clicksCount, error: clicksError } = await supabase
-          .from("profile_views")
-          .select("*", { count: "exact", head: false })
-          .eq("profile_id", user.id)
-          .like("source", "click:%");
-        
-        if (clicksError) {
-          console.error("Error fetching link clicks:", clicksError);
-        } else {
-          setLinkClicks(clicksCount || 0);
-        }
+        // Execute ALL 4 queries in parallel with head: true for optimal performance
+        const [
+          currentViewsResult,
+          currentClicksResult,
+          prevViewsResult,
+          prevClicksResult
+        ] = await Promise.all([
+          // CURRENT WEEK: Profile views (not from link clicks)
+          supabase
+            .from("profile_views")
+            .select("id", { count: "exact", head: true })
+            .eq("profile_id", user.id)
+            .not("source", "like", "click:%")
+            .gte("timestamp", oneWeekAgoStr),
+          // CURRENT WEEK: Link clicks
+          supabase
+            .from("profile_views")
+            .select("id", { count: "exact", head: true })
+            .eq("profile_id", user.id)
+            .like("source", "click:%")
+            .gte("timestamp", oneWeekAgoStr),
+          // PREVIOUS WEEK: Profile views
+          supabase
+            .from("profile_views")
+            .select("id", { count: "exact", head: true })
+            .eq("profile_id", user.id)
+            .not("source", "like", "click:%")
+            .gte("timestamp", twoWeeksAgoStr)
+            .lt("timestamp", oneWeekAgoStr),
+          // PREVIOUS WEEK: Link clicks
+          supabase
+            .from("profile_views")
+            .select("id", { count: "exact", head: true })
+            .eq("profile_id", user.id)
+            .like("source", "click:%")
+            .gte("timestamp", twoWeeksAgoStr)
+            .lt("timestamp", oneWeekAgoStr)
+        ]);
+
+        // Set all state at once
+        setProfileViews(currentViewsResult.count || 0);
+        setLinkClicks(currentClicksResult.count || 0);
+        setProfileViewsLastWeek(prevViewsResult.count || 0);
+        setLinkClicksLastWeek(prevClicksResult.count || 0);
         
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -89,50 +89,73 @@ const StatisticsCards = () => {
     fetchStats();
   }, [user]);
 
+  // Calculate percentage changes from last week
+  const getPercentChange = (current: number, previous: number): string => {
+    if (previous === 0) {
+      // Se não tinha dados na semana anterior, mostra "novo" ou o crescimento absoluto
+      return current > 0 ? `${current * 100}%` : "0%";
+    }
+    
+    const percentChange = ((current - previous) / previous) * 100;
+    // Não adicionar "+" aqui pois o StatCard já adiciona quando trend é "up"
+    return `${Math.abs(percentChange).toFixed(0)}%`;
+  };
+
+  // Determine trend direction
+  const getTrend = (current: number, previous: number): "up" | "down" | "neutral" => {
+    if (current > previous) return "up";
+    if (current < previous) return "down";
+    return "neutral";
+  };
+
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="animate-pulse">
-          <CardHeader className="h-12"></CardHeader>
-          <CardContent className="h-24"></CardContent>
-        </Card>
-        <Card className="animate-pulse">
-          <CardHeader className="h-12"></CardHeader>
-          <CardContent className="h-24"></CardContent>
-        </Card>
-        <Card className="animate-pulse">
-          <CardHeader className="h-12"></CardHeader>
-          <CardContent className="h-24"></CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-6 border rounded-lg">
+            <Skeleton className="h-4 w-32 mb-4" />
+            <Skeleton className="h-10 w-24 mb-2" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+        ))}
       </div>
     );
   }
 
+  // Calculate the percentage changes and trends
+  const profileViewsChange = getPercentChange(profileViews, profileViewsLastWeek);
+  const linkClicksChange = getPercentChange(linkClicks, linkClicksLastWeek);
+  
+  // Calculate conversion rate for current and previous week
+  const conversionRate = profileViews > 0 ? (linkClicks / profileViews) * 100 : 0;
+  const prevConversionRate = profileViewsLastWeek > 0 ? (linkClicksLastWeek / profileViewsLastWeek) * 100 : 0;
+  const conversionRateChange = getPercentChange(conversionRate, prevConversionRate);
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <StatsCard
-        title="Profile Views"
+    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <StatCard
+        title={t.overview.stats.profileViews}
         value={profileViews}
-        description="Total profile views"
-        icon={<Eye className="h-4 w-4 text-muted-foreground" />}
-        trend="up"
-        trendValue="+12.5% from last week"
+        subtitle={t.overview.stats.totalViews}
+        icon={Eye}
+        trend={getTrend(profileViews, profileViewsLastWeek)}
+        trendValue={`${profileViewsChange} ${t.overview.stats.fromLastWeek}`}
       />
-      <StatsCard
-        title="Link Clicks"
+      <StatCard
+        title={t.overview.stats.linkClicks}
         value={linkClicks}
-        description="Total link clicks"
-        icon={<MousePointer className="h-4 w-4 text-muted-foreground" />}
-        trend="up"
-        trendValue="+7.2% from last week"
+        subtitle={t.overview.stats.totalClicks}
+        icon={MousePointerClick}
+        trend={getTrend(linkClicks, linkClicksLastWeek)}
+        trendValue={`${linkClicksChange} ${t.overview.stats.fromLastWeek}`}
       />
-      <StatsCard
-        title="Conversion Rate"
-        value={profileViews > 0 ? `${((linkClicks / profileViews) * 100).toFixed(1)}%` : "0%"}
-        description="Clicks per profile view"
-        icon={<ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
-        trend="neutral"
-        trendValue="Same as last week"
+      <StatCard
+        title={t.overview.stats.conversionRate}
+        value={conversionRate > 0 ? `${conversionRate.toFixed(1)}%` : "0%"}
+        subtitle={t.overview.stats.clicksPerView}
+        icon={TrendingUp}
+        trend={getTrend(conversionRate, prevConversionRate)}
+        trendValue={`${conversionRateChange} ${t.overview.stats.fromLastWeek}`}
       />
     </div>
   );

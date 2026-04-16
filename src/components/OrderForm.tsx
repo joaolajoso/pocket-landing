@@ -3,6 +3,7 @@ import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Mail, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getLocalizedText } from "@/utils/languageHelpers";
 
 const OrderForm = () => {
   const { language } = useLanguage();
@@ -11,12 +12,14 @@ const OrderForm = () => {
     <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
       <div className="text-center mb-6">
         <h3 className="text-xl font-medium mb-2">
-          {language === 'en' ? 'Contact Us to Order' : 'Contate-nos para Pedir'}
+          {getLocalizedText(language, 'Contate-nos para Pedir', 'Contact Us to Order')}
         </h3>
         <p className="text-muted-foreground">
-          {language === 'en' 
-            ? 'Reach out directly to place your order or ask questions.'
-            : 'Entre em contato diretamente para fazer seu pedido ou tirar dúvidas.'}
+          {getLocalizedText(
+            language,
+            'Entre em contato diretamente para fazer seu pedido ou tirar dúvidas.',
+            'Reach out directly to place your order or ask questions.'
+          )}
         </p>
       </div>
       
@@ -26,7 +29,7 @@ const OrderForm = () => {
             <Mail className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <h4 className="font-medium">{language === 'en' ? 'Email' : 'Email'}</h4>
+            <h4 className="font-medium">Email</h4>
             <a href="mailto:pocketcvnetworking@gmail.com" className="text-primary hover:underline transition-all break-all">
               pocketcvnetworking@gmail.com
             </a>
@@ -38,9 +41,9 @@ const OrderForm = () => {
             <Phone className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h4 className="font-medium">{language === 'en' ? 'Phone' : 'Telefone'}</h4>
-            <a href="tel:929331791" className="text-primary hover:underline transition-all">
-              929 331 791
+            <h4 className="font-medium">{getLocalizedText(language, 'Telefone', 'Phone')}</h4>
+            <a href="tel:918138203" className="text-primary hover:underline transition-all">
+              918 138 203
             </a>
           </div>
         </div>
@@ -50,9 +53,9 @@ const OrderForm = () => {
             <MessageCircle className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h4 className="font-medium">{language === 'en' ? 'Consulting' : 'Consultoria'}</h4>
-            <a href="mailto:pocketcvnetworking@gmail.com?subject=PocketCV%20Consulting" className="text-primary hover:underline transition-all break-all">
-              {language === 'en' ? 'Request Consulting' : 'Solicitar Consultoria'}
+            <h4 className="font-medium">Instagram</h4>
+            <a href="https://instagram.com/pocketcv_networking" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline transition-all break-all">
+              @pocketcv_networking
             </a>
           </div>
         </div>
@@ -61,13 +64,13 @@ const OrderForm = () => {
       <div className="space-y-4">
         <Button asChild size="lg" className="w-full rounded-md px-8 font-medium bg-pocketcv-purple hover:bg-pocketcv-purple/90 text-white">
           <a href="mailto:pocketcvnetworking@gmail.com?subject=PocketCV%20Order&body=I'm%20interested%20in%20ordering%20a%20PocketCV%20card.">
-            {language === 'en' ? 'Email Us to Order' : 'Envie-nos um Email para Pedir'}
+            {getLocalizedText(language, 'Envie-nos um Email para Pedir', 'Email Us to Order')}
           </a>
         </Button>
         
         <Button asChild variant="outline" size="lg" className="w-full rounded-md">
           <a href="tel:929331791">
-            {language === 'en' ? 'Call Us Now' : 'Ligue Agora'}
+            {getLocalizedText(language, 'Ligue Agora', 'Call Us Now')}
             <Phone className="ml-2 h-4 w-4" />
           </a>
         </Button>

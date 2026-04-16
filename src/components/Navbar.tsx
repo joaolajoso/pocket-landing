@@ -4,11 +4,14 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { isPortuguese } from "@/utils/languageHelpers";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, signOut } = useAuth();
+  const { language } = useLanguage();
   const domain = "pocketcv.pt"; // Using the custom domain
 
   useEffect(() => {
@@ -35,18 +38,49 @@ const Navbar = () => {
   return (
     <nav className="bg-white py-3 sticky top-0 z-50 px-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="text-2xl font-bold flex items-center">
-          <span className="text-black">Pocket</span>
-          <span className="text-black ml-1">CV</span>
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/lovable-uploads/e2dc45fe-1094-4092-bd2c-a5d283e4d0f8.png" 
+            alt="PocketCV Logo" 
+            className="h-10"
+            width="184"
+            height="40"
+            loading="eager"
+            decoding="async"
+          />
         </Link>
 
         <div className="hidden md:flex items-center space-x-6">
-          <button
-            onClick={() => scrollToSection('how-it-works')}
+          <Link 
+            to="/forbusinesses"
             className="text-gray-600 hover:text-primary transition-colors"
           >
-            How It Works
-          </button>
+            {isPortuguese(language) ? 'Para Empresas' : 'For Business'}
+          </Link>
+          <Link 
+            to="/pricing"
+            className="text-gray-600 hover:text-primary transition-colors"
+          >
+            {isPortuguese(language) ? 'Preços' : 'Pricing'}
+          </Link>
+          <Link 
+            to="/blog"
+            className="text-gray-600 hover:text-primary transition-colors"
+          >
+            Blog
+          </Link>
+          <Link 
+            to="/shop"
+            className="text-gray-600 hover:text-primary transition-colors"
+          >
+            {isPortuguese(language) ? 'Loja NFC' : 'NFC Shop'}
+          </Link>
+          <Link 
+            to="/about"
+            className="text-gray-600 hover:text-primary transition-colors"
+          >
+            {isPortuguese(language) ? 'Sobre Nós' : 'About Us'}
+          </Link>
           <button
             onClick={() => scrollToSection('faq')}
             className="text-gray-600 hover:text-primary transition-colors"
@@ -64,17 +98,19 @@ const Navbar = () => {
                 variant="outline" 
                 onClick={signOut}
               >
-                Log out
+                {isPortuguese(language) ? 'Sair' : 'Log out'}
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" asChild>
-                <Link to="/login">Log in</Link>
+                <Link to="/login">{isPortuguese(language) ? 'Entrar' : 'Log in'}</Link>
               </Button>
               
-              <Button className="bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white" asChild>
-                <Link to="/get-started">Get Your PocketCV Card</Link>
+              <Button className="bg-pocketcv-purple hover:bg-pocketcv-purple/90 text-white" asChild>
+                <Link to="/login?signup=true">
+                  {isPortuguese(language) ? 'Começar Agora' : 'Get Started'}
+                </Link>
               </Button>
             </>
           )}
@@ -116,12 +152,41 @@ const Navbar = () => {
 
       {isMenuOpen && (
         <div className="md:hidden bg-white py-4 px-4 space-y-3 shadow-lg mt-3 rounded-md">
-          <button
-            onClick={() => scrollToSection('how-it-works')}
+          <Link
+            to="/forbusinesses"
             className="block w-full text-left py-2 text-gray-600 hover:text-primary transition-colors"
+            onClick={() => setIsMenuOpen(false)}
           >
-            How It Works
-          </button>
+            {isPortuguese(language) ? 'Para Empresas' : 'For Business'}
+          </Link>
+          <Link
+            to="/pricing"
+            className="block w-full text-left py-2 text-gray-600 hover:text-primary transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {isPortuguese(language) ? 'Preços' : 'Pricing'}
+          </Link>
+          <Link
+            to="/blog"
+            className="block w-full text-left py-2 text-gray-600 hover:text-primary transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Blog
+          </Link>
+          <Link
+            to="/shop"
+            className="block w-full text-left py-2 text-gray-600 hover:text-primary transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {isPortuguese(language) ? 'Loja NFC' : 'NFC Shop'}
+          </Link>
+          <Link
+            to="/about"
+            className="block w-full text-left py-2 text-gray-600 hover:text-primary transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {isPortuguese(language) ? 'Sobre Nós' : 'About Us'}
+          </Link>
           <button
             onClick={() => scrollToSection('faq')}
             className="block w-full text-left py-2 text-gray-600 hover:text-primary transition-colors"
@@ -139,16 +204,18 @@ const Navbar = () => {
                   variant="outline" 
                   onClick={signOut}
                 >
-                  Log out
+                  {isPortuguese(language) ? 'Sair' : 'Log out'}
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="ghost" className="w-full" asChild>
-                  <Link to="/login">Log in</Link>
+                  <Link to="/login">{isPortuguese(language) ? 'Entrar' : 'Log in'}</Link>
                 </Button>
-                <Button className="w-full bg-pocketcv-orange hover:bg-pocketcv-orange/90 text-white" asChild>
-                  <Link to="/get-started">Get Your PocketCV Card</Link>
+                <Button className="w-full bg-pocketcv-purple hover:bg-pocketcv-purple/90 text-white" asChild>
+                  <Link to="/login?signup=true">
+                    {isPortuguese(language) ? 'Começar Agora' : 'Get Started'}
+                  </Link>
                 </Button>
               </>
             )}

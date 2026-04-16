@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Briefcase, Users, Building, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLocalizedText } from "@/utils/languageHelpers";
 
 const BusinessSection = () => {
   const { language } = useLanguage();
@@ -11,24 +12,30 @@ const BusinessSection = () => {
   const benefits = [
     {
       icon: <Users className="h-8 w-8 text-pocketcv-purple" />,
-      title: language === 'en' ? 'Team Networking' : 'Networking em Equipe',
-      description: language === 'en' 
-        ? 'Equip your entire team with PocketCV cards for efficient and modern networking.'
-        : 'Equipe toda a sua equipe com cartões PocketCV para networking eficiente e moderno.'
+      title: getLocalizedText(language, 'Networking em Equipa', 'Team Networking'),
+      description: getLocalizedText(
+        language,
+        'Equipe toda a sua equipa com cartões PocketCV para networking eficiente e moderno.',
+        'Equip your entire team with professional networking tools for efficient and modern connection building.'
+      )
     },
     {
       icon: <Building className="h-8 w-8 text-pocketcv-purple" />,
-      title: language === 'en' ? 'Bulk Savings' : 'Economia em Volume',
-      description: language === 'en' 
-        ? 'Reduced cost of €4 per card for orders of 50+ cards.'
-        : 'Custo reduzido de €4 por cartão para pedidos de 50+ cartões.'
+      title: getLocalizedText(language, 'Economia em Volume', 'Bulk Savings'),
+      description: getLocalizedText(
+        language,
+        'Preços com desconto ao comprar cartões em volume.',
+        'Discounted pricing when buying cards in bulk.'
+      )
     },
     {
       icon: <Briefcase className="h-8 w-8 text-pocketcv-purple" />,
-      title: language === 'en' ? 'Instant Updates' : 'Atualizações Instantâneas',
-      description: language === 'en' 
-        ? 'Update all team profiles instantly without reprinting outdated business cards.'
-        : 'Atualize todos os perfis da equipe instantaneamente sem reimprimir cartões desatualizados.'
+      title: getLocalizedText(language, 'Atualizações Instantâneas', 'Instant Updates'),
+      description: getLocalizedText(
+        language,
+        'Atualize todos os perfis da equipa instantaneamente sem reimprimir cartões desatualizados.',
+        'Update all team profiles instantly without reprinting outdated business cards.'
+      )
     }
   ];
 
@@ -38,12 +45,14 @@ const BusinessSection = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-gradient">
-              {language === 'en' ? 'For Businesses' : 'Para Empresas'}
+              {getLocalizedText(language, 'Para Empresas', 'For Businesses')}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {language === 'en' 
-                ? 'Modernize your team\'s professional networking with PocketCV business solutions.'
-                : 'Modernize o networking profissional da sua equipe com as soluções empresariais PocketCV.'}
+              {getLocalizedText(
+                language,
+                'Modernize o networking profissional da sua equipa com as soluções empresariais PocketCV.',
+                'Modernize your team\'s professional networking with PocketCV business solutions.'
+              )}
             </p>
           </div>
           
@@ -68,8 +77,8 @@ const BusinessSection = () => {
               className="bg-pocketcv-purple hover:bg-pocketcv-purple/90 text-white transform hover:scale-105 transition-all duration-300 shadow-lg px-8" 
               asChild
             >
-              <Link to="/get-started">
-                {language === 'en' ? 'Bulk Order for Your Business' : 'Pedido em Volume para sua Empresa'}
+              <Link to="/pricing">
+                {getLocalizedText(language, 'Pedido em Volume para a sua Empresa', 'Bulk Order for Your Business')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>

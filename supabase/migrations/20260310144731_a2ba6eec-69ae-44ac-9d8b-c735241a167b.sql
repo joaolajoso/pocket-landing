@@ -1,0 +1,1 @@
+INSERT INTO event_participants (event_id, user_id, status, role) VALUES ('16e5085b-a3dc-44cd-969c-460193919c58', '47963c84-0914-4f29-8bd5-7a88581a8cc9', 'participating', 'participant');

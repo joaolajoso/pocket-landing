@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +17,12 @@ interface Profile {
   created_at: string;
   updated_at: string;
   allow_network_saves: boolean;
+  phone_number?: string;
+  links_disclaimer_accepted?: boolean;
+  lead_capture_enabled: boolean;
+  share_email_publicly?: boolean;
+  share_phone_publicly?: boolean;
+  use_new_public_page?: boolean;
 }
 
 export const useProfile = (username?: string) => {
@@ -34,7 +39,6 @@ export const useProfile = (username?: string) => {
       let profileData;
 
       if (username) {
-        // Fetch by username/slug
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -44,7 +48,6 @@ export const useProfile = (username?: string) => {
         if (error) throw error;
         profileData = data;
       } else if (user) {
-        // Fetch the logged-in user's profile
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -55,7 +58,7 @@ export const useProfile = (username?: string) => {
         profileData = data;
       }
 
-      setProfile(profileData);
+      setProfile(profileData as Profile);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError(err as Error);
@@ -64,12 +67,10 @@ export const useProfile = (username?: string) => {
     }
   }, [user, username]);
 
-  // Initial fetch
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  // Set up real-time subscription
   useEffect(() => {
     if (!user) return;
 
@@ -84,8 +85,7 @@ export const useProfile = (username?: string) => {
           : `id=eq.${user.id}`
       }, (payload) => {
         console.log('Profile changed:', payload);
-        // @ts-ignore - new record might not match Profile type exactly but that's ok
-        setProfile(payload.new);
+        setProfile(payload.new as Profile);
       })
       .subscribe();
 
@@ -94,7 +94,6 @@ export const useProfile = (username?: string) => {
     };
   }, [user, username]);
 
-  // Add the update profile function
   const updateProfile = async (updateData: Partial<Profile>): Promise<boolean> => {
     if (!user) return false;
     
@@ -108,8 +107,9 @@ export const useProfile = (username?: string) => {
         
       if (error) throw error;
       
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...updateData } : null);
+      if (profile) {
+        setProfile({ ...profile, ...updateData });
+      }
       return true;
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -120,14 +120,12 @@ export const useProfile = (username?: string) => {
     }
   };
   
-  // Add the upload photo function
   const uploadProfilePhoto = async (file: File): Promise<string | null> => {
     if (!user) return null;
     
     try {
       setLoading(true);
       
-      // Upload to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
@@ -137,14 +135,12 @@ export const useProfile = (username?: string) => {
         
       if (uploadError) throw uploadError;
       
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('profile_photos')
         .getPublicUrl(fileName);
         
       if (!urlData.publicUrl) throw new Error('Failed to get public URL');
       
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ photo_url: urlData.publicUrl })
@@ -152,8 +148,9 @@ export const useProfile = (username?: string) => {
         
       if (updateError) throw updateError;
       
-      // Update local state
-      setProfile(prev => prev ? { ...prev, photo_url: urlData.publicUrl } : null);
+      if (profile) {
+        setProfile({ ...profile, photo_url: urlData.publicUrl });
+      }
       
       return urlData.publicUrl;
     } catch (err) {
@@ -165,21 +162,18 @@ export const useProfile = (username?: string) => {
     }
   };
   
-  // Add the delete photo function
   const deleteProfilePhoto = async (): Promise<boolean> => {
     if (!user || !profile?.photo_url) return false;
     
     try {
       setLoading(true);
       
-      // Extract file path from URL
       const photoUrl = profile.photo_url;
       const pathMatch = photoUrl.match(/\/([^/]+\/[^/]+)$/);
       
       if (pathMatch && pathMatch[1]) {
         const filePath = pathMatch[1];
         
-        // Delete from storage
         const { error: deleteError } = await supabase.storage
           .from('profile_photos')
           .remove([filePath]);
@@ -187,7 +181,6 @@ export const useProfile = (username?: string) => {
         if (deleteError) throw deleteError;
       }
       
-      // Update profile to remove photo URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ photo_url: null })
@@ -195,8 +188,9 @@ export const useProfile = (username?: string) => {
         
       if (updateError) throw updateError;
       
-      // Update local state
-      setProfile(prev => prev ? { ...prev, photo_url: null } : null);
+      if (profile) {
+        setProfile({ ...profile, photo_url: null });
+      }
       
       return true;
     } catch (err) {

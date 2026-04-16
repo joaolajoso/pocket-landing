@@ -10,23 +10,24 @@ const Footer = () => {
       <div className="container mx-auto px-4 md:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           <div className="space-y-4">
-            <Link to="/" className="text-xl font-bold tracking-tight">
-              <span className="text-primary">Pocket</span>CV
+            <Link to="/" className="block">
+              <img 
+                src="/lovable-uploads/0671baf7-a9a8-4848-b785-6b569a493697.png" 
+                alt="PocketCV Logo" 
+                className="h-10"
+                width="184"
+                height="40"
+                loading="lazy"
+              />
             </Link>
             <p className="text-muted-foreground text-sm">
               Your professional identity, simplified. Share your links and contact information with a tap.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Twitter">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/pocketcv_networking" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Github">
-                <Github size={20} />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="LinkedIn">
+              <a href="https://www.linkedin.com/company/pocketcv/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="LinkedIn">
                 <Linkedin size={20} />
               </a>
             </div>
@@ -43,11 +44,6 @@ const Footer = () => {
               <li>
                 <Link to="/#how-it-works" className="text-muted-foreground hover:text-primary text-sm transition-colors">
                   How It Works
-                </Link>
-              </li>
-              <li>
-                <Link to="/pricing" className="text-muted-foreground hover:text-primary text-sm transition-colors">
-                  Pricing
                 </Link>
               </li>
               <li>

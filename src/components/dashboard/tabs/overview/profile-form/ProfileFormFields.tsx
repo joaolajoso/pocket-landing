@@ -1,7 +1,8 @@
 
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileLinkCopy } from "./ProfileLinkCopy";
 import { ProfileFormValues } from "./types";
@@ -93,42 +94,74 @@ export const ProfileFormFields = ({ form, loading, onNameChange }: ProfileFormFi
           </FormItem>
         )}
       />
-      
+
       <FormField
         control={form.control}
-        name="linkedin"
+        name="phone_number"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>LinkedIn</FormLabel>
+            <FormLabel>Telemóvel</FormLabel>
             <FormControl>
-              <Input 
-                {...field} 
-                disabled={loading} 
-                placeholder="username or full URL" 
+              <Input
+                {...field}
+                disabled={loading}
+                placeholder="+351 912 345 678"
+                type="tel"
               />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-      
-      <FormField
-        control={form.control}
-        name="website"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Website</FormLabel>
-            <FormControl>
-              <Input 
-                {...field} 
-                disabled={loading} 
-                placeholder="yourwebsite.com" 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+
+      <div className="space-y-4 pt-4 border-t">
+        <h3 className="text-sm font-medium">Privacidade</h3>
+        
+        <FormField
+          control={form.control}
+          name="share_email_publicly"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Email Público</FormLabel>
+                <FormDescription>
+                  Permitir que o seu email seja visível no perfil público
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={loading}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="share_phone_publicly"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Telemóvel Público</FormLabel>
+                <FormDescription>
+                  Permitir que o seu telemóvel seja visível no perfil público
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={loading}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </div>
+
     </>
   );
 };

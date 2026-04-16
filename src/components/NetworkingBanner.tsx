@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { isPortuguese } from '@/utils/languageHelpers';
 
 // Define translations
 const translations = {
@@ -9,16 +10,16 @@ const translations = {
     rightText: "And be ready whenever you need it"
   },
   pt: {
-    leftText: "Tenha todas as suas necessidades de networking em um só lugar",
+    leftText: "Tenha todas as suas necessidades de networking num só lugar",
     rightText: "E esteja pronto sempre que precisar"
   }
 };
+
 const NetworkingBanner = (): JSX.Element => {
   const bannerRef = useRef<HTMLDivElement>(null);
-  const {
-    language
-  } = useLanguage();
-  const t = translations[language as keyof typeof translations];
+  const { language } = useLanguage();
+  const t = isPortuguese(language) ? translations.pt : translations.en;
+  
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -36,6 +37,8 @@ const NetworkingBanner = (): JSX.Element => {
       elements?.forEach(el => observer.unobserve(el));
     };
   }, []);
-  return;
+  
+  return null;
 };
+
 export default NetworkingBanner;
